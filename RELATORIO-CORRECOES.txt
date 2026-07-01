@@ -768,17 +768,32 @@ I. CONFIGURACOES IMPORTANTES DO BANCO (MySQL) — guardar / ainda em uso
 
 
 ################################################################################
-J. DOCKER — IMPLEMENTADO em 2026-06-30 (falta o usuario MOVER o Toolkit pro monorepo + testar)
+J. DOCKER — IMPLEMENTADO em 2026-06-30; VALIDADO EM 2026-07-01 (build verde + testes ok)
 ################################################################################
 >>> ARQUIVOS CRIADOS na raiz Desktop/ideiaware-outlook/ (= raiz do monorepo): docker-compose.yml
     (base PROD-safe) + docker-compose.dev.yml (override) + .env.example + .gitignore + .dockerignore
     + app/{Dockerfile multi-stage, setenv.sh com --add-opens, entrypoint.sh com sed dos configs} +
-    db/{my.cnf com lct=1/utf8mb4/native_password/max_packet, init/estrutura-lic_bd.sql (copia)} +
-    README-docker.md. Base = prod-safe -> no server e so `git clone` + `docker compose up -d`; dev
-    adiciona `-f docker-compose.dev.yml` (expoe 3306, hbm2ddl=update, show_sql). PENDENTE DO USUARIO:
-    (1) MOVER Desktop/Toolkit2025-main/Toolkit2025-main/ -> ideiaware-outlook/Toolkit2025-main/ (o
-    Docker so enxerga o que esta na raiz); (2) cp .env.example .env + preencher; (3) `up -d` + testar.
-    Detalhes abaixo (a modelagem original).
+    db/init/estrutura-lic_bd.sql + README.md (raiz) + README-docker.md.
+    Base = prod-safe -> no server e `git clone` + `docker compose up -d --build`; dev adiciona
+    `-f docker-compose.dev.yml` (expoe 3306, hbm2ddl=update, show_sql).
+    Monorepo: IdeiaWare-main/ + Toolkit2025-main/ + Docker tudo no mesmo repo (IdeiaWare/IdeiaWare2026).
+
+FIXES DESCOBERTOS NOS TESTES (2026-07-01):
+[D-4 revisado] my.cnf montado do Windows fica com permissao 777 dentro do container Linux -> MySQL
+   servidor IGNORA o arquivo (seguranca). Solucao: configs do MySQL passam via `command:` no compose
+   (--lower-case-table-names=1 --character-set-server=utf8mb4 --default-authentication-plugin=
+   mysql_native_password --max-allowed-packet=67108864). O my.cnf foi removido do volume mount.
+[D-4b] lower_case_table_names=0 (default Linux) + hbm2ddl=update criava tabelas em MAIUSCULO duplicando
+   as do SQL init (minusculas) -> login falhava (admin estava na tabela `usuario` mas query ia p/
+   `Usuario` vazia). Fix: lct=1 via command: + docker compose down -v (recriar volume do zero).
+[D-3b] connector 8 + MySQL 8 caching_sha2_password -> "Public Key Retrieval is not allowed". Fix:
+   &allowPublicKeyRetrieval=true adicionado nas URLs JDBC de LIC (hibernate.cfg.xml) e Toolkit
+   (toolkit-servlet.xml).
+[D-6b] Timezone: serverTimezone=America/Sao_Paulo com MySQL em UTC causava conversao dupla (+3h nas
+   datas). Fix: serverTimezone=UTC nas URLs JDBC (o servidor MySQL E o Docker sao UTC) + TZ=America/
+   Sao_Paulo no environment do servico app (Java exibe em horario de Brasilia).
+[UI] Nome do usuario exibido no nav do LIC: LogInServlet salva session.nomeUsuario; index.jsp exibe
+   ${sessionScope.nomeUsuario} + icone de perfil (antes mostrava so "Perfil").
 
 Objetivo: "clonar o repo e rodar docker compose up -d". Cada armadilha do deploy (D-1..D-7) vira config
 ASSADA na imagem. Decisoes fechadas com o usuario: compose com BUILD MULTI-STAGE (o Docker compila os
@@ -798,8 +813,8 @@ IMAGEM DB (mata D-4/5/6a): my.cnf com lower_case_table_names=1 + character-set-s
 IMAGEM APP (mata D-1/2/3): Dockerfile multi-stage — stage1 = maven builda os 2 wars; stage2 =
   tomcat:9.0-jdk21 (Tomcat 9 garantido + JDK 21). Explode os wars p/ o entrypoint editar os configs.
   setenv.sh com --add-opens (D-2). entrypoint.sh faz templating via env (sed troca o host 127.0.0.1
-  e o hbm2ddl sem rebuildar): DB_HOST/DB_NAME/HBM2DDL/SHOW_SQL. Os wars ja trazem o connector 5.1.49
-  + ENC-03.
+  e o hbm2ddl sem rebuildar): DB_HOST/DB_NAME/HBM2DDL/SHOW_SQL. Os wars trazem o connector 8.0.33
+  (com.mysql.cj.jdbc.Driver) + allowPublicKeyRetrieval=true nas URLs + ENC-03.
 COMPOSE: base (db+app, depends_on healthy) + .dev.yml (db expoe 3306, HBM2DDL=update, SHOW_SQL=true) +
   .prod.yml (restart always). Workflow:
     DEV:  docker compose -f docker-compose.yml -f docker-compose.dev.yml  up -d --build
@@ -826,9 +841,8 @@ K. PENDENCIAS
    CODIGO FEITO + BUILD VERDE (defaults mantem os 42 testes passando). Falta o .env real + revogar a
    chave SendGrid (acao do usuario, na hora de subir o Docker).
 [#3-resto] reset de senha por LINK com token de expiracao + rate-limit (a anti-enumeracao SEC-19 ja
-   foi feita; e a UNICA divida de seguranca que sobra de fato). Anda junto de uma config de tokens.
-[#3-resto] reset de senha por LINK com token de expiracao + rate-limit (a anti-enumeracao SEC-19 ja
-   foi feita; o resto anda junto do #5/config).
+   foi feita; e a UNICA divida de seguranca que sobra de fato). O fluxo atual gera senha temporaria
+   e envia por e-mail (sem token/expiracao); qualquer um que saiba o e-mail pode resetar a conta.
 
 --- K.2 [CAN-EDIT] ENDURECER A EDICAO DO CANVAS ---
    O canvas NAO tem trava de edicao por lider no CODIGO: os forms de editar so somem em modo retencao
