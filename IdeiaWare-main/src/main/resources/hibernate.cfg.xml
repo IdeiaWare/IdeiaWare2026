@@ -8,7 +8,6 @@
 
     <session-factory>
 
-        <!-- Configurações de Conexão com o Banco de Dados -->
         <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
         <!-- useUnicode + characterEncoding=UTF-8: FORCA a conexao em UTF-8. Sem isto, o
              connector 5.1 nao reconhece a collation padrao do MySQL 8 e negocia errado
@@ -18,7 +17,6 @@
         <property name="connection.username">root</property>
         <property name="connection.password">root</property>
 
-        <!-- SQL dialect -->
         <property name="dialect">org.hibernate.dialect.MySQL8Dialect</property>
 
         <!-- CASE-FIX (2026-06-23): forca nomes de tabela em minusculo. Sem isto, no MySQL
@@ -26,19 +24,14 @@
              Export_File...) nao achariam as tabelas reais minusculas. -->
         <property name="hibernate.physical_naming_strategy">edu.unisc.lic.util.LowerCaseTableNamingStrategy</property>
 
-        <!-- Gerenciamento do Contexto das Sessões -->
         <property name="current_session_context_class">thread</property>
 
-        <!-- Cache de Segundo Nível -->
         <property name="cache.provider_class">org.hibernate.cache.internal.NoCacheProvider</property>
 
-        <!-- Mostra as SQLs Geradas -->
         <property name="show_sql">true</property>
 
-        <!-- Cria as tabelas do banco de dados -->
         <property name="hbm2ddl.auto">update</property>
-		
-        <!-- Mapeamento das entidades -->
+
         <mapping class="edu.unisc.lic.domain.ColaboracaoIdeia" />
         <mapping class="edu.unisc.lic.domain.ElementosStorytelling" />
         <mapping class="edu.unisc.lic.domain.ExportFile" />
@@ -49,7 +42,7 @@
         <mapping class="edu.unisc.lic.domain.Usuario" />
         <mapping class="edu.unisc.lic.domain.Canva" />
         <mapping class="edu.unisc.lic.domain.Canvaexport" />
-                
+
     </session-factory>
 
 </hibernate-configuration>
