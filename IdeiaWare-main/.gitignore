@@ -1,33 +1,25 @@
-# ===== Build / saida de compilacao =====
 target/
 build-war/
 *.class
 
-# ===== IDE =====
-# Eclipse/WTP — projeto roda no Maven/VSCode, Eclipse nao e mais usado.
 .project
 .classpath
 .settings/
 nbproject/private/
 nb-configuration.xml
 
-# ===== Backups e temporarios =====
 *.bak
 *.tmp
 *.log
 sources.txt
 
-# ===== Config local / segredos (versione SO o .env.example) =====
 .env
 *.env
 !.env.example
-# legado do projeto Swing (config de banco criptografada)
 src/main/java/cfgbanco.txt
 
-# ===== Artefatos de empacotamento (gerados, nao versionar) =====
 *.war
 
-# ===== Sistema operacional =====
 .DS_Store
 Thumbs.db
 desktop.ini

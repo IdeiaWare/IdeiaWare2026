@@ -9,13 +9,10 @@
     <packaging>war</packaging>
 
     <!--
-      pom gerado em 2026-06-16 para MAVENIZAR o Toolkit (antes era build manual
-      javac+jar). REPRODUZ as versoes ATUAIS (sem upgrade) — Spring 4.3.9,
-      Hibernate 5.2.10, MySQL connector 5.1.42, JSTL 1.2.1, shims JAXB p/ JDK 11+.
-      Projeto e Eclipse/WTP: fontes em src/ e web em WebContent/ (nao o layout
+      Projeto Eclipse/WTP: fontes em src/ e web em WebContent/ (nao o layout
       padrao do Maven), por isso os <sourceDirectory>/<warSourceDirectory> abaixo.
       Os jars de WebContent/WEB-INF/lib sao EXCLUIDOS do war (o Maven resolve as
-      dependencias) — isso tambem mata a armadilha dos -sources/-javadoc.
+      dependencias). Stack: Spring 5.3.39, Hibernate 5.6.15, connector 8.0.33.
     -->
     <properties>
         <!-- ENC-01: padronizado em UTF-8 (era Latin-1/ISO-8859-1) -->
@@ -61,7 +58,7 @@
     </build>
 
     <dependencies>
-        <!-- ================= Spring MVC 4.3.9 ================= -->
+        <!-- ================= Spring MVC 5.3.39 ================= -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
@@ -78,7 +75,7 @@
             <version>5.3.39</version>
         </dependency>
 
-        <!-- ================= Hibernate 5.2.10 + c3p0 + validator ================= -->
+        <!-- ================= Hibernate 5.6.15 + c3p0 + validator ================= -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
@@ -95,10 +92,7 @@
             <version>6.2.5.Final</version>
         </dependency>
 
-        <!-- ================= MySQL (5.1.49 — compativel com MySQL 8) ============== -->
-        <!-- 5.1.42 consultava 'tx_isolation', variavel REMOVIDA no MySQL 8 -> a conexao
-             quebrava ("Unable to create JdbcEnvironment"). 5.1.49 (ultimo da linha 5.1)
-             corrige, mantendo o mesmo driver/URL. -->
+        <!-- ================= MySQL connector 8.0.33 ================= -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>

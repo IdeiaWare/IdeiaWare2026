@@ -1,16 +1,9 @@
-# segredos — NUNCA commitar
 .env
-
-# build
 **/target/
 **/build-war/
 **/*.war
-
-# IDE / SO
 **/.settings/
 **/nbproject/private/
 .DS_Store
 Thumbs.db
-
-# Claude Code (configurações locais do agente)
 .claude/
