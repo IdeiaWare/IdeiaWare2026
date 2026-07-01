@@ -142,7 +142,7 @@
         </div>
       </div>
       <div class="footer-copyright">
-        <div class="container">© 2017 IdeiaWare UNISC</div>
+        <div class="container">© 2026 IdeiaWare UNISC</div>
       </div>
     </footer>
   <script src="js/csrf.js"></script>

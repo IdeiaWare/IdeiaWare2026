@@ -65,14 +65,14 @@
     }
   </style>
 
-  <body class="blue-grey lighten-5">
+  <body class="blue-grey lighten-5" style="display:flex; flex-direction:column; min-height:100vh;">
     <nav>
       <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
         <a  class="brand-logo" style="left: 50px">
           <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
             <div class="row" style="padding-left: 10px">
-              <div class="col s1 blue-grey lighten-3" style=" width: 50px;  height: 50px; 
-                   margin-top: 5px;  padding: 6px 6px; 
+              <div class="col s1 blue-grey lighten-3" style=" width: 50px;  height: 50px;
+                   margin-top: 5px;  padding: 6px 6px;
                    border-radius: 100%;  box-sizing: border-box;">
                 <img style="display: block;  width: 62%;  margin-left: 7px; margin-top: -1px" src="${pageContext.request.contextPath}/imagens/idea.png"/>
               </div>
@@ -82,13 +82,9 @@
         </a>
       </div>
     </nav>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <h2 class="center-align">Erro 404 - Página não encontrada</h2>
+    <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+      <h2 class="center-align">Erro 404 - Página não encontrada</h2>
+    </div>
+    <jsp:include page="../header/footer.jsp"/>
   </body>
 </html>

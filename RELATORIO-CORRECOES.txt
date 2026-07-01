@@ -11,15 +11,15 @@ Legenda: 🔴 critico (seguranca/quebra) · 🟠 alto · 🟡 medio · 🔵 baix
 "REVERTIDO/beco" = tentativa que NAO esta no codigo (mantida aqui como historico/licao).
 
 PROJETOS / STACK:
-  - IdeiaWare-main (LIC): Servlets + JSP/JSTL + Hibernate 5.2.10, padrao GenericDAO<T>,
+  - IdeiaWare-main (LIC): Servlets + JSP/JSTL + Hibernate 5.6.15, padrao GenericDAO<T>,
     SEM framework MVC. Regra de negocio mora nos servlets/JSP. Auth por sessao
     (atributo codigoUsuario) checada no include de header de cada pagina.
-  - Toolkit2025: Spring MVC 4.3.9, camadas Controller->Service->Repository->Entity,
+  - Toolkit2025: Spring MVC 5.3.39, camadas Controller->Service->Repository->Entity,
     injecao de dependencia (@Autowired SessionFactory + getCurrentSession = 1 sessao por
     transacao), c3p0. Arquitetura melhor que a do LIC.
-  - Comum: Tomcat 9 (namespace javax.*, NAO 10/11 que e jakarta.*), JDK 21, MySQL
-    (5.5.36 local / 8 no servidor). Integracao LIC<->Toolkit por cookie (ideiaId) no
-    MESMO host/Tomcat. Build Maven nos dois (test-gated).
+  - Comum: Tomcat 9 (namespace javax.*, NAO 10/11 que e jakarta.*), JDK 21, MySQL 8
+    (conector 8.0.33 requer MySQL 5.6+ — o local TAMBEM e MySQL 8). Integracao
+    LIC<->Toolkit por cookie (ideiaId) no MESMO host/Tomcat. Build Maven nos dois (test-gated).
 
 INDICE:
   A. SEGURANCA              F. LIMPEZA / CODIGO MORTO
@@ -646,8 +646,8 @@ H. DEPLOY MANUAL (LIC + Toolkit) — passo a passo
 ################################################################################
 
 --- H.1 BUILD (os dois sao Maven, test-gated) ---
-  mvn -f "...\IdeiaWare-main\pom.xml" clean package                         -> target\LIC.war
-  mvn -f "...\Toolkit2025-main\Toolkit2025-main\pom.xml" clean package      -> target\toolkit.war
+  mvn -f "...\IdeiaWare-main\pom.xml" clean package                   -> target\LIC.war
+  mvn -f "...\Toolkit2025-main\pom.xml" clean package                 -> target\toolkit.war
   (se um teste falhar, o war NAO e gerado. -DskipTests p/ pular.)
 
 --- H.2 DEPLOY LOCAL (Windows / Tomcat 9) — PowerShell como ADMIN ---
@@ -746,15 +746,17 @@ I. CONFIGURACOES IMPORTANTES DO BANCO (MySQL) — guardar / ainda em uso
    linhas incompativeis). Se o root@127.0.0.1 nao existir no 5.5:
      GRANT ALL PRIVILEGES ON lic_bd.* TO 'root'@'127.0.0.1' IDENTIFIED BY 'root'; FLUSH PRIVILEGES;
 
-[connector / driver / dialect] ATUAL (desde 2026-06-29, K.3 Tier 1): connector 8.0.33
-   (com.mysql:mysql-connector-j) + driver com.mysql.cj.jdbc.Driver + dialect MySQL8Dialect +
-   &serverTimezone=America/Sao_Paulo na URL. >>> O connector 8.x SO fala com MySQL 5.6+ (o local
-   PRECISA ser MySQL 8). HISTORICO: antes era 5.1.49 (com.mysql.jdbc.Driver + MySQL5InnoDBDialect),
-   que era a "ponte" p/ 5.5 E 8; NUNCA usar 5.1.36/42 (consultavam tx_isolation, removida no 8).
-   Possivel gotcha: "Public Key Retrieval is not allowed" -> add &allowPublicKeyRetrieval=true (o
-   estrutura cria o root com mysql_native_password p/ evitar isso).
+[connector / driver / dialect] ATUAL (desde 2026-06-29, K.3 Tier 1; timezone corrigido 2026-07-01):
+   connector 8.0.33 (com.mysql:mysql-connector-j) + driver com.mysql.cj.jdbc.Driver + dialect
+   MySQL8Dialect + &serverTimezone=UTC na URL (MySQL e Docker rodam em UTC) + TZ=America/Sao_Paulo
+   no ambiente do app (Java exibe em horario de Brasilia). ATENCAO: usar America/Sao_Paulo na URL
+   com MySQL em UTC causava conversao dupla (+3h nas datas — ver D-6b). >>> O connector 8.x SO fala
+   com MySQL 5.6+ (o local PRECISA ser MySQL 8). HISTORICO: antes era 5.1.49 (com.mysql.jdbc.Driver
+   + MySQL5InnoDBDialect), que era a "ponte" p/ 5.5 E 8; NUNCA usar 5.1.36/42 (consultavam
+   tx_isolation, removida no 8). Possivel gotcha: "Public Key Retrieval is not allowed" -> add
+   &allowPublicKeyRetrieval=true (o estrutura cria o root com mysql_native_password p/ evitar isso).
 
-[estrutura-lic_bd.sql] (em IdeiaWare-main/) — SQL autossuficiente, UTF-8 SEM BOM, idempotente
+[estrutura-lic_bd.sql] (em db/init/ no monorepo) — SQL autossuficiente, UTF-8 SEM BOM, idempotente
    (CREATE ... IF NOT EXISTS): cria o database lic_bd (utf8mb4) + 14 tabelas (minusculas, InnoDB, FKs,
    indices idx_ideia_status/idx_iu_usuario_ideia/idx_empathy_lookup/idx_exportfile_tipo) +
    root@127.0.0.1 (native password) + admin/admin (hash BCRYPT desde SEC-22; era SHA-256 antes).
@@ -773,7 +775,7 @@ J. DOCKER — IMPLEMENTADO em 2026-06-30; VALIDADO EM 2026-07-01 (build verde + 
 >>> ARQUIVOS CRIADOS na raiz Desktop/ideiaware-outlook/ (= raiz do monorepo): docker-compose.yml
     (base PROD-safe) + docker-compose.dev.yml (override) + .env.example + .gitignore + .dockerignore
     + app/{Dockerfile multi-stage, setenv.sh com --add-opens, entrypoint.sh com sed dos configs} +
-    db/init/estrutura-lic_bd.sql + README.md (raiz) + README-docker.md.
+    db/init/estrutura-lic_bd.sql + README.md (raiz).
     Base = prod-safe -> no server e `git clone` + `docker compose up -d --build`; dev adiciona
     `-f docker-compose.dev.yml` (expoe 3306, hbm2ddl=update, show_sql).
     Monorepo: IdeiaWare-main/ + Toolkit2025-main/ + Docker tudo no mesmo repo (IdeiaWare/IdeiaWare2026).
@@ -802,11 +804,13 @@ FIXO 8.0; segredos via .env.
 
 TOPOLOGIA: 2 servicos — app (1 Tomcat 9 + JDK 21 servindo /LIC e /toolkit) e db (MySQL 8). app:8080
   publicado; db:3306 interno (exposto so no dev). Os 2 wars no MESMO Tomcat (cookies da integracao).
-LAYOUT (monorepo): IdeiaWare-main/ + Toolkit2025-main/ + docker-compose.yml/.dev.yml/.prod.yml +
+LAYOUT (monorepo): IdeiaWare-main/ + Toolkit2025-main/ + docker-compose.yml/.dev.yml +
   .env.example (+ .env no .gitignore) + .dockerignore + app/{Dockerfile,setenv.sh,entrypoint.sh} +
-  db/{my.cnf,init/estrutura-lic_bd.sql}.
-IMAGEM DB (mata D-4/5/6a): my.cnf com lower_case_table_names=1 + character-set-server=utf8mb4 +
-  default-authentication-plugin=mysql_native_password. db/init/estrutura-lic_bd.sql em
+  db/init/estrutura-lic_bd.sql.
+IMAGEM DB (mata D-4/5/6a): configs MySQL via `command:` no compose (sem my.cnf — arquivo montado do
+  Windows recebe permissao 777 e o MySQL server ignora o arquivo): lower_case_table_names=1 +
+  character-set-server=utf8mb4 + default-authentication-plugin=mysql_native_password +
+  max-allowed-packet=67108864. db/init/estrutura-lic_bd.sql em
   /docker-entrypoint-initdb.d/ -> 1o boot cria as 14 tabelas + admin/admin. O app conecta no service
   name 'db' -> bate em root@'%' (native) -> some o root@127.0.0.1. Volume nomeado; healthcheck
   mysqladmin ping.
@@ -815,13 +819,13 @@ IMAGEM APP (mata D-1/2/3): Dockerfile multi-stage — stage1 = maven builda os 2
   setenv.sh com --add-opens (D-2). entrypoint.sh faz templating via env (sed troca o host 127.0.0.1
   e o hbm2ddl sem rebuildar): DB_HOST/DB_NAME/HBM2DDL/SHOW_SQL. Os wars trazem o connector 8.0.33
   (com.mysql.cj.jdbc.Driver) + allowPublicKeyRetrieval=true nas URLs + ENC-03.
-COMPOSE: base (db+app, depends_on healthy) + .dev.yml (db expoe 3306, HBM2DDL=update, SHOW_SQL=true) +
-  .prod.yml (restart always). Workflow:
-    DEV:  docker compose -f docker-compose.yml -f docker-compose.dev.yml  up -d --build
-    PROD: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+COMPOSE: base prod-safe (db+app, depends_on healthy, restart:always) + .dev.yml (db expoe 3306,
+  HBM2DDL=update, SHOW_SQL=true). Sem .prod.yml separado — a base ja e prod-safe. Workflow:
+    DEV:  docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+    PROD: docker compose up -d --build
   Resetar o banco do zero: docker compose down -v (apaga o volume).
-A FAZER NA IMPLEMENTACAO: .env (root/root + chave SendGrid REVOGADA + chave AES + segredo HMAC;
-  .env.example versionado, .env no .gitignore); test-gated vs -DskipTests; confirmar caminhos no monorepo.
+IMPLEMENTADO e VALIDADO 2026-07-01: build verde; LIC 200 + Toolkit 200; login admin/admin; acentos
+  e datas corretos. .env.example versionado (.env no .gitignore); segredos injetados via env do compose.
 
 
 
@@ -858,10 +862,11 @@ K. PENDENCIAS
 A "parede" javax->jakarta governa tudo: tudo antes dela e tranquilo; cruzar e reescrita em cascata.
    [FEITO] Tier 1 (MySQL 8 nativo + libs seguras): connector 5.1.49 -> 8.0.33 (driver
      com.mysql.cj.jdbc.Driver; resolve p/ o artefato com.mysql:mysql-connector-j) + dialect
-     MySQL5InnoDBDialect/MySQLDialect -> MySQL8Dialect + &serverTimezone=America/Sao_Paulo na URL
-     (hibernate.cfg.xml do LIC e toolkit-servlet.xml). Commons FileUpload 1.3.1 -> 1.5 (CVE-2016-
-     1000031 RCE + CVE-2023-24998 DoS) + commons-io 2.4 -> 2.11 (requerido). junit 4.12 -> 4.13.2
-     (CVE-2020-15250). gson 2.8.2 -> 2.10.1.
+     MySQL5InnoDBDialect/MySQLDialect -> MySQL8Dialect + &serverTimezone=UTC na URL (corrigido em
+     2026-07-01; o valor inicial America/Sao_Paulo causava +3h — ver D-6b) + TZ=America/Sao_Paulo
+     no ambiente do app. hibernate.cfg.xml do LIC e toolkit-servlet.xml. Commons FileUpload 1.3.1
+     -> 1.5 (CVE-2016-1000031 RCE + CVE-2023-24998 DoS) + commons-io 2.4 -> 2.11 (requerido).
+     junit 4.12 -> 4.13.2 (CVE-2020-15250). gson 2.8.2 -> 2.10.1.
      >>> O connector 8.x NAO fala com MySQL 5.5 (so 5.6+). Logo, o local TEM que ser MySQL 8 agora.
          No MySQL 8 o estrutura-lic_bd.sql roda NORMAL (sem o --force que o 5.5 exigia). TESTAR no
          MySQL 8 real: login admin/admin, acentos, datas (valida driver/charset/serverTimezone).

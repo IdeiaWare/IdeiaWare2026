@@ -152,6 +152,14 @@
         .modal-content p{
             margin: 5px 5px 10px 5px;
         }
+        .perfil-label {
+            display: block;
+            text-align: left;
+            font-size: 13px;
+            color: #607d8b;
+            font-weight: 500;
+            margin: 14px 0 2px 0;
+        }
     </style>
 
     <body class="blue-grey lighten-5" id="app">
@@ -231,9 +239,13 @@
             </form>
 
             <form id="register-form" class="register-form" action="CadastroUsuarioServlet" method="POST" style="display:none;">
-                <input name="nome" type="text" placeholder="nome" aria-label="nome" pattern=".{4,64}" required title="O campo nome deve conter entre 6 e 64 caracteres" />
-                <input name="usuario" type="text" placeholder="usuário" aria-label="usuário" pattern=".{4,32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres" />
-                <input name="email" type="email" placeholder="email" aria-label="email" pattern="\w+(\+?\w+)@\w+(\.\w+)+" required title="email@exemplo.com" maxlength="100"/> <!--// LucasFreitag 2024-->
+                <label for="reg-nome" class="perfil-label">Nome</label>
+                <input id="reg-nome" name="nome" type="text" placeholder="nome" aria-label="nome" pattern=".{4,64}" required title="O campo nome deve conter entre 6 e 64 caracteres" />
+                <label for="reg-usuario" class="perfil-label">Usuário</label>
+                <input id="reg-usuario" name="usuario" type="text" placeholder="usuário" aria-label="usuário" pattern=".{4,32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres" />
+                <label for="reg-email" class="perfil-label">E-mail</label>
+                <input id="reg-email" name="email" type="email" placeholder="email" aria-label="email" pattern="\w+(\+?\w+)@\w+(\.\w+)+" required title="email@exemplo.com" maxlength="100"/> <!--// LucasFreitag 2024-->
+                <label for="senha" class="perfil-label">Senha</label>
                 <!-- SENHA-#: o pattern antigo só aceitava os especiais @$!%*?& e rejeitava
                      senhas com '#' (e outros). Agora aceita qualquer caractere especial. -->
                 <input name="senha" id="senha" type="password" placeholder="senha" aria-label="senha" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,32}$" required title="O campo senha deve conter entre 8 e 32 caracteres. E os 5 requisitos abaixo." maxlength="32" oninput="checkPasswordStrength()"/>
@@ -251,7 +263,8 @@
                     <li id="special-criterio">Pelo menos um caractere especial</li>
                 </ul>
 
-                <input name="senha2" type="password" placeholder="digite a senha novamente" aria-label="digite a senha novamente" pattern=".{4,32}" required title="O campo repetir senha deve conter entre 4 e 32 caracteres" />
+                <label for="reg-senha2" class="perfil-label">Confirmar senha</label>
+                <input id="reg-senha2" name="senha2" type="password" placeholder="digite a senha novamente" aria-label="digite a senha novamente" pattern=".{4,32}" required title="O campo repetir senha deve conter entre 4 e 32 caracteres" />
 
                 <c:if test="${respostaCadastro2}"><div class="erro"><h1>Senhas não batem!</h1></div> </c:if>
                 <!--<input disabled="true" type="text" placeholder="e-mail " aria-label="e-mail "/>-->

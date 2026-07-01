@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `usuario` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
   `nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
   `permissao` varchar(3) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `senha` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `senha` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
   `usuario` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `DataAnonimizado` datetime DEFAULT NULL,

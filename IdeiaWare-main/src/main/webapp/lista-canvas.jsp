@@ -187,7 +187,7 @@
     </div>
     <div class="footer-copyright">
       <div class="container">
-        © 2017 IdeiaWare UNISC
+        © 2026 IdeiaWare UNISC
       </div>
     </div>
   </footer>

@@ -18,7 +18,7 @@
 		<script src="${pageContext.request.contextPath}/resources/js/jquery-3.2.1.min.js"></script>
 		<script>var contextPath = "${pageContext.request.contextPath}"</script>
 	</head>
-	<body>
+	<body style="display:flex; flex-direction:column; min-height:100vh;">
 		<div id="overlay">
 			<div class="loader"></div>
 		</div>
@@ -48,7 +48,7 @@
 		    </div>
 	  	</nav>
 
-	  	<div id="content" role="main">
+	  	<div id="content" role="main" style="flex:1;">
 			<div class="container">
 				<div class="row">
 					<div class="col s12">
