@@ -1,0 +1,18 @@
+.my-ideas .ellipsis{
+    overflow: hidden;
+    text-overflow:ellipsis; 
+    white-space: nowrap; 
+}
+.my-ideas .name{
+    max-width: 1px;
+}
+.my-ideas .title{
+    max-width: 1px;
+}
+.my-ideas .description div{
+    display: inline-block;
+    max-width: 250px;
+}
+.my-ideas .description i{
+    display: inline-block;
+}

@@ -1,0 +1,9 @@
+# Override de DEV (use junto da base). So muda o que difere de prod.
+services:
+  db:
+    ports:
+      - "3306:3306"        # expoe o MySQL p/ DBeaver/Workbench (so em dev)
+  app:
+    environment:
+      HBM2DDL: update      # dev: Hibernate ajusta o schema
+      SHOW_SQL: "true"     # dev: loga as SQLs

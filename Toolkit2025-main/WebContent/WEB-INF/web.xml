@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" id="WebApp_ID" version="3.1">
+  <display-name>toolkit</display-name>
+
+  <!-- ENC-02 (fix 2026-06-23): forca UTF-8 na leitura dos parametros. Sem isso o Tomcat
+       le o corpo do POST como ISO-8859-1 e acentos viram mojibake ("Visão" -> "VisÃ£o")
+       ao salvar via export, e o LIC depois exibe o lixo gravado. O LIC ja resolvia isso
+       chamando request.setCharacterEncoding em cada servlet; no Spring MVC o padrao e
+       este filtro. DEVE ser o PRIMEIRO filtro (antes de qualquer leitura de parametro). -->
+  <filter>
+    <filter-name>characterEncoding</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+    <init-param>
+      <param-name>forceEncoding</param-name>
+      <param-value>true</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>characterEncoding</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <!-- SEC-01: headers de seguranca via filtro nativo do Tomcat (sem dependencia
+       extra). X-Content-Type-Options: nosniff + X-Frame-Options: SAMEORIGIN.
+       HSTS desligado (dev http; ligar em producao https). -->
+  <filter>
+    <filter-name>httpHeaderSecurity</filter-name>
+    <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+    <init-param>
+      <param-name>hstsEnabled</param-name>
+      <param-value>false</param-value>
+    </init-param>
+    <init-param>
+      <param-name>antiClickJackingOption</param-name>
+      <param-value>SAMEORIGIN</param-value>
+    </init-param>
+    <init-param>
+      <param-name>blockContentTypeSniffingEnabled</param-name>
+      <param-value>true</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>httpHeaderSecurity</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <!-- SEC-02: cookie de sessao HttpOnly + so via cookie. SameSite=Lax no
+       META-INF/context.xml. 'secure' desligado (dev http). -->
+  <session-config>
+    <cookie-config>
+      <http-only>true</http-only>
+    </cookie-config>
+    <tracking-mode>COOKIE</tracking-mode>
+  </session-config>
+
+  <error-page>
+	<location>/error</location>
+  </error-page>
+  
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
+
+  <servlet>
+    <servlet-name>dispatcher</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/toolkit-servlet.xml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+    
+    <multipart-config>
+	  <!-- 52MB max -->
+	  <max-file-size>52428800</max-file-size>
+	  <max-request-size>52428800</max-request-size>
+	  <file-size-threshold>0</file-size-threshold>
+	</multipart-config>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>dispatcher</servlet-name>
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
+
+  <!-- ENC-01: default UTF-8 para JSPs sem diretiva pageEncoding (o default do JSP
+       seria ISO-8859-1). Padroniza tudo em UTF-8 junto com o banco utf8mb4. -->
+  <jsp-config>
+    <jsp-property-group>
+      <url-pattern>*.jsp</url-pattern>
+      <page-encoding>UTF-8</page-encoding>
+    </jsp-property-group>
+  </jsp-config>
+</web-app>

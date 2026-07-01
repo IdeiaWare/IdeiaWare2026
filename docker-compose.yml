@@ -1,0 +1,50 @@
+# Base = PROD-safe. No servidor: `docker compose up -d` (sem flags) ja sobe em modo prod.
+# Local/dev: adicione o override -> `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
+services:
+  db:
+    image: mysql:8.0
+    # Passa as configs via command (o my.cnf montado do Windows fica com 777 e MySQL ignora)
+    command: >
+      --lower-case-table-names=1
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+      --max-allowed-packet=67108864
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS:-root}
+      MYSQL_DATABASE: ${DB_NAME:-lic_bd}
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d:ro       # roda o estrutura-lic_bd.sql no 1o boot
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_PASS:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: always
+    # (PROD: porta 3306 NAO publicada -> banco so acessivel pela rede interna do compose.)
+
+  app:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    environment:
+      TZ: America/Sao_Paulo
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-lic_bd}
+      DB_PASS: ${DB_PASS:-root}
+      HBM2DDL: ${HBM2DDL:-validate}        # prod: validate (nao altera schema)
+      SHOW_SQL: ${SHOW_SQL:-false}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
+      AES_KEY: ${AES_KEY:-1234567890123456}
+      CAIXA_HMAC_SECRET: ${CAIXA_HMAC_SECRET:-7f3a9c1e8b5d2406af91e7c3b8d54a02e6f1a9c4d7b3e80f}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+volumes:
+  dbdata:

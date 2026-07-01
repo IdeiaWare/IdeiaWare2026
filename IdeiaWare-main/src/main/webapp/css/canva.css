@@ -1,0 +1,171 @@
+/*CANVA MAPA*/
+
+.canva_box{
+    padding: 5%;
+    padding-top: 15px;
+}
+
+.canva_box .row{
+    margin: 0 !important; 
+}
+
+.canva_box .col{
+    padding: 0 !important;
+}
+
+.top_box{
+    border: 2px solid black;
+    padding: 0%;
+}
+
+.middle_box{
+    height: 10px;
+}
+
+.bottom_box{
+	padding: 0%;
+	border: 2px solid black;
+}
+
+.canva_box h3{
+    font-size: 2.2em;
+    padding-bottom: 10px;
+    margin: 10px 0 10px 0;
+}
+
+.canva_box .canva_title{
+	border-bottom: 2px solid black;
+}
+
+.canva_box h4{
+    font-size: 1.8em;
+    color: black;
+}
+
+.canva_box p{
+    font-size: 0.8em;
+    color: black;
+}
+
+
+.what{
+	border-left: 1px solid black;
+    border-right: 1px solid black;
+}
+
+.referencia{
+	size: 1.6em;
+}
+
+.main_title{
+	padding-top: 10px;
+}
+
+/*CONFIGURÇÕES GERAIS*/
+
+.b-left{
+    border-left: 1px solid black;
+}
+
+.b-right{
+    border-right: 1px solid black;
+}
+
+.b-bot{
+    border-bottom: 1px solid black;
+}
+
+.h100{
+	height: 100%;
+}
+
+.h90{
+	height: 90%;
+}
+
+.p1{
+    padding: 20px;
+}
+
+.pb3{
+    padding-bottom: 5px;
+}
+
+.mt1{
+    margin-top: 120px;
+}
+
+.mt2{
+    margin-top: 80px;
+}
+
+.mt3{
+    margin-top: 30px;
+}
+
+.mt4{
+    margin-top: 10px;
+}
+
+.mt5{
+    margin-top: 15px;
+}
+
+/*MENU DE NAVEGAÇÃO - UTILIZADO TAMBÉM EM ALGUNS ELEMENTOS DO MAPA*/
+
+.navCanva{
+	margin: 0 auto;
+	margin-top: 30px;
+}
+
+.navCanva .col{
+	float: none !important;
+  	margin-left: auto;
+  	margin-right: auto;
+}
+
+/*EDIÇÃO DE POSTITS*/
+
+.card-action{
+	float: right;
+}
+
+#deleteCanva{
+	display: inline;
+}
+
+.postit_title{
+	text-transform: uppercase;
+	text-decoration: underline;
+	font-size: 1.8em;
+}
+
+.card-content{
+	color: black;
+}
+
+.card-paragrafer{
+	word-break: break-word;
+}
+
+
+/*CONFIGURAÇÃO PARA ORGANIZAÇÃO DE POSTITS*/
+
+.row.equal-cols {
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+
+.row.equal-cols:before,
+.row.equal-cols:after {
+  display: block;
+}
+
+.col_margin{
+	margin-left: 0 !important;
+}

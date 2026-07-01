@@ -1,0 +1,67 @@
+package edu.unisc.lic.dao;
+
+import edu.unisc.lic.domain.Storytelling;
+import edu.unisc.lic.util.HibernateUtil;
+import java.util.List;
+import org.hibernate.Criteria;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
+
+/**
+ *
+ * @author viniciussdsilva
+ */
+public class StorytellingDAO extends GenericDAO<Storytelling> {
+
+    private Session sessao;
+    private Transaction transacao;
+
+    /**
+     * Busca parâmetros do storytelling, e você pode escolher os atributos
+     * usuario.codigo, ideia.codigo e status
+     *
+     * @param st
+     * @return
+     */
+    public List<Storytelling> listarParametro(Storytelling st) {
+        this.sessao = HibernateUtil.getFabricaDeSessoes().openSession();
+        this.transacao = sessao.beginTransaction();
+
+        List<Storytelling> resultado = null;
+
+        try {
+            Criteria filtro = sessao.createCriteria(Storytelling.class);
+
+            if (st.getUsuario().getCodigo() != null) {
+                filtro.add(Restrictions.eq("usuario", st.getUsuario()));
+            }
+
+            if (st.getIdeia().getCodigo() != null) {
+                filtro.add(Restrictions.eq("ideia", st.getIdeia()));
+            }
+
+            if (st.getStatus() != null) {
+                filtro.add(Restrictions.eq("status", st.getStatus()));
+            }
+
+            resultado = filtro.list();
+
+        } catch (HibernateException e) {
+            if (this.transacao.isActive()) {
+                this.transacao.rollback();
+            }
+        } finally {
+            try {
+                if (sessao.isOpen()) {
+                    sessao.close();
+                }
+            } catch (HibernateException e) {
+                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
+            }
+        }
+
+        return resultado;
+    }
+}

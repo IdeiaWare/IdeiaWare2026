@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <!-- SEC-02: SameSite=Lax no cookie de sessao (mitiga CSRF sem tocar nos forms). -->
+    <CookieProcessor sameSiteCookies="lax"/>
+</Context>

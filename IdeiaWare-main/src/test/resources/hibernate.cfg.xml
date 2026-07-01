@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<!--
+  TEST-03: config de TESTE. Fica em src/test/resources e SOMBREIA o hibernate.cfg.xml
+  de producao no classpath de teste (test-classes vem antes de classes). Assim os
+  DAOs (via HibernateUtil) usam H2 em memoria nos testes, sem tocar no MySQL real
+  nem em codigo de producao.
+-->
+<hibernate-configuration>
+    <session-factory>
+        <!-- H2 in-memory; MODE=MySQL aceita tipos MySQL (longtext etc.) -->
+        <property name="connection.driver_class">org.h2.Driver</property>
+        <property name="connection.url">jdbc:h2:mem:lic_test;DB_CLOSE_DELAY=-1;MODE=MySQL</property>
+        <property name="connection.username">sa</property>
+        <property name="connection.password"></property>
+        <property name="dialect">org.hibernate.dialect.H2Dialect</property>
+
+        <property name="current_session_context_class">thread</property>
+        <property name="cache.provider_class">org.hibernate.cache.internal.NoCacheProvider</property>
+        <!-- evita problema com colunas de nome reservado (text/user) -->
+        <property name="hibernate.globally_quoted_identifiers">true</property>
+        <!-- mesma estrategia de producao (exercita o CASE-FIX nos testes H2) -->
+        <property name="hibernate.physical_naming_strategy">edu.unisc.lic.util.LowerCaseTableNamingStrategy</property>
+        <property name="show_sql">false</property>
+        <!-- gera o schema a partir das entidades -->
+        <property name="hbm2ddl.auto">create</property>
+
+        <!-- subconjunto limpo (sem longtext) suficiente p/ os fluxos de DAO testados -->
+        <mapping class="edu.unisc.lic.domain.Usuario" />
+        <mapping class="edu.unisc.lic.domain.Ideia" />
+        <mapping class="edu.unisc.lic.domain.IdeiaUsuario" />
+        <mapping class="edu.unisc.lic.domain.ColaboracaoIdeia" />
+        <mapping class="edu.unisc.lic.domain.LogColaboracao" />
+    </session-factory>
+</hibernate-configuration>

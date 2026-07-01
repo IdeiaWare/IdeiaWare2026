@@ -1,0 +1,956 @@
+################################################################################
+RELATORIO DE CORRECOES — IdeiaWare (LIC) + Toolkit2025
+################################################################################
+
+Log de rastreabilidade de TODAS as correcoes/melhorias dos 2 projetos.
+Revisao iniciada em 2026-06-08. Reorganizado por TIPO (de cronologico) em 2026-06-27,
+com cada item AUTO-EXPLICATIVO: da p/ entender o que era o bug e o que foi feito SEM
+abrir o codigo. (As etiquetas tambem estao como comentario no codigo.)
+
+Legenda: 🔴 critico (seguranca/quebra) · 🟠 alto · 🟡 medio · 🔵 baixo/cosmetico.
+"REVERTIDO/beco" = tentativa que NAO esta no codigo (mantida aqui como historico/licao).
+
+PROJETOS / STACK:
+  - IdeiaWare-main (LIC): Servlets + JSP/JSTL + Hibernate 5.2.10, padrao GenericDAO<T>,
+    SEM framework MVC. Regra de negocio mora nos servlets/JSP. Auth por sessao
+    (atributo codigoUsuario) checada no include de header de cada pagina.
+  - Toolkit2025: Spring MVC 4.3.9, camadas Controller->Service->Repository->Entity,
+    injecao de dependencia (@Autowired SessionFactory + getCurrentSession = 1 sessao por
+    transacao), c3p0. Arquitetura melhor que a do LIC.
+  - Comum: Tomcat 9 (namespace javax.*, NAO 10/11 que e jakarta.*), JDK 21, MySQL
+    (5.5.36 local / 8 no servidor). Integracao LIC<->Toolkit por cookie (ideiaId) no
+    MESMO host/Tomcat. Build Maven nos dois (test-gated).
+
+INDICE:
+  A. SEGURANCA              F. LIMPEZA / CODIGO MORTO
+  B. BUGS / ROBUSTEZ        G. TESTES AUTOMATIZADOS
+  C. UI / UX               H. DEPLOY MANUAL (LIC + Toolkit)
+  D. PERFORMANCE            I. CONFIGURACOES IMPORTANTES DO BANCO
+  E. INFRA/BUILD/ENCODING   J. DOCKER (plano)
+                            K. PENDENCIAS
+                            L. APENDICE (becos de debug + correcoes ao relatorio)
+
+RESUMO QUANTITATIVO (~200 itens): bugs/robustez ~85; seguranca ~45; UI/UX ~25; testes 42;
+infra/build/encoding ~20; limpeza ~15; performance ~8; refatoracao ~3. Ganhos-chave:
+SHA-256->bcrypt; 0->CSRF; 0->headers de seguranca; XSS escapado em ~30 telas; ~50 MB de
+codigo morto/libs removidos; Toolkit build manual->Maven; encoding misto->UTF-8 (34 arq);
+0->42 testes; cookie ideiaId forjavel->assinado (HMAC).
+
+
+
+################################################################################
+A. SEGURANCA
+################################################################################
+
+--- A.1 XSS (escape de saida) ---
+Estrategia: <c:out> HTML-escapa todo output de dado do usuario. Foi feito em ONDAS porque
+cada varredura cobria so um conjunto de telas/campos. Estado final: ZERO sink cru nos 2 projetos.
+[SEC-03]  🟠 1a onda: escape nos campos de texto puro das telas de maior exposicao (admin/outros
+   veem conteudo de terceiros): validar-ideia (titulo/nome/descricao + data-attrs), gerenciar-
+   usuarios (nome/usuario/email), lista-ideia (titulo/descricao). Extensao: minha-ideia e
+   detalhes-ideia (nome/titulo/descricao).
+[SEC-03b] 🟠 escape estendido a mais texto de exibicao: lista-storytelling/canvas/caixa (nome+
+   titulo); Toolkit: texto dos post-its de empatia (8 telas), nome da persona (list-personas),
+   campos do POV (list-point-of-view). CUIDADO: a 1a passada de sed escapou DEMAIS (pegou
+   onclick/value JS) e foi revertida; reaplicado so no display.
+[SEC-05]  🟠 LIC: sinks de DOM client-side (XSS armazenado). Dado lido via trigger.data() (que
+   DECODIFICA entidades HTML) e jogado por innerHTML/.html() RE-PARSEIA -> executa, mesmo com o
+   c:out no atributo. Fix: helper escapeHtml() + wrap dos valores dinamicos em 6 JSPs (modais de
+   lista-caixa/lista-canvas/validar-ideia/minha-ideia/gerenciamento/colaboracao).
+[SEC-06]  🟠 Toolkit: STORED XSS nos 8 onclick inline (editAttribute x6 nas telas de empatia,
+   buildPersonaEditModal em list-personas, buildPOVInfoEditOnModal em list-point-of-view). O EL
+   ia DENTRO de uma string-JS dentro do atributo onclick: um valor com aspas quebra a string e
+   executa (escape HTML simples NAO resolve — o browser HTML-decodifica o atributo). Fix (sem
+   tocar no custom.js): onclick virou ESTATICO referenciando this.dataset.*, e os valores foram
+   p/ atributos data-* escapados com c:out. (Editado byte-safe via Python: JSPs sao Latin-1.)
+[SEC-07]  🔴 LIC: o XSS era MUITO mais amplo que o SEC-05. O usuario testou e <img onerror>
+   DISPAROU na COLABORACAO e no STORYTELLING. O SEC-03 so cobriu algumas telas; o display de
+   titulo/descricao/nome/motivo ficou CRU em ~12 outras JSPs. Fix abrangente (byte-safe): c:out
+   em todo ${...} cru de texto (colaboracao, storytelling, storytelling-show, listas, detalhes,
+   index, validar-ideia, editar-texto, gerenciamento) + atributos data-* da minha-ideia. Regex
+   com lookbehind (?<!["'=]) p/ pegar so texto (sem duplo-escape).
+[SEC-08]  gerenciamento-ideia.jsp (Retencao): o modal "Detalhes" DISPAROU o XSS. Eram 9 sinks
+   crus ${ideia.titulo/usuario.nome/gestor.nome/motivoRejeicao} dentro de strings JS (html +=
+   "...") que viram innerHTML. Fix: c:out em cada um (HTML-escapa -> seguro no innerHTML E na
+   string-JS).
+[SEC-09]  gerenciamento-ideia.jsp:210 — <p>${log2.getDescricao()}</p> disparava ao abrir a tela.
+   Era EL de CHAMADA DE METODO (getDescricao()); os detectores anteriores usavam regex que PARAVA
+   no '(' e nao pegava getters. Fix: c:out. (Licao: cobrir tambem ${obj.getX()}.)
+[SEC-10]  🟠 XSS dos POST-ITS do Canva: ${cv.text} (texto DIGITADO pelo usuario) era renderizado
+   CRU em 11 paginas canva-*.jsp (27 ocorrencias). Passou batido porque a varredura so cobria
+   titulo/descricao/nome/motivo, nao o campo 'text'. Fix: c:out em todos.
+[SEC-11]  🟠 sinks nas views "overview/detailed/map/form" (os detectores cobriam as telas de
+   LISTA, nao as paralelas): LIC gerenciamento-ideia:633 ${persona.fileName} (string JS que vira
+   innerHTML; stored mirando o admin); Toolkit point-of-view-overview ${tempPOV.value.*},
+   empathy-map/-detailed ${persona.name}, form-pov ${personaParts[0]}, list-personas
+   ${tempPersona.name} no value. >>> Corrige a afirmacao antiga de "XSS 100% fechado" (DIV-2).
+
+--- A.2 IDOR / AUTORIZACAO (endpoints sem checar dono/login) ---
+[COL-07]  🔴 ValidarIdeiaServlet — exige permissao 'adm'. Antes qualquer um validava ideias.
+[RKM-01]  🔴 PermissaoUsuarioServlet — bloqueada escalacao de privilegio (um usuario comum
+   conseguia se promover a admin via POST).
+[RKM-02]  🔴 DeletarExportedFileServlet — auth admin + null check (IDOR: apagava ExportFile por id).
+[STM-06]  🔴 DeletarObjServlet — auth + IDOR (so apaga elementos do PROPRIO storytelling da sessao).
+[CANM-09] 🔴 EnviarCanva/DeleteCanva — auth + IDOR (so post-its da propria sessao/ideia).
+[CAN-04]  🔴 DeleteCanvaServlet — fechado OPEN REDIRECT via parametro 'context' (redirecionava p/
+   URL arbitraria).
+[INFRA-04]🔴 usuarios.jsp — exige login + admin. Antes listava todos os usuarios sem auth nenhuma.
+[TK-03]   🟡 IDOR no Toolkit (20 arquivos: 6 QuestionController + Persona + POV + 3 Services + 3
+   DAOs): os deletes apagavam por id SEM validar dono. Fix: propagado ideiaCodigo (do cookie) por
+   controller->service->DAO, com AND ideia_codigo=:cod no DELETE.
+[SEC-13]  🟠 FecharGrupoServlet — exige login + so o LIDER fecha o grupo / transfere a lideranca.
+   Antes: ate SEM login, um POST do codigo regredia o status e trocava o lider.
+[SEC-14]  🟠 FinalizarColaboracaoServlet — exige login + so o LIDER finaliza (alem do guard de
+   status RET-12). Antes qualquer logado finalizava ideia de OUTRO grupo.
+[SEC-15]  🟠 SalvarTextoServlet — o AUTOR do texto agora vem da SESSAO, nao mais do parametro
+   idUsuario (antes dava p/ gravar colaboracao no NOME de outro = falsificacao de identidade).
+   + exige login.
+[SEC-16]  🟠 AutoSalvarStoryServlet — IDOR de escrita: editava ElementosStorytelling por codigo do
+   JSON sem checar dono. Agora exige storytellingId na sessao e so altera elementos DESSE story.
+[SEC-17]  🟡 AbrirPersona/AbrirPointOfView — exigem login. Antes serviam o PDF de qualquer
+   ExportFile por id, sem auth (IDOR/vazamento). O RKM-FIX fez funcionar e, com isso, expos o IDOR.
+[SEC-23]  🔴 AUTH DO TOOLKIT + IDOR DE LEITURA DO POV (2026-06-25). PROBLEMA: o cookie ideiaId era
+   a unica "credencial" e setavel a mao (DevTools) -> qualquer um acessava/editava persona/POV/
+   empatia/canvas de QUALQUER ideia, sem login. FIX: o ideiaId agora vem ASSINADO (HMAC-SHA256).
+   - Classe AssinaturaCaixa NOVA nos 2 projetos (MESMO segredo): assinar(valor)=HMAC em hex; no
+     Toolkit tambem valida(valor,sig) com comparacao em tempo constante (MessageDigest.isEqual).
+   - LIC EntrarCaixaServlet: agora exige LOGIN (sessao) + ser PARTICIPANTE da ideia (IdeiaUsuario)
+     e seta o cookie ideiaSig=HMAC(ideiaId) junto do ideiaId.
+   - Toolkit AdminCookies.getCookieIdeiaCodigo: so devolve o ideiaId se o ideiaSig bater. Como
+     TODO controller usa esse metodo, a assinatura passa a ser exigida no Toolkit inteiro de uma vez.
+   - IDOR de leitura: showFilledPOVOverview (/visao-geral) NAO checava cookie e o getSpecificPoint
+     OfView buscava so por pov_id -> dava p/ ler POV de outra ideia pelo id. Agora exige cookie
+     (assinado) + escopo por ideia_codigo (DAO/service/controller).
+   - Testes (AdminCookies/Persona/POV/ThinkAndFeel) atualizados p/ mandar ideiaSig=assinar(id).
+   - AUDITORIA: EntrarCaixa so e chamado de minha-ideia.jsp (suas ideias) e lista-caixa-de-
+     ferramentas.jsp (listarCaixa filtra pelo usuario) -> todo chamador legitimo JA e participante;
+     a Retencao NAO usa EntrarCaixa (mostra persona/canvas direto no LIC) -> nao quebra.
+   >>> O segredo HMAC esta HARDCODED igual nos 2 projetos -> vai pro .env (pendencia K.1/#5).
+[SEC-24]  🟠 IDOR DE ESCRITA no Toolkit (2026-06-25). saveOrUpdate(persona/pov/empatia) usava o id
+   do FORM -> logado na ideia A, dava p/ mandar o id de um registro da ideia B e o Hibernate
+   sobrescrevia/reatribuia. FIX: antes do UPDATE, conferir que a linha existente e da MESMA ideia.
+   - Persona/Empathy: guard no DAO (session.get pelo id; se for de outra ideia/nao existir, NAO
+     salva; evict antes do saveOrUpdate p/ nao dar NonUniqueObject).
+   - POV (o /atualizar mexe na tabela auxiliar removePOVIdFromAuxiliarTable ANTES de salvar): o
+     check vai no CONTROLLER, no topo de /salvar-pov e /atualizar (metodo novo povPertenceAIdeia,
+     DAO usa get+evict). INSERT (id 0) passa direto.
+[COL-DUP] EntrarIdeiaServlet — nao cria mais VINCULO DUPLICADO: clicar "Entrar" 2x inscrevia o
+   mesmo usuario 2x na mesma ideia (membro repetido). Agora checa listarParametro(usuario,ideia)
+   e, se ja existe, so redireciona. (Mudanca idempotente; a 1a entrada continua igual.)
+
+--- A.3 CSRF (double-submit cookie) ---
+[CSRF-01] CSRF no Toolkit: classe CsrfInterceptor (registrada no toolkit-servlet.xml) gera/le um
+   cookie HttpOnly XSRF-TOKEN, expoe o valor no request attr 'csrfToken', e em TODO POST compara o
+   param/header X-CSRF-Token ao cookie -> POST cross-site barrado (403). Campo hidden injetado nos
+   12 <form:form>. Defesa-em-profundidade alem do SameSite=Lax.
+[CSRF-02] CSRF no LIC: classe edu.unisc.lic.util.CsrfFilter (web.xml, url /*) gera/valida o cookie
+   XSRF-TOKEN (NAO HttpOnly) e exige token em todo POST. Novo resources/js/csrf.js (em 31 JSPs)
+   injeta o hidden em TODOS os forms (vanilla) e intercepta o XMLHttpRequest p/ mandar o header em
+   todo POST -> cobre os 6 arquivos de AJAX sem editar cada um (nao precisei tocar nos 25 forms).
+   No Toolkit, o interceptor passou a validar tambem os GET /deletar e /delete (state-change que o
+   SameSite nao cobre em navegacao top-level), com <c:param csrfToken> nos 8 deleteLink.
+[CSRF-DYN] csrf.js tambem injeta o token no instante do SUBMIT (listener 'submit' em capture no
+   document) -> cobre forms montados DINAMICAMENTE via JS depois do AJAX (ex.: 'entrarStory' no
+   gerenciamento-ideia, que dava 403 ao abrir o quadro do Storytelling pela Retencao).
+[SEC-21]  /ideia/finalize (Toolkit) era um GET de mudanca de estado (muda o status da ideia) FORA
+   do CSRF. O CsrfInterceptor passou a validar tambem /finalize, e o link "Finalizar Caixa"
+   (header.tag) carrega ?csrfToken=${csrfToken}.
+
+--- A.4 AUTENTICACAO E SENHAS ---
+[SEC-22]  🔴 Senhas SHA-256 -> BCRYPT, single-scheme (2026-06-25). Dep nova jBCrypt 0.4 (LIC pom).
+   - Usuario.java: CriptografaSenha = BCrypt.hashpw(senha, gensalt()); setSenha(.,true) idem. O
+     bcrypt ja gera salt aleatorio por hash -> NAO concatena mais o usuario. Novo metodo
+     checaSenha(senhaEmClaro) = BCrypt.checkpw (null-safe + try/catch p/ hash invalido).
+   - LOGIN MUDOU: bcrypt tem salt aleatorio por hash -> NAO da p/ achar o usuario por "WHERE
+     senha=hash". LogInServlet agora busca SO por usuario e verifica com checaSenha. Idem
+     AlteraUsuarioServlet e AnonimizaUsuarioServlet (senha atual via checaSenha).
+   - SEED: o estrutura-lic_bd.sql insere o admin com hash BCRYPT de 'admin'. admin/admin loga.
+   >>> SINGLE-SCHEME = SEM migracao. Qualquer deploy precisa ZERAR + recriar o banco (rodar o
+   estrutura novo), senao usuarios com hash SHA-256 antigo NAO logam (checaSenha rejeita). <<<
+[SEC-18]  Servlets de auth/admin POST-only: o doGet redireciona p/ login.jsp em vez de processar.
+   Fecha (a) credencial vazando em log/historico via GET e (b) mudanca de estado por GET driblando
+   o CSRF (o pior: escalada de privilegio via PermissaoUsuarioServlet). Em: LogIn, CadastroUsuario,
+   ResetPassword, AlteraUsuario, AnonimizaUsuario, PermissaoUsuario, ValidarIdeia.
+[SEC-19]  ResetPasswordServlet anti-enumeracao: a resposta agora e SEMPRE "Enviado e-mail..."
+   exista ou nao o e-mail. Antes, e-mail inexistente mostrava "E-mail nao cadastrado" -> dava p/
+   descobrir quais e-mails existem.
+[error.jsp / TK-06] Toolkit: criada a view "error" do ErrorController (e do <error-page> catch-all)
+   que NAO existia -> erro ficava mascarado. + TK-06: getErrorCode fazia (Integer)null->int (NPE)
+   se /error fosse acessado sem erro real -> a propria pagina de erro quebrava; agora usa 500 padrao.
+
+--- A.5 UPLOAD / RCE ---
+[SEC-12]  🔴 UploadArquivoServlet (storytelling): gravava o arquivo enviado DENTRO da pasta do
+   webapp servida pelo Tomcat (imagensStorytelling/<ideiaId>/) SEM validar tipo, e so DEPOIS tentava
+   ImageIO.read. Dava p/ subir um shell.jsp e o Tomcat EXECUTAR -> RCE (usuario autenticado no
+   fluxo). FIX: (1) allowlist de extensao de imagem (png/jpg/jpeg/gif/webp/bmp) -> rejeita .jsp/.html;
+   (2) nome ALEATORIO (UUID), nao confia no nome enviado; (3) confirma que e imagem de verdade
+   (ImageIO.read != null) e apaga se nao for; (4) guard de sessao (storytellingId) antes do unboxing.
+[STM-06 limites] UploadArquivoServlet: limites de upload (16 MB memoria / 10 MB request).
+
+--- A.6 HEADERS / COOKIES / PAGINAS DE ERRO / POST-ONLY ---
+[SEC-01]  Headers de seguranca (antes: NENHUM no projeto). Filtro NATIVO do Tomcat
+   HttpHeaderSecurityFilter (em catalina.jar, sem dep nova) nos 2 web.xml: X-Content-Type-Options:
+   nosniff (anti MIME-sniffing) + X-Frame-Options: SAMEORIGIN (anti-clickjacking). HSTS desligado
+   (dev http; init-param hstsEnabled=true em prod https).
+[SEC-02]  Endurecimento do cookie de sessao (2 projetos): HttpOnly (<session-config> -> JS nao le o
+   JSESSIONID); tracking-mode COOKIE (sem session-id na URL -> anti-fixation por link); SameSite=Lax
+   (META-INF/context.xml <CookieProcessor> -> mitiga CSRF sem tocar form). 'secure' desligado (dev
+   http; ligar em prod https). Analise: navegacao top-level GET (login/redirect/LIC->toolkit) segue
+   enviando o cookie -> sem quebra.
+[SEC-04]  Paginas de erro: o web.xml so mapeava 404; o /erros/500.jsp existia mas NAO estava mapeado
+   -> excecao nao-tratada vazava stack trace cru. Mapeados error-code 500 e exception-type
+   java.lang.Throwable -> /erros/500.jsp (estatica, sem dependencia).
+[ERR-PAGE-FIX] 404/500.jsp usavam caminhos RELATIVOS (../css/) -> como a error-page e servida no
+   contexto da URL pedida (ex.: /LIC/naoexiste.jsp), o "../" subia demais e CSS+imagem quebravam.
+   Trocado por ${pageContext.request.contextPath}/... (absoluto).
+[TK-EXC]  Toolkit ganhou GlobalExceptionHandler (@ControllerAdvice): trata MethodArgumentType
+   MismatchException (ex.: personaId=abc num @RequestParam int) -> pagina amigavel em vez de 400 cru;
+   + handler generico de Exception (rede final).
+[SEC-25]  PostOnlyFilter (LIC, NOVO, 2026-06-25): 15 endpoints de escrita de colaboracao/canvas/
+   storytelling aceitavam GET (mudanca de estado por GET dribla o CSRF via link). Todos os
+   chamadores legitimos ja sao POST (forms method=post + $.ajax type:'POST', conferido no JSP/JS).
+   O filtro rejeita GET (405) nesses 15 paths (InserirForma/Texto, DeletarObj, EditarTexto,
+   DeleteCanva, EnviarCanva, ExportCanva, SalvarTexto, AddDescricao, FecharGrupo, FinalizarColabora
+   cao, EnviarColaboracao, AutoSalvarStory, ExportaStory, SalvarAudio). Centralizado num filtro em
+   vez de mexer no doGet de 15 servlets.
+[SEC-20]  AddDescricaoServlet limita a descricao consolidada em 1500 chars (= a coluna). Antes
+   concatenava sem limite -> estourava a coluna em colaboracao longa (trunca silencioso no MySQL
+   nao-strict / erro 500 no strict).
+
+
+
+################################################################################
+B. BUGS / ROBUSTEZ
+################################################################################
+
+--- B.1 GUARDS (null / parse / get(0) / sendRedirect) — varredura sistematica ---
+[RET-13]  🔴/🟠 12 JSPs redirecionavam p/ login.jsp SEM `return` -> seguiam executando. Nos 3
+   primeiros (lista-ideia-gerenciamento, gerenciar-usuarios, validar-ideia) isso batia num 2o
+   sendRedirect -> 500 "Cannot call sendRedirect() after the response has been committed" quando a
+   SESSAO EXPIRA. Nos demais (index, index-perfil, lista-canvas, lista-caixa, lista-storytelling,
+   storytelling-show, 3 headerCookies) renderizavam com usuario null. Adicionado `return;`.
+[RET-14]  🟠/🔵 buscar(parseLong(param)) sem try-catch e sem null-check (padrao pervasivo): id
+   nulo/invalido -> 500 (NumberFormatException); entidade deletada -> NPE. Guard de parse + null-
+   check com redirect seguro em: GerenciarIdeia, EditarTexto, FinalizarColaboracao, FecharGrupo,
+   EntrarColaboracao (+ removido System.out de debug e import morto FacesContext), SalvarTexto
+   (valida ideia E usuario; antes gravava LogColaboracao com null), AddDescricao (parse->400),
+   EntrarStorytelling, EnviaDadosPessoais (exige login; antes NPE sem sessao), AbrirPersona/Abrir
+   PointOfView, ColaboracaoIdeiaDAO.ultimaColab (retorna null se lista vazia).
+[BLINDA-01] 🔴 ExportaStoryServlet — getAttribute("storytellingId").toString() -> NPE se a sessao
+   expirou/acesso direto; Long.parseLong sem guard. Fix: null-check (401) + try-catch (400).
+[BLINDA-02] 🔴 SalvarAudioServlet — identico ao BLINDA-01 (+ null-check do storytelling -> 404).
+[BLINDA-03] 🔴 ValidarIdeiaServlet — Long.valueOf("codigo"/"codUsuario") sem try-catch (NPE/NFE ->
+   500); 'ideia' inexistente -> NPE no setGestor; getParameter("validar").equals -> NPE se ausente.
+   Fix: try-catch no parse, null-check da ideia, "validar".equals null-safe.
+[BLINDA-04] 🟠 FecharGrupoServlet — Long.parseLong(radioParam) na transferencia de lider sem
+   try-catch -> radio nao-numerico (POST direto) -> 500. Fix: try-catch (redirect).
+[BLINDA-05] 🟠 AlteraUsuarioServlet — getParameter("senhaNova").equals("") com NPE se o POST tem
+   senhaAtual mas nao senhaNova (o containsKey so guardava senhaAtual). Fix: null-safe nas duas;
+   so troca a senha se as duas vierem preenchidas (evita salvar senha em branco).
+[RKM-03/04/05] gerenciar-usuarios NPE de permissao (conta removida com sessao ativa); validacao
+   null-safe de senha/email (AlteraUsuario/AnonimizaUsuario); parseLong/buscar com guards
+   (PermissaoUsuario).
+[COLM-01] validar-ideia: NPE de permissao se a conta foi removida com sessao ativa.
+[COLM-02] EnviarColaboracaoServlet: retorna o objeto recem-salvo (o Hibernate ja preencheu o id)
+   -> eliminou 2 queries extras + o get(size-1) sujeito a RACE CONDITION que havia.
+[COLM-03] EnviarColaboracaoServlet: exige sessao valida (ideiaId + codigoUsuario).
+[COLM-04] RetornaMensagensServlet: Integer.parse com try-catch -> o polling de 2s nao gera mais 500.
+[COLM-05] EntrarIdeiaServlet/EntrarDetalheServlet: parseLong/cast com guards.
+[COLM-06] EnviarColaboracao/RetornaMensagens: imports mortos removidos.
+[INFRA-06] HibernateUtil: valida o tamanho da lista do cfgbanco.txt (nao derruba o boot).
+[INFRA-07] CadastroUsuarioServlet: validacao null-safe dos campos.
+[INFRA-11] 🔵 EntrarCaixaServlet: sendRedirect usava "http://" fixo -> mixed-content/redirect
+   inseguro num deploy https. Trocado por request.getScheme().
+
+--- B.2 MODULO COLABORATIVO ---
+[COL-01] index-colaboracao.jsp: pagina nao listava ideias; refeita + 3 cards lado a lado.
+[COL-02] FinalizarColaboracaoServlet: null check em buscarDescricaoFinal (NPE).
+[COL-03] colaboracao.jsp: removido Long.parseLong desnecessario; log2 null-safe com fallback.
+[COL-08] EntrarColaboracaoServlet: .get(0) protegido contra lista vazia.
+[COL-11] FinalizarColaboracaoServlet: evita Storytelling duplicado em duplo-clique.
+[COL-13] colaboracao.jsp: var local + error handler no polling.
+[COL-15] cadastro-ideia.jsp + CadastroIdeiaServlet: validacao server-side (nao depende so do JS).
+[RET-12 servidor] 🔴 FinalizarColaboracaoServlet REJEITA finalizar uma ideia cujo status ja avancou
+   (ST/CF/CV/FN). Antes, um POST direto regredia o status (o botao some na Retencao pela UI, mas o
+   endpoint estava aberto). A finalizacao normal (vinda de DE) continua funcionando.
+
+--- B.3 MODULO STORYTELLING ---
+[STR-01] EntrarStorytellingServlet: .get(0) protegido contra lista vazia.
+[STR-02] AutoSalvarStoryServlet: elemento pode ter sido deletado entre carregar e salvar.
+[STR-03] lista-storytelling.jsp: removida referencia a variavel inexistente 'storytell'.
+[STR-04] lista-storytelling.jsp: removido JS que referenciava DOM inexistente.
+[STR-05] storytelling.jsp: fontes/tamanhos corrigidos (value != texto exibido).
+[STR-06] UploadArquivoServlet: limites de upload (16 MB memoria / 10 MB request).
+[STR-07] storytelling-show.jsp: removida estrutura HTML duplicada (dois <html>/<body>).
+[STR-08] storytelling.jsp: removido charset iso-8859-1 que corrompia acentos.
+[STR-09] IdeiaUsuarioDAO/lista-storytelling: lista inclui lideres E participantes.
+[STR-10] controle.js: removido hack de reload '#loaded' (double-load).
+[STR-11] controle.js/controleAdd.js: auto-save ao confirmar edicao de texto.
+[STR-12] geraPDF.js: URL relativa (nao depende do contexto /LIC).
+[STR-13] controle.js: URL relativa.
+[STR-14] controle.js: removido handler morto '#b2_00'.
+[STM-01] EditarTextoServlet: "Editar Texto" nao quebra sem descricao (fallback).
+[STM-02] SalvarTextoServlet: substring protegido contra indices -1.
+[STM-03] ElementosStorytellingDAO: ultimoAdicionado retorna null em vez de estourar.
+[STM-04] InserirForma/InserirTexto/RetornaElementos/RetornaAudio: storytellingId validado antes do
+   unboxing.
+[STM-05] DeletarObjServlet: null check antes de excluir.
+[STM-09] icones nao arrastavam — drawText criava uma LAYER NOVA por texto (cobrindo os icones e
+   interceptando o mouse) e faltava layer.draw(). Fix: layer unica adicionada ao stage no onload +
+   layer.draw() nos draws. (1a tentativa usava layer.getStage(), nao confiavel no Konva 1.6.5.)
+[STM-11] geraPDF.js: export do PDF falhava — no Konva 1.6.5 Stage.toDataURL() e ASSINCRONO
+   (callback), mas era usado de forma sincrona -> dataURL undefined -> PDF vazio. Reescrito com
+   toDataURL({callback}).
+[STM-16] figuras novas nasciam todas no CENTRO (empilhadas). Agora nascem em GRADE, com contador
+   sincrono (idxPos) p/ cliques rapidos nao caírem na mesma celula.
+[STM-19] 🔴 bug real de salvamento (id trocado/duplicado -> nao apaga, embaralha): apos salvar(), o
+   servlet relia o banco com ultimoAdicionado(), que com cliques rapidos retorna o codigo de OUTRA
+   figura (RACE). session.save() ja preenche o id na entidade -> removido o ultimoAdicionado, usado
+   o 'est' direto.
+[STM-21] figura nova nascia por cima das existentes (o contador zera ao reabrir). O carregamento
+   registra posicoes ocupadas e adicionaForma/texto usam proximaPosicaoLivre, desviando.
+[STM-22] arrastar nao persistia a posicao ate clicar "Salvar" -> ao reabrir voltava ao lugar de
+   origem. Adicionado dragend que salva a posicao automaticamente (silencioso).
+[STM-23] resize nao funcionava (o "fundo"/Group quebrava; atribuia string a attrs). Agora usa
+   node.width(Number(...))/height(...) e persiste o novo tamanho.
+[STM-LIMPEZA] controleAdd.js (drawImage): revertidas as gambiarras de hit; drawImage voltou a ser
+   Konva.Image arrastavel direto (sem Group/Rect/fill/hitFunc).
+[STM-24] 🔴 export do quadro 500 "Erro ao exportar / Packet for query is too large": o quadro era
+   exportado em PNG sem compressao (addImage(...,'PNG',0,0)) -> base64 de ~6 MB estourava o
+   max_allowed_packet do MySQL. Reescrito: pixelRatio:1 + desenha o PNG sobre canvas BRANCO +
+   reexporta em JPEG 0.8 (evita fundo preto da transparencia, encolhe ~10x) + escala/pagina A4.
+[STM-25/26] Retencao: restaurado o 2o botao do storytelling (o original tem dois): "Visualizar PDF"
+   (blob) E "Abrir quadro" (EntrarStorytellingServlet -> storytelling-show.jsp, remonta o quadro no
+   Konva somente-leitura). Postos lado a lado (flex). (Reverte parcialmente o STM-10, que tinha
+   removido o botao de reenvio na Retencao.)
+(Becos de debug deste modulo — STM-12/14/17/18/20, problema do navegador Brave — ver L.1.)
+
+--- B.4 MODULO CANVAS ---
+[CAN-01] IdeiaUsuarioDAO: status 'CV' confirmado (vem do Toolkit) — reversao de uma mudanca errada.
+[CAN-02] EnviarCanvaServlet: idCanva vazio = novo post-it (a criacao voltou a funcionar).
+[CAN-05] EntrarCanvaServlet: null check no ideiaId antes do parseLong.
+[CAN-07] canva-visao-geral.jsp: pageEncoding UTF-8 (era iso-8859-1).
+[CAN-08] canva-*.jsp (9 arquivos): ${sessionScope.ideiaId} (antes ${ideiaId} ia vazio).
+[CAN-09] EntrarCanva/VisaoGeralCanva: erro 500 "id to load is required": ambos faziam buscar(ideiaId)
+   sem checar null; quando o ideiaId saia da sessao, dava 500. Agora redireciona p/ lista-canvas.
+[CAN-10] ExportCanvaServlet: ERR_CONNECTION_RESET no export — o servlet retornava sem ler o corpo
+   (PDF base64 grande) -> o Tomcat resetava a conexao (maxSwallowSize). Agora le o body antes de
+   validar + try-catch (erro de max_packet vira 500 claro).
+[CANM-01] EnviarCanvaServlet: switch(attribute) protegido contra null (NPE garantido).
+[CANM-02] EnviarCanvaServlet: edicao de post-it com null check + IDOR.
+[CANM-03] EnviarCanva/DeleteCanva/ExportCanva/9 EntrarCanvaXxx: ideiaId validado em 12 servlets.
+[CANM-04] DeleteCanvaServlet: parseLong com try-catch.
+[CANM-05] DeleteCanvaServlet: query de 'ideia' morta removida.
+[CANM-06] ExportCanvaServlet: le body completo + null check no fileData.
+[CANM-07] ExportCanvaServlet: query duplicada -> consulta unica.
+[CANM-08] canva-footer.jsp: caractere © corrigido (estava corrompido). [arquivo depois removido no
+   cleanup; nenhuma canva-*.jsp tem U+FFFD -> moot.]
+[CANM-09] EnviarCanva/DeleteCanva: auth + IDOR (post-its da propria sessao). [ver A.2]
+[CANM-10] EnviarCanvaServlet: imports mortos removidos.
+[RET-CV] lista-ideia-gerenciamento/minha-ideia: ideia no Canvas aparecia com status EM BRANCO na
+   Retencao/Minhas Ideias — faltava o mapeamento do status 'CV' (setado pelo Toolkit ao finalizar
+   a Caixa). Adicionado CV -> "Canvas".
+(Saga dos exports do canvas — CAN-11..16 — detalhada em B.7.)
+
+--- B.5 MODULO RETENCAO DO CONHECIMENTO ---
+[RET-03] gerenciamento-ideia.jsp: guard de acesso direto a pagina.
+[RET-04] gerenciamento-ideia.jsp: NPE de permissao (conta removida).
+[RET-05] lista-ideia-gerenciamento.jsp: NPE de permissao (conta removida).
+[RET-07] gerenciamento-ideia.jsp: aviso "Nenhum Canva" agora aparece corretamente.
+[RET-10] gerenciamento-ideia.jsp: atributo id duplicado corrigido.
+[RET-11] 🔴 gerenciamento-ideia.jsp: 500 "response committed" — o redirect de login (sessao sem
+   codigoUsuario) NAO tinha return -> seguia ate o 2o sendRedirect (index.jsp) com a resposta ja
+   comitada. Adicionado return apos o redirect de login.
+[RET-12] 🔴 Retencao permitia RE-FINALIZAR ideia: a Retencao abre colaboracao.jsp em modo leitura
+   (isRetencao), mas os botoes de acao do lider (Finalizar Ideia, Editar Texto, "adicionar a
+   descricao") so testavam lider eq 'S' -> apareciam na Retencao e ao clicar REGREDIAM o status
+   (voltava p/ Storytelling), corrompendo o fluxo. Adicionado "and isRetencao eq false" nos 3
+   guards. (+ blindagem no servidor = RET-12 servidor em B.2.)
+[E1]     ExportFile.java: coluna file_location -> longtext (PDF base64 truncava em 255). >>> PDFs de
+   Persona/POV exportados ANTES do E1 ficaram truncados — precisam ser re-exportados.
+
+--- B.6 LOGIN / INFRA / PERFIL ---
+[SENHA-#] login.jsp: pattern aceita # e qualquer caractere especial.
+[login.jsp] .{4.32} -> .{4,32} (pattern do usuario quebrado); tyme="e-mail" -> type="email"; jQuery
+   http -> https (mixed content); idem index-perfil.jsp (jQuery https).
+[INFRA-05] principal.jsp: exige login + link cadastroIdeia.jsp -> cadastro-ideia.jsp.
+[INFRA-08] footer.jsp: © corrigido + "IdeaWare" -> "IdeiaWare".
+[INFRA-10] LogOutServlet: getSession(false) (nao cria sessao nova so p/ invalidar) + jQuery
+   duplicado removido da lista-caixa-de-ferramentas.
+[FRONT] index.jsp: id duplicado — 2o "nav-mobile" -> "nav-mobile-right".
+[TK-01] AdminCookies: cookie ideiaId vazio/nao-numerico quebrava quase todos os controllers (via
+   == "" + new Long(), que lancava NumberFormatException). Agora valida e trata com try-catch.
+[TK-02] IdeiaDAOImpl/PersonaDAOImpl: getSingleResult() -> uniqueResult() (retorna null em vez de
+   NoResultException) + guard no IdeiaController.finalize.
+[TK-18] 🟠 PointOfViewController.displayPointOfView: fazia (Integer) row[0]/[2]/[6] de uma native
+   query; o MySQL via Hibernate pode devolver BigInteger -> ClassCastException (500) dependendo do
+   tipo/driver. Funciona hoje (colunas INT) mas e fragil. Trocado por ((Number)...).intValue().
+[LOGOUT-FIX] (2026-06-25) "Sair" do Toolkit (resources/js/custom.js) apontava p/ /LIC/lista-caixa-
+   de-ferramentas.jsp — so apagava os cookies, NAO deslogava -> exigia um 2o clique p/ chegar no
+   login. Agora vai p/ /LIC/LogOutServlet (invalida a sessao + login.jsp) num clique so. Tambem
+   passa a apagar o cookie ideiaSig (criado no SEC-23).
+
+--- B.7 EXPORTS DE PDF (a saga completa) ---
+Raiz comum: os exports eram SCREENSHOT (html2canvas) -> cortavam a borda/coluna da DIREITA no
+Ctrl+P; area transparente virava PRETA em alguns viewers; raster (sem nitidez); e o PNG cru
+estourava o pacote do MySQL. Evolucao: screenshot blindado -> PDF NATIVO (vetorial).
+[E1/RET-CV] coluna file_location/caminhoFinalizado -> LONGTEXT (base64 truncava em 255). [ver B.5]
+[STM-24] (storytelling) PNG cru ~6MB -> JPEG 0.8 sobre canvas branco + escala A4. [ver B.3]
+[CAN-11] (canvas) 500 ao exportar: PNG sem compressao -> base64 de varios MB. JPEG 0.8 (~10x menor)
+   + imagem ajustada a largura A4 (usava px onde o PDF espera pt).
+[CAN-12] export saia cortado: imagem numa unica pagina; tudo abaixo da A4 era cortado. Adicionada
+   PAGINACAO (while leftHeight>0 { addImage; position-=pageHeight; addPage }).
+[CAN-13] ainda cortado mesmo com paginacao: o html2canvas 0.5.0-beta3 recorta a captura na altura
+   da VIEWPORT -> o que estava abaixo da dobra nunca entrava. Fix: window.scrollTo(0,0) + passar o
+   tamanho real do #myPDF (scrollWidth/scrollHeight).
+[CAN-14] fundo preto: o canvas vem transparente e o JPEG nao tem alpha -> transparente vira preto.
+   Fix: desenha o screenshot sobre um canvas BRANCO antes do toDataURL('image/jpeg').
+[CAN-15] tela duplicada embaixo do footer: document.body.appendChild(canvas) (residuo de debug)
+   renderizava uma copia. Removido + handler de erro blindado.
+[CAN-16] "pdf.internal.pageSize.getWidth is not a function": o jsPDF do LIC (js/Bibliotecas/jspdf.js)
+   so tem .width/.height, nao os getters. Fix: usa getWidth() se existir, senao a propriedade.
+[TK-08] (Toolkit Persona/POV) cards faltando: conteudo > A4 numa unica pagina, excedente cortado.
+   Paginacao (depois superado pelo TK-14).
+[TK-09] tentativa INSUFICIENTE: passar background ao html2canvas — a opcao e IGNORADA na 0.5.0-beta3.
+[TK-10] 🔴 Persona/POV saiam com fundo TODO PRETO (dados invisiveis): elemento transparente + JPEG
+   sem alpha. Fix (nao depende da lib): desenha sobre canvas BRANCO antes do toDataURL. Os dados
+   sempre foram capturados — estavam escondidos no fundo preto.
+[TK-14] PDF abria pequeno e centralizado (conteudo encaixado numa A4 fixa, sobrava branco). Agora a
+   pagina do PDF tem o TAMANHO EXATO do conteudo (new jsPDF('p','pt',[w,h])) -> preenche e nao corta
+   (dispensa a paginacao do TK-08). >>> ESSE swap de pagina foi o que introduziu o bug do TK-17.
+[TK-17] 🔴 CAUSA-RAIZ REAL do "export cortado" (persona/POV/empatia): new jsPDF('p','pt',[w,h]) com
+   imagem LARGA-e-baixa. No codigo do jsPDF, case "p": t>e -> ele GIRA a pagina pra retrato:
+   [595x140] vira [140x595]. A imagem de 595pt de largura cai numa pagina de 140pt -> corta a
+   direita. Fix (1 linha): orientacao pela proporcao -> orient = (w>=h)?'l':'p'. Foi o proprio TK-14
+   que introduziu o swap — por isso "funcionava antes (A4 fixo) e bugou do nada".
+[EXP-POV] (Toolkit) POV "Visao Geral": NOVA Toolkit.PointOfView.exportTable() desenha uma TABELA
+   NATIVA A4 retrato (4 colunas Persona/Usuario/Necessidade/Introspeccao; cabecalho cinza; bordas
+   completas inclusive a direita; cresce 1 linha por POV; quebra de pagina repetindo o cabecalho).
+[EXP-EMP] (Toolkit) Mapa de Empatia "Visao Geral": NOVA Toolkit.Persona.exportEmpathyMap() desenha
+   a grade 2 colunas (SENTE/VE, DIZ/ESCUTA, DORES/GANHOS) nativa; cada post-it = retangulo com a COR
+   REAL (lida do DOM) + texto preto/branco por luminancia. A antiga exportFile (screenshot) ficou
+   p/ a view DETALHADA e persona (pintando A4 de branco antes).
+[EXP-CAN] (LIC) Canvas: geraPDFCanva.js REESCRITO de screenshot p/ QUADRO BMC 2D NATIVO em paisagem
+   A4: 9 blocos nas posicoes classicas; 4 faixas de grupo coloridas; titulo+descricao por bloco;
+   post-its com cor real do DOM; encolhimento de fonte com PISO de 5pt + corte do excedente; TODAS
+   as bordas desenhadas por ULTIMO (separadores limpos). jsPDF do LIC = 1.0.272.
+[ITEM-1/RKM-FIX] "Abrir PDF" da persona/POV ESTAVA QUEBRADO: AbrirPDF.abrir fazia new File(caminho)
+   esperando caminho de arquivo, mas export_file.file_location guarda o conteudo em BASE64 (data-URI
+   do FileReader.readAsDataURL). Fix: decodifica o base64 (aceita data-URI ou puro) e escreve os
+   bytes do PDF na resposta (Content-Type application/pdf).
+(Becos de debug deste tema — TK-15 v1/v2/v3, TK-16, CACHE-BUST — ver L.1, mantidos detalhados.)
+
+
+
+################################################################################
+C. UI / UX
+################################################################################
+[UX-01] Estados vazios: antes, toda listagem vazia deixava um box em branco sem explicacao.
+   Mensagem contextual + icone quando a lista esta vazia, em ~25 telas (minha-ideia, lista-ideia,
+   listas de storytelling/canvas/caixa, lista-ideia-gerenciamento, validar-ideia, gerenciar-
+   usuarios, detalhes-ideia, 9 telas de Canva, Toolkit list-personas/list-point-of-view + 6 telas
+   do Mapa de Empatia). Tecnica: a lista e capturada 1x em <c:set> e reusada no forEach + no
+   <c:if test="${empty ...}"> (sem query dupla).
+[LISTAGENS] Ordenacao (mais novas em cima) revisada em TODOS os modulos: Minhas Ideias / Canvas /
+   Caixa(Toolkit) / Storytelling -> Order.desc("ideia") nos DAOs; Retencao -> override de listar()
+   na IdeiaDAO com Order.desc("codigo"). BUSCA client-side (input + JS que esconde <tr> que nao
+   casam) adicionada na minha-ideia e na lista-ideia-gerenciamento (Retencao). Seguranca: o desc
+   so afeta listagens multi-ideia.
+[RET-DESC] lista-ideia-gerenciamento.jsp (Retencao): a coluna Descricao usava white-space:nowrap +
+   max-width:1px (trunca em 1 linha) e cortava descricoes maiores. Trocado por word-break:break-word
+   + white-space:normal.
+[COL-16] index-colaboracao.jsp: os 3 cards tinham alturas diferentes (textos de tamanhos diferentes)
+   -> flexbox no .row + card-content flex:1 0 auto iguala a altura e alinha os botoes na base.
+[UI-EMP] "Mapa de Empatia - Visao Geral" (Toolkit): (1) mapa encolhido no canto e (2) Nome/Idade
+   nos extremos. Causa: .persona-overview/.persona-all-data-overview usavam display:INLINE-TABLE
+   (inline-level -> width:100% nao estica e a table encolhe pro conteudo, que tem filhos em % que
+   colapsam). Fix: display:TABLE + width:100% nas duas classes; Nome/Idade de 'col s12 m6' (extremos)
+   p/ 'col s6 m3' (adjacentes). O export segue OK (custom.js passa width/height explicitos).
+[UI-EMP2] mapa de empatia na TELA alto demais (precisava rolar): .persona-overview .section
+   min-height 220px -> 160px.
+[UI-POV] tabela POV na tela: padding 15->24px + vertical-align:top; border-collapse + width:100%
+   (fecha a borda direita).
+[RET-CANVA] na funcao canva() do gerenciamento-ideia.jsp o modal "Selecao Canva" so tinha Nome +
+   Entrar (POV/persona tinham "Criado em" + lixeira). Adicionado: coluna "Criado em"
+   (${data.formatarDataHoraCompleta(canva.date)}) e botao excluir. A logica de delete do Canvaexport
+   NAO existia -> criados: DeletarCanvaexportServlet (NOVO; espelha o DeletarExportedFileServlet/
+   RKM-02: auth admin + parse guard + null check; mapeado no web.xml) e master.js deleteCanvaExport()
+   (POST via $.ajax -> coberto pelo csrf.js).
+[TK-ORD] Lista de Point of View com os mais NOVOS em cima. Duas mudancas (uma sem a outra nao
+   adianta): getPointOfViews ganhou ORDER BY pov.pov_id DESC, e displayPointOfView trocou o HashMap
+   (que embaralha) por LinkedHashMap (preserva a insercao = a ordem da query). Personas seguem A-Z.
+[TK-LOGO] o logo (brand-logo) dos headers do Toolkit apontava p/ /LIC/lista-caixa-de-ferramentas.jsp;
+   trocado p/ /LIC/index.jsp (o hub do IdeiaWare), igual ao logo do LIC. Em header.tag e
+   no-container-header.tag.
+[TK-11/12/13] (Toolkit) tela "Caixa de Ferramentas finalizada" restaurada (uma correcao anterior a
+   trocou por redirect automatico pro Canva); rotulo do botao nao mudava p/ "Atualizar" ao editar
+   atributo (seletor ".attribute form .btn input" -> "input.btn"); botao "Adicionar/Atualizar" so
+   clicava no TEXTO (a lib Waves envolve o <input> e so o texto clicava) -> handler delegado que
+   repassa o clique ao input interno.
+[CANVAS-FINAL] tela de finalizacao do Canvas (LIC): o export fazia um corte seco window.location.
+   href="minha-ideia.jsp". Criada a canvas-finalizado.jsp (card teal + smile + "Ver minhas ideias"),
+   p/ dar um respiro visual. (Depois ajustada no NAV-FINALIZE.)
+[NAV-FINALIZE] (2026-06-25) telas de finalizacao mantidas (a pedido), com o botao indo p/ "Minhas
+   Ideias": Finalizar Caixa (Toolkit IdeiaController volta a retornar a view "finalize"; o botao da
+   finalize.jsp -> /LIC/minha-ideia.jsp em vez da lista de caixas); Finalizar Canvas (geraPDFCanva.js
+   volta a abrir canvas-finalizado.jsp; o botao ja ia p/ minha-ideia; adicionado o FOOTER
+   canva-footer.jsp que faltava). Exportar POV/persona: em vez da tela "Sucesso!", redirect direto p/
+   a listagem (/point-of-view/lista, /persona/lista) — padrao PRG.
+[TK-LIST] (2026-06-25) listagem do Toolkit (lista-caixa-de-ferramentas.jsp / IdeiaUsuarioDAO.listar
+   Caixa): removido o filtro flLider='S' -> a Caixa aparece p/ TODOS os participantes (nao so o
+   lider). Quem entra pelo "Minhas Ideias" agora tambem ve na listagem. A do CANVAS (listarIdeias
+   Canva) foi MANTIDA so do lider (decisao do usuario; o comentario "NAO alterar" daquele DAO e sobre
+   o STATUS 'CV', nao sobre o filtro de lider).
+[CAN-ACESSO] (2026-06-25) minha-ideia.jsp NAO tinha case p/ o status CV (Canvas) -> o botao "Entrar"
+   caia no <c:otherwise> e ficava CINZA p/ TODOS (ST e CF tinham botao; CV foi esquecido).
+   Adicionado o case CV. OPCAO A: o botao so aparece p/ o LIDER (flLider='S'); o membro continua com
+   o botao desabilitado. (O canvas tambem e acessivel pelo card "Canva" -> lista-canvas, leader-only.)
+[PERFIL] (2026-06-25) index-perfil.jsp estava "morta": o logo NAO era link (nao clicava), nao tinha
+   "Sair", e os campos so tinham placeholder (some quando vem preenchido). FIX: logo virou link
+   (href=index.jsp); "Sair" no nav (-> LogOutServlet); titulo "Meu Perfil" (h4); LABELS visiveis nos
+   campos (Usuario/Nome/E-mail); typo tyme="e-mail" -> type="text". (O icone de "Inicio"/casinha foi
+   removido depois, a pedido — ficou so o "Sair".)
+[A11Y-01] Acessibilidade (passo mecanico, so ASCII): lang="pt-BR" em TODAS as paginas (32 JSPs;
+   index.jsp tinha "en" errado); alt="IdeiaWare" em todos os <img idea.png> (15 logos + o do Toolkit,
+   que tinha bug de aspas duplas png""); aria-label = placeholder em 22 inputs que so tinham placeholder.
+[SEMANTIC-01] Landmark role="main" (acessibilidade) no container de conteudo: LIC 12 paginas
+   (<div class="white" min-height:90vh>) + Toolkit TODAS (via #content do header.tag). So atributo
+   ARIA -> sem troca de elemento / sem risco de CSS.
+[UX-02] (HISTORICO — REVERTIDO) varias telas internas nao tinham nav/botao de voltar. Foi adicionado
+   um par "Inicio"/"Voltar" e, depois de varias idas e vindas no visual do cabecalho (margin-collapse
+   revelava o body teal, sem margin "comia" a sombra), o usuario pediu p/ REMOVER tudo. A navegacao
+   volta pelo logo IdeiaWare no cabecalho. (Mantido aqui so como historico.)
+
+
+
+################################################################################
+D. PERFORMANCE / OTIMIZACAO
+################################################################################
+[COL-10/14] IdeiaDAO/lista-ideia.jsp: query unica (eliminado N+1 e carga total).
+[COL-12] colaboracao.jsp: cache de query (4 queries identicas -> 1, via <c:set>).
+[COLM-02] EnviarColaboracaoServlet: retorna o objeto recem-salvo -> elimina 2 queries + o get(size-1)
+   com race condition. [tambem em B.1]
+[CANM-07] ExportCanvaServlet: query duplicada -> consulta unica.
+[CAN-10] ExportCanvaServlet: le o body antes de validar (evita ERR_CONNECTION_RESET por maxSwallow
+   Size). [tambem em B.4]
+
+
+
+################################################################################
+E. INFRA / BUILD / ENCODING / REFATORACAO
+################################################################################
+[BUILD] Mavenizacao do Toolkit (era build manual javac+jar): criado pom.xml com as versoes ATUAIS
+   (Spring 4.3.9 / Hibernate 5.2.10 / connector / JSTL 1.2.1 / shims JAXB p/ JDK 11+). Build virou
+   `mvn clean package` -> target/toolkit.war. O pom usa <sourceDirectory>src</sourceDirectory>,
+   <warSourceDirectory>WebContent</warSourceDirectory>, e EXCLUI WEB-INF/lib + WEB-INF/classes do war
+   (warSourceExcludes — ver TK-WAR-STALE). Removidos os artefatos do build manual e os metadados do
+   Eclipse (.project/.classpath/.settings) dos 2 projetos.
+[TK-WAR-STALE] 🔴🔴 causa-raiz CRITICA de build: o war do Toolkit embarcava CLASSES VELHAS compiladas
+   pelo Eclipse (WebContent/WEB-INF/classes, 48 .class de 09/06) que SOBRESCREVIAM as do Maven dentro
+   do war. Sintoma: a tela TK-11 nao aparecia (o IdeiaController ja retornava "finalize" no fonte, mas
+   o deploy rodava a classe velha). Resultado: TODA mudanca de codigo Java do Toolkit nunca subia (so
+   JS/JSP). Fix: apagado WebContent/WEB-INF/classes + warSourceExcludes="WEB-INF/lib/**,WEB-INF/
+   classes/**". LICAO: conferir a classe DENTRO do war (unzip -l) e DELETAR a pasta explodida no
+   webapps antes de subir (o Tomcat nao re-explode war por cima de pasta existente).
+[ENC-01] Encoding padronizado em UTF-8 (era misto; o Toolkit era Latin-1/ISO-8859-1, o LIC tinha
+   stragglers). Foi a maior fonte de bugs (editor/sed corrompendo acento). 34 arquivos convertidos
+   via Python (decode latin-1 -> encode utf-8, lossless): Toolkit 8 .java + 15 .jsp + 4 .tag; LIC 7
+   JSPs. pageEncoding/charset ISO -> UTF-8; <%@ tag pageEncoding="UTF-8" %> nas 4 tags; <jsp-config>
+   global UTF-8 nos 2 web.xml; .editorconfig (charset=utf-8) criado p/ o editor MANTER UTF-8.
+   ATENCAO: o mvn package NAO traduz JSP -> o teste de acento so aparece no DEPLOY.
+[ENC-02] Mojibake "VisÃ£o Geral" nos nomes vindos do Toolkit (aparece na Retencao do LIC). Causa: o
+   Toolkit (Spring) NAO tinha CharacterEncodingFilter; o Tomcat le o corpo do POST do export como
+   ISO-8859-1 e "Visão" (UTF-8) vira "VisÃ£o" ANTES de salvar. Fix: CharacterEncodingFilter
+   (encoding=UTF-8, forceEncoding=true) como PRIMEIRO filtro do web.xml do Toolkit. (Registros velhos
+   ja corrompidos seguem tortos -> re-exportar.)
+[ENC-03] LIC ganhou o SetCharacterEncodingFilter (nativo do Tomcat) como PRIMEIRO filtro: o CsrfFilter
+   le request.getParameter("csrfToken") no POST, o que dispara o parsing do corpo com o encoding
+   DEFAULT (ISO) ANTES do servlet chamar setCharacterEncoding("UTF-8") -> o setCharacterEncoding vira
+   no-op e o acento quebra ("horÃ¡rio"). (Ver D-6 no deploy.)
+[CASE-FIX] LowerCaseTableNamingStrategy (classe NOVA no LIC e no Toolkit; extends PhysicalNaming
+   StrategyStandardImpl, override toPhysicalTableName -> toLowerCase). 14 entidades mapeavam tabela
+   com MAIUSCULA (as sem @Table = nome da classe) -> no MySQL do Linux (case-sensitive) daria "Table
+   'lic_bd.Ideia' doesn't exist" + o hbm2ddl=update do LIC criaria DUPLICATA. Registrada na hibernate
+   .cfg.xml (LIC prod+teste) e no toolkit-servlet.xml. >>> ATENCAO (DIV-3): na PRATICA do MySQL 8
+   Linux NAO bastou (ver D-5/I); precisa lower_case_table_names=1. A estrategia fica no codigo,
+   inofensiva/redundante com a flag.
+[CASE-AUDIT] auditoria de case-sensitivity no filesystem (script comparando string case-sensitive vs
+   case-insensitive, porque o NTFS "mente"): 0 bug em 526 referencias (src/href/url/includes/forwards
+   + views do Spring + tags). So o BANCO era risco.
+[DEPLOY-1] mysql-connector-java 5.1.36 (LIC)/5.1.42 (Toolkit) -> 5.1.49 nos 2 poms (compativel com
+   MySQL 8 — ver D-3 / I).
+[DEPLOY-2] JDBC URL ganhou ?useUnicode=true&characterEncoding=UTF-8 (hibernate.cfg.xml + toolkit-
+   servlet.xml).
+[GITIGNORE] .gitignore dos 2 projetos reescritos (eram minimos): ignoram build (target/, build-war/,
+   *.class), IDE (.settings/, nbproject/private/), backups (*.bak/*.tmp/*.log/sources.txt), segredos
+   (.env, *.env, mantendo .env.example), wars e lixo de SO.
+[REFAC-01] StatusIdeia: criada edu.unisc.lic.classes.StatusIdeia com os codigos de Ideia
+   (PE/VA/RE/DE/ST/CF/CV/FN) e de Grupo (AB/FE). Substituidos ~22 literais "magicos" em 8 arquivos
+   .java pelas constantes (MESMOS valores, anti-typo). Os JSPs seguem com literais em EL (limitacao).
+[MNT-01] 9 servlets EntrarCanva* (~98 linhas QUASE identicas cada, so mudava o tipo do elemento + a
+   pagina): extraida EntrarCanvaBaseServlet (abstrata) com a logica comum; cada um virou subclasse de
+   ~14 linhas (getTipoCanva + getPaginaDestino). ~880 linhas -> ~200. Nomes/mapeamentos/forms INTACTOS
+   (zero mudanca de comportamento). O EntrarCanvaServlet do mapa NAO foi mexido (e diferente).
+
+
+
+################################################################################
+F. LIMPEZA / CODIGO MORTO (~50 MB removidos)
+################################################################################
+[TK-CLEANUP] Toolkit 100% limpo: apagado WebContent/WEB-INF/lib (87 jars / 47 MB, leftover do Eclipse
+   — o Maven prove tudo; o war segue com os 35 jars do Maven) + AppConfig.java (classe VAZIA/morta).
+   Varredura: TODAS as 17 views sao retornadas por controllers, as 4 tags sao usadas, so o AppConfig
+   estava sem referencia. (deps "nao usadas" do pom NAO removidas: sao RUNTIME — JSTL, connector,
+   JAXB, javax.el, validator.)
+[LIC-CLEANUP] LIC 100% limpo: apagados documentacao-main/ (3 MB) e dump-sql/; junk de IDE/SO
+   (.DS_Store, pom.xml.bak, nb-configuration.xml, nbproject/); JS/libs mortos (webcam.*; variantes
+   nao-usadas do Quill). ZERO classe Java/JSP orfa. ATENCAO: canvas-finalizado.jsp e VIVA (alcancada
+   por redirect JS em geraPDFCanva.js, nao por servlet) -> scanners que so olham .java/.jsp dao
+   falso-positivo. AbrirPersona/AbrirPointOfView/AbrirPDF/ManipulaTxt NAO apagados (vivos/wired).
+[CLEANUP/2/3] arquivos/funcoes mortos removidos (0 refs): principal.jsp, usuarios.jsp (pagina de
+   debug), js/Testes/ (pasta inteira); custom.js do Toolkit htmlToCanvas()/canvasToPDF() (API
+   onrendered obsoleta); controleMouse.js (writeMessage/getMousePos nao chamados); 2o jQuery de varias
+   paginas; 3 System.out de debug do EnvioEmail; UsuarioDAO.java.bak. (Os System.out "Erro ao fechar a
+   operacao" nos catch dos DAOs foram MANTIDOS — log de erro, nao dado pessoal.)
+[STM-08] controleMouse.js: funcoes orfas inofensivas (codigo morto).
+
+
+
+################################################################################
+G. TESTES AUTOMATIZADOS (0 -> 42)
+################################################################################
+Situacao previa: o LIC tinha 10 arquivos de teste mas eram scratch @Ignore'd dependentes de banco
+(24 testes, TODOS skipped); o Toolkit nao tinha NADA.
+[TEST-01] Logica pura (sem banco/container, ~0.1s): LIC CriptografaDadosTest (3, round-trip AES),
+   DataFormatacaoTest (4, dd/MM/yyyy + HH:mm + null-safe), StatusIdeiaTest (2, trava os codigos
+   gravados no banco); Toolkit ToolkitValidacaoTest (5, da validacao server-side da Onda 1). Junit
+   4.12; no Toolkit foi preciso add junit no pom + testSourceDirectory=test (src/ e o sourceDirectory).
+[TEST-02/02b] Toolkit comportamento (mock, sem banco): deps spring-test 4.3.9 + mockito-core 3.12.4.
+   AdminCookiesTest (6, parsing do cookie ideiaId — trava TK-01); CsrfInterceptorTest (6, POST e
+   GET-delete exigem token, GET comum so gera cookie, token errado -> 403); PersonaControllerTest (5,
+   MockMvc standalone -> POST real passando por binding+validacao+redirect, service mockado);
+   ThinkAndFeelQuestionControllerTest (3, representa os 6 de empatia); PointOfViewControllerTest (3).
+   (Atualizados em 2026-06-25 p/ mandar o cookie ideiaSig do SEC-23.)
+[TEST-03] DAO com H2 in-memory (integracao REAL no LIC): src/test/resources/hibernate.cfg.xml SOMBREIA
+   o de producao no classpath de teste -> os DAOs usam H2 (MODE=MySQL, hbm2ddl=create). Dep h2 1.4.200.
+   UsuarioDaoH2Test (3), IdeiaDaoH2Test (2, round-trip + FK + editar status). PROBLEMA+FIX (importante
+   p/ a fase de versoes): no JDK 21 o Hibernate 5.2 nao gera proxies (ClassLoader.defineClass via
+   reflection bloqueado pelos modulos) -> surefire argLine "--add-opens java.base/java.lang=ALL-UNNAMED
+   ... java.lang.invoke" (producao no Tomcat tb precisa = D-2).
+   TOTAL: LIC 14 reais (+24 @Ignore legados de DAO), Toolkit 28.
+
+
+
+################################################################################
+H. DEPLOY MANUAL (LIC + Toolkit) — passo a passo
+################################################################################
+
+--- H.1 BUILD (os dois sao Maven, test-gated) ---
+  mvn -f "...\IdeiaWare-main\pom.xml" clean package                         -> target\LIC.war
+  mvn -f "...\Toolkit2025-main\Toolkit2025-main\pom.xml" clean package      -> target\toolkit.war
+  (se um teste falhar, o war NAO e gerado. -DskipTests p/ pular.)
+
+--- H.2 DEPLOY LOCAL (Windows / Tomcat 9) — PowerShell como ADMIN ---
+  net stop Tomcat9                          # SEMPRE parar antes (jars MySQL/c3p0 ficam travados)
+  $wa = "C:\Program Files\Apache Software Foundation\Tomcat 9.0\webapps"
+  Remove-Item "$wa\LIC","$wa\LIC.war","$wa\toolkit","$wa\toolkit.war" -Recurse -Force -EA SilentlyContinue
+  Copy-Item "...\IdeiaWare-main\target\LIC.war" $wa
+  Copy-Item "...\Toolkit2025-main\Toolkit2025-main\target\toolkit.war" $wa
+  net start Tomcat9
+  Hard refresh (Ctrl+Shift+R) no browser por causa dos .js cacheados (csrf/custom/geraPDFCanva).
+
+--- H.3 REDEPLOY LIMPO (Windows) — armadilha "Acesso negado" do Toolkit ---
+  No Windows o servico Tomcat9 roda como LOCAL SERVICE; o toolkit.war copiado do projeto vem com ACL
+  SEM essa conta -> catalina.log "Exception fixing docBase ... (Acesso negado)" e a pasta webapps\
+  toolkit nunca e criada -> 404. Fix: depois de copiar,  icacls "...\webapps\toolkit.war" /reset
+  (re-herda a ACL de webapps). Conferir no log que o contexto subiu: "FrameworkServlet 'dispatcher':
+  initialization completed in ~2700 ms". Se "deployed in 24ms", NAO subiu. O root /toolkit da 404
+  mesmo OK -> testar /toolkit/persona/lista.
+
+--- H.4 DEPLOY UBUNTU SERVER + MySQL 8 (armadilhas reais — cada uma travou o deploy) ---
+AMBIENTE: Ubuntu 24.04, OpenJDK 21, Tomcat 9 MANUAL em /opt/tomcat, MySQL 8. Os 2 wars no MESMO
+Tomcat (/LIC e /toolkit) — a integracao usa cookie no mesmo host; NAO separar em portas/hosts.
+[D-1] 🔴 TOMCAT 9, NUNCA 10/11. O apt instala o 10 (namespace jakarta.*) e os apps (javax.*) nao
+   sobem -> 404 em tudo, sem erro obvio. Baixar o 9.x do site da Apache.
+[D-2] 🔴 JDK 21 + Hibernate 5.2 -> InaccessibleObjectException no boot. Precisa de setenv.sh em
+   $CATALINA_HOME/bin com:
+     export CATALINA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED \
+                           --add-opens java.base/java.lang.invoke=ALL-UNNAMED"
+   (LIC usa o pool built-in do Hibernate; Toolkit usa c3p0 — os dois precisam.)
+[D-3] 🔴 connector 5.1.36/42 x MySQL 8 -> "Unable to create requested service [JdbcEnvironment]". O
+   connector antigo consulta a variavel 'tx_isolation', REMOVIDA no MySQL 8. Fix: 5.1.49 (DEPLOY-1).
+   O erro do Toolkit aparece no DEPLOY (Spring cria a SessionFactory no boot); o do LIC so no 1o
+   request (HibernateUtil e static, criado sob demanda) -> "fabrica de sessoes nao pode ser criada"
+   so ao tentar logar.
+[D-4] 🔴 AUTH no MySQL 8: o app conecta por TCP em 127.0.0.1 com root/root. root@localhost (default
+   Ubuntu) usa auth_socket (recusa senha por TCP); root@127.0.0.1 nao existe; o connector 5.1 nao
+   fala caching_sha2_password (default do 8). Fix (usuario que casa com a conexao, plugin nativo):
+     CREATE USER 'root'@'127.0.0.1' IDENTIFIED WITH mysql_native_password BY 'root';
+     GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION; FLUSH PRIVILEGES;
+   (o estrutura-lic_bd.sql ja cria esse usuario.) Diagnostico = reproduzir a conexao do app:
+     mysql -u root -proot -h 127.0.0.1 lic_bd -e "SELECT 1;"
+[D-5] 🔴🔴 CASE-SENSITIVITY: o CASE-FIX (estrategia de naming) NAO funcionou na pratica no MySQL 8
+   Linux — o app, via hbm2ddl=update, criou DUPLICATAS maiusculas (entidades sem @Table). O admin
+   (na minuscula) nao logava; cadastro novo ia pra maiuscula; SHOW TABLES mostrava as DUAS caixas.
+   Fix REAL: lower_case_table_names=1 (ver I, com o passo a passo de reinit do data dir).
+[D-6] 🟠 ENCODING/ACENTOS (mojibake "horÃ¡rio") — DOIS pontos, os dois necessarios: (a) JDBC sem
+   charset -> ?useUnicode=true&characterEncoding=UTF-8 (DEPLOY-2); (b) o CsrfFilter le o POST antes
+   do setCharacterEncoding -> SetCharacterEncodingFilter como 1o filtro do LIC (ENC-03). So o (a) NAO
+   resolve. Dados gravados ANTES do fix ficam tortos no banco (regravar).
+[D-7] 🔵 PERMISSAO: o Tomcat roda como usuario 'tomcat'; a pasta explodida precisa ser gravavel (o
+   upload de imagem do storytelling grava la). chown -R tomcat:tomcat /opt/tomcat.
+SEQUENCIA: 1) apt openjdk-21-jdk + mysql-server; Tomcat 9 manual (+ usuario tomcat, setenv.sh com
+  --add-opens). 2) MySQL com lower_case_table_names=1 (D-5) -> rodar o estrutura-lic_bd.sql. 3) copiar
+  LIC.war + toolkit.war p/ /opt/tomcat/webapps (chown tomcat). 4) start; conferir no catalina.out: SEM
+  "JdbcEnvironment"; login admin/admin entra. Redeploy limpo: shutdown -> rm -rf webapps/LIC
+  webapps/toolkit + os .war -> copiar os novos -> chown -> startup.
+
+
+
+################################################################################
+I. CONFIGURACOES IMPORTANTES DO BANCO (MySQL) — guardar / ainda em uso
+################################################################################
+
+[max_allowed_packet] — AINDA RELEVANTE (o export de PDF e guardado como BASE64 em coluna LONGTEXT).
+   O export do storytelling/canvas dava 500 "Packet for query is too large (6051462 > 1048576)".
+   - SET GLOBAL max_allowed_packet = 67108864 NAO basta sozinho: as conexoes do pool do Hibernate ja
+     abertas continuam com o limite antigo (1 MB) -> REINICIAR o Tomcat (renova o pool) e idealmente
+     o MySQL.
+   - SET GLOBAL e perdido ao reiniciar o MySQL. Permanente no my.ini/my.cnf, secao [mysqld]:
+         max_allowed_packet=67108864
+   - A correcao PRIMARIA e reduzir o payload (STM-24/CAN-11: JPEG comprimido em vez de PNG cru). O
+     MySQL 8 ja tem default 64MB, mas isso so torna o erro mais RARO = band-aid; a cura de arquitetura
+     e salvar o PDF como ARQUIVO em disco e guardar so o caminho (pendencia K.4).
+
+[lower_case_table_names=1] — OBRIGATORIO no MySQL 8 Linux (D-5). Deixa os nomes de tabela case-
+   insensitive (igual ao Windows) e impede o hbm2ddl de criar DUPLICATAS maiusculas. No MySQL 8 a flag
+   so e aceita REINICIALIZANDO o data dir:
+     sudo systemctl stop mysql
+     sudo rm -rf /var/lib/mysql
+     printf '[mysqld]\nlower_case_table_names=1\n' | sudo tee /etc/mysql/mysql.conf.d/lct.cnf
+     sudo mkdir -p /var/lib/mysql && sudo chown mysql:mysql /var/lib/mysql && sudo chmod 750 /var/lib/mysql
+     sudo mysqld --initialize-insecure --user=mysql --lower-case-table-names=1
+     sudo systemctl start mysql
+     sudo mysql -e "SHOW VARIABLES LIKE 'lower_case_table_names';"   # tem que dizer 1
+     sudo mysql < ~/estrutura-lic_bd.sql
+
+[charset / collation] utf8mb4 (utf8mb4_unicode_ci) em TODAS as tabelas. O banco antigo (5.5.36) tinha
+   charset MISTO (canva/canvaexport=utf8, colaboracaoideia=latin1, nenhum utf8mb4) = fonte latente de
+   mojibake; o estrutura-lic_bd.sql novo ja nasce utf8mb4. O connector negocia UTF-8 com
+   ?useUnicode=true&characterEncoding=UTF-8 (D-6a). [pendencia DB-CHARSET: so importa se migrar dados
+   do banco velho.]
+
+[usuario do app] conecta por TCP em 127.0.0.1 como root/root com mysql_native_password (D-4). No 5.5
+   LOCAL, a sintaxe do estrutura (CREATE USER IF NOT EXISTS ... IDENTIFIED WITH ... BY) NAO existe ->
+   rodar `Get-Content estrutura-lic_bd.sql -Raw | mysql -u root -proot --force` (o --force pula as 2
+   linhas incompativeis). Se o root@127.0.0.1 nao existir no 5.5:
+     GRANT ALL PRIVILEGES ON lic_bd.* TO 'root'@'127.0.0.1' IDENTIFIED BY 'root'; FLUSH PRIVILEGES;
+
+[connector / driver / dialect] ATUAL (desde 2026-06-29, K.3 Tier 1): connector 8.0.33
+   (com.mysql:mysql-connector-j) + driver com.mysql.cj.jdbc.Driver + dialect MySQL8Dialect +
+   &serverTimezone=America/Sao_Paulo na URL. >>> O connector 8.x SO fala com MySQL 5.6+ (o local
+   PRECISA ser MySQL 8). HISTORICO: antes era 5.1.49 (com.mysql.jdbc.Driver + MySQL5InnoDBDialect),
+   que era a "ponte" p/ 5.5 E 8; NUNCA usar 5.1.36/42 (consultavam tx_isolation, removida no 8).
+   Possivel gotcha: "Public Key Retrieval is not allowed" -> add &allowPublicKeyRetrieval=true (o
+   estrutura cria o root com mysql_native_password p/ evitar isso).
+
+[estrutura-lic_bd.sql] (em IdeiaWare-main/) — SQL autossuficiente, UTF-8 SEM BOM, idempotente
+   (CREATE ... IF NOT EXISTS): cria o database lic_bd (utf8mb4) + 14 tabelas (minusculas, InnoDB, FKs,
+   indices idx_ideia_status/idx_iu_usuario_ideia/idx_empathy_lookup/idx_exportfile_tipo) +
+   root@127.0.0.1 (native password) + admin/admin (hash BCRYPT desde SEC-22; era SHA-256 antes).
+   ARMADILHA: mysqldump > arq.sql NO POWERSHELL grava UTF-16 (BOM) e o mysql nao importa -> usar
+   mysqldump --result-file=... ou converter p/ UTF-8 sem BOM.
+
+[hbm2ddl] LIC = update (cria/atualiza as tabelas DELE se o schema existir). O Toolkit NAO tem -> as
+   tabelas de persona/POV/empathy vem do estrutura/dump. Em prod, rodar com validate (ou none) p/
+   garantir zero alteracao estrutural na subida.
+
+
+
+################################################################################
+J. DOCKER — IMPLEMENTADO em 2026-06-30 (falta o usuario MOVER o Toolkit pro monorepo + testar)
+################################################################################
+>>> ARQUIVOS CRIADOS na raiz Desktop/ideiaware-outlook/ (= raiz do monorepo): docker-compose.yml
+    (base PROD-safe) + docker-compose.dev.yml (override) + .env.example + .gitignore + .dockerignore
+    + app/{Dockerfile multi-stage, setenv.sh com --add-opens, entrypoint.sh com sed dos configs} +
+    db/{my.cnf com lct=1/utf8mb4/native_password/max_packet, init/estrutura-lic_bd.sql (copia)} +
+    README-docker.md. Base = prod-safe -> no server e so `git clone` + `docker compose up -d`; dev
+    adiciona `-f docker-compose.dev.yml` (expoe 3306, hbm2ddl=update, show_sql). PENDENTE DO USUARIO:
+    (1) MOVER Desktop/Toolkit2025-main/Toolkit2025-main/ -> ideiaware-outlook/Toolkit2025-main/ (o
+    Docker so enxerga o que esta na raiz); (2) cp .env.example .env + preencher; (3) `up -d` + testar.
+    Detalhes abaixo (a modelagem original).
+
+Objetivo: "clonar o repo e rodar docker compose up -d". Cada armadilha do deploy (D-1..D-7) vira config
+ASSADA na imagem. Decisoes fechadas com o usuario: compose com BUILD MULTI-STAGE (o Docker compila os
+2 wars; ninguem precisa de Maven/JDK local); MONOREPO (os 2 projetos + o Docker no mesmo repo); MySQL
+FIXO 8.0; segredos via .env.
+
+TOPOLOGIA: 2 servicos — app (1 Tomcat 9 + JDK 21 servindo /LIC e /toolkit) e db (MySQL 8). app:8080
+  publicado; db:3306 interno (exposto so no dev). Os 2 wars no MESMO Tomcat (cookies da integracao).
+LAYOUT (monorepo): IdeiaWare-main/ + Toolkit2025-main/ + docker-compose.yml/.dev.yml/.prod.yml +
+  .env.example (+ .env no .gitignore) + .dockerignore + app/{Dockerfile,setenv.sh,entrypoint.sh} +
+  db/{my.cnf,init/estrutura-lic_bd.sql}.
+IMAGEM DB (mata D-4/5/6a): my.cnf com lower_case_table_names=1 + character-set-server=utf8mb4 +
+  default-authentication-plugin=mysql_native_password. db/init/estrutura-lic_bd.sql em
+  /docker-entrypoint-initdb.d/ -> 1o boot cria as 14 tabelas + admin/admin. O app conecta no service
+  name 'db' -> bate em root@'%' (native) -> some o root@127.0.0.1. Volume nomeado; healthcheck
+  mysqladmin ping.
+IMAGEM APP (mata D-1/2/3): Dockerfile multi-stage — stage1 = maven builda os 2 wars; stage2 =
+  tomcat:9.0-jdk21 (Tomcat 9 garantido + JDK 21). Explode os wars p/ o entrypoint editar os configs.
+  setenv.sh com --add-opens (D-2). entrypoint.sh faz templating via env (sed troca o host 127.0.0.1
+  e o hbm2ddl sem rebuildar): DB_HOST/DB_NAME/HBM2DDL/SHOW_SQL. Os wars ja trazem o connector 5.1.49
+  + ENC-03.
+COMPOSE: base (db+app, depends_on healthy) + .dev.yml (db expoe 3306, HBM2DDL=update, SHOW_SQL=true) +
+  .prod.yml (restart always). Workflow:
+    DEV:  docker compose -f docker-compose.yml -f docker-compose.dev.yml  up -d --build
+    PROD: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+  Resetar o banco do zero: docker compose down -v (apaga o volume).
+A FAZER NA IMPLEMENTACAO: .env (root/root + chave SendGrid REVOGADA + chave AES + segredo HMAC;
+  .env.example versionado, .env no .gitignore); test-gated vs -DskipTests; confirmar caminhos no monorepo.
+
+
+
+################################################################################
+K. PENDENCIAS
+################################################################################
+
+--- K.1 SEGURANCA ---
+[#5] 🔴 SEGREDOS HARDCODED -> EXTERNALIZADOS via env/.env em 2026-06-30 (com o Docker, secao J):
+   - chave SendGrid -> EnvioEmail le System.getenv("SENDGRID_API_KEY"); vazio = nao envia. >>> ACAO
+     DO USUARIO: REVOGAR a chave antiga (ja vazou no Git) e por a nova no .env. [INFRA-01]
+   - chave AES -> CriptografaDados le getenv("AES_KEY"), default = legado. Efetivamente morta
+     (so cfgbanco.txt inexistente + teste), entao trocar nao quebra nada na pratica. [INFRA-02]
+   - root/root do banco -> o entrypoint.sh faz sed nos configs a partir de DB_PASS (.env). [TK-05]
+   - segredo HMAC da AssinaturaCaixa (LIC+Toolkit) -> getenv("CAIXA_HMAC_SECRET"), default = legado;
+     o MESMO valor vale p/ os 2 (mesma env do container Docker). >>> trocar por um proprio no .env.
+   CODIGO FEITO + BUILD VERDE (defaults mantem os 42 testes passando). Falta o .env real + revogar a
+   chave SendGrid (acao do usuario, na hora de subir o Docker).
+[#3-resto] reset de senha por LINK com token de expiracao + rate-limit (a anti-enumeracao SEC-19 ja
+   foi feita; e a UNICA divida de seguranca que sobra de fato). Anda junto de uma config de tokens.
+[#3-resto] reset de senha por LINK com token de expiracao + rate-limit (a anti-enumeracao SEC-19 ja
+   foi feita; o resto anda junto do #5/config).
+
+--- K.2 [CAN-EDIT] ENDURECER A EDICAO DO CANVAS ---
+   O canvas NAO tem trava de edicao por lider no CODIGO: os forms de editar so somem em modo retencao
+   (isRetencao), e o EnviarCanvaServlet/DeleteCanvaServlet so checam login + ideiaId na sessao (sem
+   checar lider nem participante). "So o lider edita" funciona HOJE so porque so o lider tem LINK ate
+   o canvas (lista-canvas e o botao novo do minha-ideia [CAN-ACESSO] sao leader-only). Se um dia o
+   acesso abrir p/ membros, eles CONSEGUIRAO editar. Fix futuro (opcao B): trava real de lider nos
+   forms do canvas + no EnviarCanva/DeleteCanva, e so entao liberar o botao p/ todos em leitura.
+   Relacionado: EntrarStorytellingServlet/EntrarCanvaServlet NAO checam participante (tolerados de
+   proposito p/ a Retencao em leitura — so o EntrarCaixa tem o check do SEC-23).
+
+--- K.3 UPGRADES DE VERSAO — TIER 1 + TIER 2 APLICADOS em 2026-06-29 (so falta o Tier 3) ---
+A "parede" javax->jakarta governa tudo: tudo antes dela e tranquilo; cruzar e reescrita em cascata.
+   [FEITO] Tier 1 (MySQL 8 nativo + libs seguras): connector 5.1.49 -> 8.0.33 (driver
+     com.mysql.cj.jdbc.Driver; resolve p/ o artefato com.mysql:mysql-connector-j) + dialect
+     MySQL5InnoDBDialect/MySQLDialect -> MySQL8Dialect + &serverTimezone=America/Sao_Paulo na URL
+     (hibernate.cfg.xml do LIC e toolkit-servlet.xml). Commons FileUpload 1.3.1 -> 1.5 (CVE-2016-
+     1000031 RCE + CVE-2023-24998 DoS) + commons-io 2.4 -> 2.11 (requerido). junit 4.12 -> 4.13.2
+     (CVE-2020-15250). gson 2.8.2 -> 2.10.1.
+     >>> O connector 8.x NAO fala com MySQL 5.5 (so 5.6+). Logo, o local TEM que ser MySQL 8 agora.
+         No MySQL 8 o estrutura-lic_bd.sql roda NORMAL (sem o --force que o 5.5 exigia). TESTAR no
+         MySQL 8 real: login admin/admin, acentos, datas (valida driver/charset/serverTimezone).
+     Tomcat 9 -> ultima 9.0.x = so trocar o binario (nao e dependencia do pom); ainda suportado.
+   [FEITO] Tier 2: Hibernate 5.2.10 -> 5.6.15.Final (LIC + Toolkit; melhora JDK 21, reduz --add-opens)
+     + Spring 4.3.9 -> 5.3.39 (Toolkit; tira o EOL/CVEs do Spring 4, teto sem jakarta) + hibernate-
+     validator 5.4.1 -> 6.2.5.Final (alinha o validation-api 2.0 com o Spring 5.3). Build SUCCESS nos
+     2 + 42 testes verdes (H2/MockMvc validam ORM/controllers; a conexao MySQL 8 real depende do teste
+     acima). Spring 5.3 + Hibernate 5.6 e combo suportado (orm.hibernate5).
+   [PENDENTE] Tier 3 (NAO agora): parede jakarta = Tomcat 10/11 + Spring 6 + Hibernate 6 -> trocar
+     TODOS os imports javax.* -> jakarta.* nos 2 projetos. Tomcat 9 ainda recebe patch -> sem urgencia.
+   JDK: ja roda no 21; compila com target 1.8 (roda em qualquer lugar). Subir target = so sintaxe nova.
+
+--- K.4 QUALIDADE / ARQUITETURA (sem pressa) ---
+   - org.hibernate.Criteria DEPRECIADA (Hibernate 5) -> CriteriaBuilder/JPQL (transversal, grande).
+   - PDFs base64 em LONGTEXT (canvas/story/persona) -> salvar ARQUIVO em disco/storage + so o caminho
+     (resolve tambem o max_allowed_packet — ver I). Alternativa: regenerar on-demand.
+   - LIC: cada metodo de DAO abre/fecha Session; varios `new XxxDAO()` por request (varias Sessions).
+     Reuso de Session / OpenSessionInView / camada de servico (o Toolkit ja e 1 sessao por transacao).
+   - Reativar os 24 testes @Ignore do LIC (DAO com H2; a base TEST-03 ja existe).
+   - HTML semantico (<main>/<section>/<button> nativos; o role="main" do SEMANTIC-01 ja da o landmark).
+   - Libs front antigas: html2canvas 0.5.0-beta3 (origem dos bugs de export), jsPDF, Materialize
+     0.100.2, jQuery, FontAwesome.
+   - Sanitizacao server-side do rich-text (Quill) -> lib jsoup/OWASP (o XSS dos campos de descricao,
+     que nao da p/ so escapar).
+   - MIGRAR P/ POSTGRES (avaliado, esforco MEDIO): trocar driver/dialect/URL nos 2; GOTCHA principal =
+     as native queries do Toolkit (PointOfViewDAOImpl, com 'lic_bd.' hardcoded e sintaxe MySQL) +
+     case-sensitivity de identificadores. Alternativa de menor atrito: ficar no MySQL e so subir p/ 8.
+
+--- K.5 PEQUENAS / DECISAO (propositalmente nao mexidas) ---
+   [INFRA-03] EnviaEmail sempre retorna true (nao checa o status do envio do SendGrid).
+   [INFRA-09] formatarData(null) mostra a data de HOJE (mudaria comportamento em todas as telas).
+   [RET-06] JSP/JSTL dentro de JavaScript (gerenciamento-ideia.jsp) — fragil, alto risco mexer.
+   [RET-08] lista-ideia-gerenciamento.jsp sem paginacao (limitacao, nao bug).
+   [E3/E4] AbrirPersona/AbrirPointOfView — codigo morto latente (esperam arquivo, recebem base64; o
+     AbrirPDF irmao ja foi corrigido no ITEM-1/RKM-FIX).
+   - Toolkit: o 'names' do POV vai p/ o plugin materialtags('add') — render de terceiros, vetor menor
+     (o data-attribute do SEC-06 ja matou o breakout do onclick; verificar .text()/.html() do plugin
+     um dia).
+   - new Long(0) deprecado nos controllers do Toolkit (funcional); "lic_bd." hardcoded nas native
+     queries (config) — nao sao bugs.
+
+
+
+################################################################################
+L. APENDICE — BECOS DE DEBUG (mantidos detalhados) + CORRECOES AO RELATORIO
+################################################################################
+
+--- L.1 TENTATIVAS REVERTIDAS / BECOS-SEM-SAIDA (NAO estao no codigo; ficam de licao) ---
+
+[BRAVE / STM-12/14/17/18/20] 🔵 "nao consigo mover algumas figuras" no Storytelling. Foram feitas 5
+   tentativas (Rect/fillPattern/fill/hitFunc/Group em volta das figuras do Konva). NENHUMA era a cura.
+   CAUSA REAL: era o navegador BRAVE — os Shields dele bloqueiam/alteram a leitura de pixels do
+   <canvas>, que e como o Konva detecta cliques. No Chrome/Edge/Firefox o codigo ORIGINAL sempre
+   funcionou. TODAS as 5 gambiarras foram removidas (STM-LIMPEZA reverteu o drawImage). LICAO: antes
+   de "consertar" o codigo, reproduzir em OUTRO navegador.
+
+[EXPORT TK-15 / TK-16 / CACHE-BUST] 🔴 saga do "export de Persona/POV/empatia cortado na direita":
+   - TK-15 (v1/v2/v3): 3 tentativas mexendo no ELEMENTO (width:1100px; display:block; display:block+
+     width:100%+overflow:hidden) achando que a area .persona-all-data-* (inline-table com colunas
+     flutuantes %) cortava na captura. v2 esvaziou o PDF (block colapsa a altura dos floats). NENHUMA
+     era a causa -> TK-15 foi REVERTIDO.
+   - TK-16: trocamos o html2canvas 1.2.4 pelo 0.5.0-beta3 do LIC + reescrita do exportFile. A captura
+     passou a sair INTEIRA (canvas 1000x239), mas o PDF AINDA cortava -> provou que a captura NUNCA foi
+     o problema. (A troca de lib foi mantida, mas nao era necessaria p/ o corte.)
+   - A causa real era o TK-17 (jsPDF girando a pagina — ver B.7).
+   - CACHE-BUST 🔴 o que MASCAROU tudo: o custom.js (e depois o html2canvas) eram servidos do CACHE do
+     navegador -> "voce altera e nao muda o resultado". TODAS as correcoes (certas ou erradas) nunca
+     rodavam p/ o usuario — ele via a versao velha. Diagnostico: comparar o arquivo em
+     webapps\toolkit\... (servidor) com o que rodava no browser. Fix: cache-busting no footer.tag
+     (custom.js?v=<%= System.currentTimeMillis() %>, idem html2canvas). LICAO: ao depurar FRONT,
+     cache-bustar PRIMEIRO; senao se depura no escuro.
+
+[CANVAS-FINAL / TK-11 / NAV-FINALIZE] 🔵 idas e vindas da tela de finalizacao: redirect seco -> tela
+   de confirmacao (CANVAS-FINAL/TK-11) -> tentativa de redirect direto p/ Minhas Ideias -> decisao
+   final (NAV-FINALIZE): MANTER a tela de confirmacao, com o botao indo p/ Minhas Ideias.
+
+[COL-DUP "grupo aberto"] 🔵 ao corrigir a entrada duplicada, foi tentada tambem uma trava "so entra
+   se o grupo esta ABERTO" — REVERTIDA: deixar a ideia aberta p/ outros entrarem/verem parece
+   INTENCIONAL (a Retencao e so do admin; o grupo aberto e como outros enxergam a ideia). Mexer nisso
+   = mexer em regra de negocio sem certeza. Ficou so a prevencao de duplicado (idempotente).
+
+[UX-02 Inicio/Voltar] 🔵 ver C (revertido a pedido apos varias idas e vindas no cabecalho).
+
+--- L.2 CORRECOES AO PROPRIO RELATORIO (auditoria relatorio x codigo) ---
+[DIV-1] SENHA nunca foi "AES reversivel" (o relatorio antigo afirmava): era SHA-256 salgado com o
+   usuario (e hoje BCRYPT, SEC-22). O CriptografaDados (AES) so era usado p/ decifrar o cfgbanco.txt
+   (que nem existe). A recomendacao de hash forte continuava valida; mas NAO ha "dados AES ilegiveis".
+[DIV-2] XSS de display NAO estava 100% fechado quando o relatorio afirmou (auditoria de 06-17):
+   havia sinks crus nas views overview/detailed/map/form -> corrigidos no SEC-11. Licao: varrer TODAS
+   as views, nao por amostra.
+[DIV-3] O CASE-FIX NAO substitui o lower_case_table_names=1 (o relatorio afirmava que sim): no deploy
+   real (D-5) a estrategia NAO impediu o hbm2ddl de criar duplicatas maiusculas; o que resolveu foi a
+   flag do MySQL. Manter a estrategia (inofensiva), mas o deploy no Linux DEPENDE da flag.
+
+--- L.3 AUDITORIA DE CONSISTENCIA (2026-06-17) ---
+   Cruzados ~150 codigos do TXT x o codigo real dos 2 projetos: ZERO divergencia. 108 achados por TAG
+   inline no codigo; 42 sem tag, todos justificados (mudancas via sed/python; REMOCOES onde a ausencia
+   E o fix; pendencias conhecidas; e tentativas revertidas corretamente fora do codigo).
+
+
+################################################################################
+Rastreabilidade: a etiqueta no CODIGO e a fonte de verdade; os numeros de linha podem variar
+levemente apos novas edicoes. Correcoes por REMOCAO (imports/codigo morto) nao tem etiqueta inline
+(nao ha linha a marcar).
+################################################################################

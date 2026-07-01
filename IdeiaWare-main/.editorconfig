@@ -1,0 +1,15 @@
+# .editorconfig — sela a padronizacao UTF-8 (ENC-01).
+# Faz o editor SEMPRE salvar em UTF-8, impedindo a corrupcao de acento de voltar
+# (era o que acontecia: editor/ferramenta salvava arquivo Latin-1 como UTF-8 e
+# quebrava o acento). Docs: https://editorconfig.org
+#
+# VSCode: precisa da extensao "EditorConfig for VS Code" para respeitar este arquivo.
+
+root = true
+
+[*]
+charset = utf-8
+
+# Arquivos de script do Windows precisam de CRLF
+[*.{bat,cmd}]
+end_of_line = crlf

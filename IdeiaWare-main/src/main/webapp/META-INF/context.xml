@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/LIC">
+    <!-- SEC-02: SameSite=Lax no cookie de sessao — mitiga CSRF sem tocar em
+         nenhum form (o navegador nao envia o cookie em requisicoes cross-site,
+         exceto navegacao top-level GET). -->
+    <CookieProcessor sameSiteCookies="lax"/>
+</Context>

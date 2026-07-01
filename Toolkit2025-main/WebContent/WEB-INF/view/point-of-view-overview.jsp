@@ -1,0 +1,61 @@
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
+
+<t:no-container-header></t:no-container-header>
+	<nav class="crumb">
+	    <div class="nav-wrapper">
+	        <a href="${pageContext.request.contextPath}/point-of-view/lista" class="breadcrumb">Point Of View</a>
+	        <span class="breadcrumb active">Visão Geral</span>
+	    </div>
+  	</nav>
+  	${povs.value}
+  	<div class="row">
+  		<div class="col m5">
+  			<h2 class="title-page">Point of View - Visão Geral</h2>
+  		</div>
+  		<div class="col m7 right-align">
+			<form:form action="${pageContext.request.contextPath}/point-of-view/exportar-geral" modelAttribute="overview" method="POST" class="col s12">
+				<form:hidden id="file-name" path="fileName"/>
+				<form:hidden id="file-location" path="fileLocation"/>
+				<form:hidden path="fileTypeIdentification" value="pov"/>
+				
+				<button class="waves-effect waves-red btn-flat exportar" type="button" name="action" onclick="Toolkit.PointOfView.exportTable()">Exportar
+			    	<i class="fa fa-file-pdf-o left" aria-hidden="true"></i>
+			  	</button>
+		  	<input type="hidden" name="csrfToken" value="${csrfToken}"/></form:form>
+  		</div>
+  	</div>
+  	<div class="row">
+		<div class="col s12 pov-all-data-overview">
+			<table>
+		        <thead>
+		          <tr>
+	          		<th>Persona(s)</th>
+	          		<th>Usuário(s)</th>
+		          	<th>Necessidade(s)</th>
+		           	<th>Introspecção(ões)</th>
+		          </tr>
+		        </thead>
+		        <tbody>
+					<c:forEach var="tempPOV" items="${povs}">						
+						<tr>
+							<td class="pov-names"><c:out value="${tempPOV.value.names}"/></td>
+							<td><c:out value="${tempPOV.value.user}"/></td>
+							<td><c:out value="${tempPOV.value.need}"/></td>
+							<td><c:out value="${tempPOV.value.insight}"/></td>
+						</tr>					
+					</c:forEach>
+				</tbody>
+			</table>
+		</div>
+		
+		<div id="canvas"></div>
+	</div>
+	
+	<script type="text/javascript">	
+		$(document).ready(function () {
+			$("#file-name").val("Point of View ("+ $('.pov-names').text() +") - Visão Geral");
+ 		});
+	</script>
+<t:no-container-footer></t:no-container-footer>

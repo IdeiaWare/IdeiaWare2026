@@ -1,0 +1,201 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>br.unisc.toolkit</groupId>
+    <artifactId>toolkit</artifactId>
+    <version>1.0</version>
+    <packaging>war</packaging>
+
+    <!--
+      pom gerado em 2026-06-16 para MAVENIZAR o Toolkit (antes era build manual
+      javac+jar). REPRODUZ as versoes ATUAIS (sem upgrade) — Spring 4.3.9,
+      Hibernate 5.2.10, MySQL connector 5.1.42, JSTL 1.2.1, shims JAXB p/ JDK 11+.
+      Projeto e Eclipse/WTP: fontes em src/ e web em WebContent/ (nao o layout
+      padrao do Maven), por isso os <sourceDirectory>/<warSourceDirectory> abaixo.
+      Os jars de WebContent/WEB-INF/lib sao EXCLUIDOS do war (o Maven resolve as
+      dependencias) — isso tambem mata a armadilha dos -sources/-javadoc.
+    -->
+    <properties>
+        <!-- ENC-01: padronizado em UTF-8 (era Latin-1/ISO-8859-1) -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <failOnMissingWebXml>false</failOnMissingWebXml>
+    </properties>
+
+    <build>
+        <finalName>toolkit</finalName>
+        <sourceDirectory>src</sourceDirectory>
+        <!-- TEST-01: testes ficam em test/ (fora de src/, que e o sourceDirectory) -->
+        <testSourceDirectory>test</testSourceDirectory>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.3.2</version>
+                <configuration>
+                    <warSourceDirectory>WebContent</warSourceDirectory>
+                    <!-- jars antigos (WEB-INF/lib) e classes compiladas pelo Eclipse
+                         (WEB-INF/classes) ficam no disco mas NAO entram no war: quem
+                         popula lib E classes e o Maven (target/classes). Sem o exclude
+                         de WEB-INF/classes, as .class velhas do Eclipse sobrescreviam
+                         as recem-compiladas -> codigo Java novo nunca subia. -->
+                    <warSourceExcludes>WEB-INF/lib/**,WEB-INF/classes/**</warSourceExcludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- ================= Spring MVC 4.3.9 ================= -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>5.3.39</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>5.3.39</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>5.3.39</version>
+        </dependency>
+
+        <!-- ================= Hibernate 5.2.10 + c3p0 + validator ================= -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.6.15.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-c3p0</artifactId>
+            <version>5.6.15.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>6.2.5.Final</version>
+        </dependency>
+
+        <!-- ================= MySQL (5.1.49 — compativel com MySQL 8) ============== -->
+        <!-- 5.1.42 consultava 'tx_isolation', variavel REMOVIDA no MySQL 8 -> a conexao
+             quebrava ("Unable to create JdbcEnvironment"). 5.1.49 (ultimo da linha 5.1)
+             corrige, mantendo o mesmo driver/URL. -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
+        </dependency>
+
+        <!-- ================= JSTL 1.2.1 ================= -->
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>javax.servlet.jsp.jstl</artifactId>
+            <version>1.2.1</version>
+            <!-- esse impl arrasta servlet-api 2.5 / jsp-api 2.1 / jstl-api 1.2 como
+                 transitivos. Sao APIs que o Tomcat JA fornece — bundla-las no war
+                 causa LinkageError/conflito. Excluidas: ficam as 'provided' abaixo. -->
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.servlet.jsp</groupId>
+                    <artifactId>jsp-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.servlet.jsp.jstl</groupId>
+                    <artifactId>jstl-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet.jsp.jstl</groupId>
+            <artifactId>javax.servlet.jsp.jstl-api</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+
+        <!-- EL impl em runtime (o hibernate-validator precisa) -->
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.el</artifactId>
+            <version>3.0.1-b08</version>
+        </dependency>
+
+        <!-- ================= Shims JAXB (removido do JDK 11+; voces rodam no 21) ==== -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-core</artifactId>
+            <version>2.3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>javax.activation-api</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+
+        <!-- ================= APIs fornecidas pelo Tomcat (provided) ================= -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>javax.servlet.jsp-api</artifactId>
+            <version>2.3.3</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- ================= Testes (TEST-01 / TEST-02) ================= -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- TEST-02: MockMvc (testa controllers de verdade) + Mockito (mock de service/request) -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>5.3.39</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.12.4</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

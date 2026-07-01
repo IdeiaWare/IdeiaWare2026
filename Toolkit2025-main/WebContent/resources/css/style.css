@@ -1,0 +1,257 @@
+body{
+	overflow: auto !important;
+	position: absolute;
+	width: 100%
+}
+a{
+	color: #000;
+}
+blockquote{
+	margin: 0 0 20px;
+}
+.personas-list .fa-trash, 
+.pov-list .fa-trash {color:#f44336;}
+.fa-file-pdf-o {color:red;}
+
+nav #nav-mobile.left{
+	width:300px
+}
+nav #nav-mobile.left > div{
+	padding-left: 10px;
+}
+nav #nav-mobile .logo{
+	width: 50px;  
+	height: 50px; 
+    margin-top: 5px;
+    padding: 6px 6px; 
+	border-radius: 100%;
+	box-sizing: border-box;
+}
+nav #nav-mobile .logo img{
+	display: block;  
+	width: 62%;
+	margin-left: 7px;
+	margin-top: -1px;
+}
+nav .title-app{
+    color: #fff;
+    font-family: 'Condiment';
+    font-size: 42px;
+    line-height: 25px;
+}
+#logout i{
+	padding-left: 20px;
+}
+#content{
+	height: 100%;
+	min-height: 90vh;
+}
+h2.title-page {
+	border-bottom:2px solid #009688;
+	font-size:1.7rem;
+	margin-top:0;
+}
+
+.collapsible h3 {
+	border-left: 5px solid #009688;
+	font-size: 1.2rem;
+    padding-left: 5px;
+}
+
+img.centered {
+	display:block;
+	margin:0 auto;
+}
+
+span.fonte {
+	display:block;
+	font-size:14px;
+	text-align:center;
+}
+
+.no-margin-bottom{
+	margin-bottom:0;
+}
+
+nav.crumb{
+	background-color:transparent;
+	box-shadow:none;
+}
+
+nav.crumb a{
+	color: #000;
+	font-size: 14px;
+}
+
+nav.crumb .breadcrumb:last-child, 
+nav.crumb .breadcrumb:before{
+	color: #9e9e9e;
+	font-size: 14px;
+}
+.tour i{
+	color: #26a69a;
+	font-size: 1.2rem;
+}
+a.empathy-overview:hover{
+	color: #C62828;
+}
+
+.ellipsed-data{ 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#overlay{
+	background-color: rgba(0,0,0,0.5);
+    display: none;
+    height: 100%;
+    left: 0;
+    margin: 0 auto;
+    position: fixed;
+    text-align: center;
+    top: 0;    
+    width: 100%;
+    z-index: 999;
+}
+#overlay .loader {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #C62828; /* Red */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 2s linear infinite;
+    margin: 0 auto;
+    top: 50%;
+    position: relative;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/*-- BEGIN - Empathy Map --*/
+#attribute {margin-top:15px;}
+
+.persona-all-data-detailed{display:inline-table; width:100%}
+/* UI-EMP (fix 2026-06-23): inline-table e INLINE-level -> width:100% nao estica e o mapa
+   ficava encolhido no canto. display:table (block-level) com width:100% enche a largura
+   de verdade (centraliza o mapa). O export (custom.js TK-16) passa width/height explicitos
+   ao html2canvas, entao a captura do PDF continua completa. */
+.persona-all-data-overview{display:table; width:100%}
+.persona-overview{display:table; width:100%;}
+/* UI-EMP (2026-06-23): min-height deixa os quadrantes mais altos/quadrados (menos
+   "achatado"). E min-height (nao height): com muitos cards a celula CRESCE, sem quebrar
+   o visual; o footer fica em fluxo normal logo apos #content, entao so e empurrado pra
+   baixo (sem overlap). */
+.persona-overview .section{border:1px solid #212121; position:relative; min-height:160px;}
+.persona-overview .card:hover{cursor:pointer;}
+.persona-overview .card .card-content{padding:5px;}
+.persona-overview .card .card-content p{display:inline-block;}
+
+.persona-detailed h6{text-transform:uppercase;}
+
+.persona-select-item-view a .col{
+	border:1px solid #212121;
+	padding: 2.75rem .75rem;
+	text-align:center; 
+}
+.persona-select-item-view .col:hover{box-shadow: 0 0 0 999em rgba(0,0,0,0.1) inset;}
+.persona-select-item-view a {color:#000;}
+.persona-select-item-view .centered-icon {display:none;}
+.persona-select-item-view h3 {font-size:2em; font-weight:bold; margin:0;}
+
+.vertical-divider {border-right:1px solid #ddd;}
+
+.card .card-content{word-break:break-word;}
+
+.attributes-list{width:100% !important;}
+
+.attributes-list .card a{color:#000 !important;}
+.attributes-list .card-action{text-align:right;}
+
+.modal-card-info{width:25%;}
+.modal-card-info .modal-content{padding:0;}
+.modal-card-info .card{margin:0;}
+/*-- END - Empathy Map --*/
+
+#pov table td{
+	vertical-align:top;
+}
+
+/*-- BEGIN - POST-IT --*/
+.lbl-post-it{position:relative; left:.75rem; font-size:1rem}
+
+.post-it .blue.active{border-bottom:7px solid #2196F3; background-color:#e5e5e5 !important}
+.post-it .green.active{border-bottom:7px solid #4CAF50; background-color:#e5e5e5 !important}
+.post-it .yellow.active{border-bottom:7px solid #ffeb3b; background-color:#e5e5e5 !important}
+.post-it .orange.active{border-bottom:7px solid #ff9800; background-color:#e5e5e5 !important}
+.post-it .pink.active{border-bottom:7px solid #e91e63; background-color:#e5e5e5 !important}
+/*-- END - POST-IT --*/
+
+@media screen and (min-width: 601px){
+	.persona-select-item-view .centered-icon, 
+	.persona-overview .centered-icon{
+	    background:#fff;
+	    border-radius:50%;
+	    color:#000;
+	    display:block;
+	    font-size:70px;
+	    left: 50%;
+	    position:absolute;	    
+	    top: 50%;
+	    transform: translateY(-50%) translateX(-50%);
+	    z-index:1;
+	}
+}
+
+/*-- BEGIN - Point Of View --*/
+.pov-list .ellipsed-data a{
+	display: inline-block;
+	width: 9rem;
+}
+/* UI-POV (2026-06-23): width:100% + border-collapse fecha a borda DIREITA (antes a tabela
+   nao chegava na borda e parecia "aberta" na direita) e deixa a tabela limpa p/ o export. */
+.pov-all-data-overview table{border-collapse:collapse; width:100%;}
+.pov-all-data-overview thead, .pov-all-data-overview tbody,
+.pov-all-data-overview th, .pov-all-data-overview td{border:1px solid #757575;}
+.pov-all-data-overview th{
+	text-align:center;
+}
+.pov-all-data-overview td{
+	padding:24px 12px;
+	vertical-align:top;
+}
+.modal-pov-info p{
+	margin-top:0;
+}
+.modal-pov-edit span{
+	color: #9e9e9e;
+	font-size: .8rem;
+}
+.pov-form-wrapper .persona-names strong{
+	background-color: #C62828;
+	border-radius: 5px;
+	color: #fff;
+	padding: 5px;
+}
+.pov-form-wrapper .persona-data{
+	font-weight: bold;
+	text-transform: uppercase;
+}
+.modal-pov-edit .space{
+	margin-bottom:1rem;
+}
+.modal {
+	max-height:80%;
+}
+.twitter-typeahead input.n-tag{
+	border-bottom: 0;
+	margin:0 !important;
+}
+/*-- END - Point Of View --*/
+
+#success{
+	margin-top:10%;
+}
