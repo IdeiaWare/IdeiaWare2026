@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.unisc.toolkit.classes.AdminCookies;
 import br.unisc.toolkit.entity.Empathy;
@@ -54,14 +55,15 @@ public class EmpathyExportController {
 	}
 	
 	@PostMapping("/exportar-geral")
-	public String saveOverview(@ModelAttribute("overview") ExportFile file, HttpServletRequest request, Model theModel){
+	public String saveOverview(@ModelAttribute("overview") ExportFile file, HttpServletRequest request, Model theModel, RedirectAttributes redirectAttrs){
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 		   file.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
 		   file.setCreated(new Date());
-		   
+
 		   exportFileService.saveFile(file);
-		
-		   // Apos exportar, volta para a listagem de personas (a pedido do usuario).
+
+		   // Apos exportar, volta para a listagem de personas (a pedido do usuario) + toast.
+		   redirectAttrs.addFlashAttribute("toastOk", "Exportação concluída. O arquivo foi salvo na Retenção do Conhecimento.");
 		   return "redirect:/persona/lista";
 		}
 		else{
@@ -70,14 +72,15 @@ public class EmpathyExportController {
 	}
 	
 	@PostMapping("/exportar-detalhada")
-	public String saveDetailed(@ModelAttribute("detailed") ExportFile file, HttpServletRequest request, Model theModel){		
+	public String saveDetailed(@ModelAttribute("detailed") ExportFile file, HttpServletRequest request, Model theModel, RedirectAttributes redirectAttrs){
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 		   file.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
 		   file.setCreated(new Date());
-		   
+
 		   exportFileService.saveFile(file);
-		
-		   // Apos exportar, volta para a listagem de personas (a pedido do usuario).
+
+		   // Apos exportar, volta para a listagem de personas (a pedido do usuario) + toast.
+		   redirectAttrs.addFlashAttribute("toastOk", "Exportação concluída. O arquivo foi salvo na Retenção do Conhecimento.");
 		   return "redirect:/persona/lista";
 		}
 		else{

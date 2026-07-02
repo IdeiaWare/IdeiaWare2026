@@ -4,7 +4,7 @@
 <t:header></t:header>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
-	        <a href="${pageContext.request.contextPath}/" class="breadcrumb">Inicio</a>
+	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
 	        <span class="breadcrumb active">Informações Gerais</span>
 	    </div>
   	</nav>	

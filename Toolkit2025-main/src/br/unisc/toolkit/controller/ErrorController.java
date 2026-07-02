@@ -21,19 +21,19 @@ public class ErrorController {
  
         switch (httpErrorCode) {
             case 400: {
-                errorMsg = "Http Error Code: 400. Bad Request";
+                errorMsg = "A requisição não pôde ser entendida.";
                 break;
             }
             case 401: {
-                errorMsg = "Http Error Code: 401. Unauthorized";
+                errorMsg = "Você precisa estar autenticado para acessar isso.";
                 break;
             }
             case 404: {
-                errorMsg = "Http Error Code: 404. Resource not found";
+                errorMsg = "Página não encontrada.";
                 break;
             }
             case 500: {
-                errorMsg = "Http Error Code: 500. Internal Server Error";
+                errorMsg = "Ocorreu um erro interno. Tente novamente mais tarde.";
                 break;
             }
         }

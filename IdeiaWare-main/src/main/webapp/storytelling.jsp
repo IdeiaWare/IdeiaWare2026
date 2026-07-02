@@ -28,7 +28,7 @@
             <button class="btn indigo accent-2" id="imprimirJSON">Imprimir JSON</button>
           </div>-->
           <div class="story-tools">
-            <button class="btn indigo accent-2" style="display: " id="deletarAlgo">Borracha (OFF)</button>
+            <button class="btn indigo accent-2" style="display: " id="deletarAlgo">Ativar borracha</button>
           </div>
           <ul class="collapsible" data-collapsible="accordion">
             <li class="white">

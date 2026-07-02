@@ -95,7 +95,12 @@
         input.addEventListener('input', function () {
             var search = input.value.toLowerCase();
             trs.forEach(function (elem) {
-                elem.style.display = elem.textContent.toLowerCase().includes(search) ? '' : 'none';
+                // Busca só em título + descrição (antes usava o textContent da linha
+                // inteira, incluindo a data e o botão "Participar").
+                var titulo    = (elem.querySelector('.title')       || {}).textContent || '';
+                var descricao = (elem.querySelector('.description')  || {}).textContent || '';
+                var alvo = (titulo + ' ' + descricao).toLowerCase();
+                elem.style.display = alvo.includes(search) ? '' : 'none';
             });
         });
     </script>

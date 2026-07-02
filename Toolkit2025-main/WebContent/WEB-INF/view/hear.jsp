@@ -75,7 +75,7 @@
 			              			<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 			              		</a>
 			              		<a href="${deleteLink}"
-									onclick="if (!(confirm('Vocé tem certeza que deseja deletar este atributo?'))) return false">
+									onclick="if (!(confirm('Você tem certeza que deseja deletar este atributo?'))) return false">
 										<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 			            	</div>

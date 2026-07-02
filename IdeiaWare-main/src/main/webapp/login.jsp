@@ -202,8 +202,8 @@
             </c:if>
             <c:if test="${respostaCadastro3}">
                 <div class="erro">
-                    <h6>Campos em branco!</h6>
-                </div> 
+                    <h6>Preencha todos os campos para criar a conta.</h6>
+                </div>
             </c:if>
             <!--// LucasFreitag 2024-->
             <c:if test="${respostaCadastro4}">
@@ -266,7 +266,7 @@
                 <label for="reg-senha2" class="perfil-label">Confirmar senha</label>
                 <input id="reg-senha2" name="senha2" type="password" placeholder="digite a senha novamente" aria-label="digite a senha novamente" pattern=".{4,32}" required title="O campo repetir senha deve conter entre 4 e 32 caracteres" />
 
-                <c:if test="${respostaCadastro2}"><div class="erro"><h1>Senhas não batem!</h1></div> </c:if>
+                <c:if test="${respostaCadastro2}"><div class="erro"><h6>A senha e a confirmação não coincidem.</h6></div> </c:if>
                 <!--<input disabled="true" type="text" placeholder="e-mail " aria-label="e-mail "/>-->
                 <!--// LucasFreitag 2024-->
                 <div style="text-align: left; margin-bottom: 10px">
@@ -435,6 +435,21 @@
                     $('#register-form').hide();
                     $('#login-form').fadeIn();
                 });
+
+                // UX: quando o servidor retorna um erro de cadastro ou de redefinição,
+                // reabre o formulário correspondente — senão a mensagem aparece mas o
+                // usuário fica olhando para o formulário de login (contexto perdido).
+                var erroCadastro = ${respostaCadastro or respostaCadastro2 or respostaCadastro3 or respostaCadastro4};
+                var erroRedefinicao = ${resposta5 or ErroRedefinicaoSenha};
+                if (erroCadastro) {
+                    $('#login-form').hide();
+                    $('#reset-password-form').hide();
+                    $('#register-form').show();
+                } else if (erroRedefinicao) {
+                    $('#login-form').hide();
+                    $('#register-form').hide();
+                    $('#reset-password-form').show();
+                }
             });
         </script>
     <script src="js/csrf.js"></script>

@@ -30,7 +30,7 @@ INDICE:
                             K. PENDENCIAS
                             L. APENDICE (becos de debug + correcoes ao relatorio)
 
-RESUMO QUANTITATIVO (~200 itens): bugs/robustez ~85; seguranca ~45; UI/UX ~25; testes 42;
+RESUMO QUANTITATIVO (~220 itens): bugs/robustez ~85; seguranca ~45; UI/UX ~45; testes 42;
 infra/build/encoding ~20; limpeza ~15; performance ~8; refatoracao ~3. Ganhos-chave:
 SHA-256->bcrypt; 0->CSRF; 0->headers de seguranca; XSS escapado em ~30 telas; ~50 MB de
 codigo morto/libs removidos; Toolkit build manual->Maven; encoding misto->UTF-8 (34 arq);
@@ -539,6 +539,99 @@ C. UI / UX
    revelava o body teal, sem margin "comia" a sombra), o usuario pediu p/ REMOVER tudo. A navegacao
    volta pelo logo IdeiaWare no cabecalho. (Mantido aqui so como historico.)
 
+--------------------------------------------------------------------------------
+VARREDURA DE UX POR MODULO (2026-07-01) — o "prompt magico"
+--------------------------------------------------------------------------------
+Metodo aprovado p/ revisar usabilidade em lote. Le TODOS os JSPs de um modulo e
+mapeia: (1) telas por modulo, (2) p/ onde cada acao do usuario leva, (3) mensagens
+de feedback confusas ou ausentes, (4) fluxos quebrados ou redundantes. NAO comenta
+estilo visual (CSS/cor) — so fluxo, navegacao, feedback e clareza da informacao.
+Em projeto Spring MVC (Toolkit), confirmar redirects no Controller antes de afirmar.
+Prompt-base:
+  "Leia todos os JSPs de <pasta> e mapeie: (1) quais telas existem por modulo,
+   (2) onde cada acao do usuario leva, (3) mensagens de feedback que estao confusas
+   ou ausentes, (4) fluxos que parecem quebrados ou redundantes."
+Rodado sobre os 38 JSPs do LIC (webapp/). Achados abaixo. Prox alvo: Toolkit
+(WebContent/ view + tags).
+
+[UX-VOLTAR] (2026-07-01) detalhes-ideia.jsp: botao "Voltar" era hardcoded p/ minha-ideia.jsp. Quem
+   chegava por "Outras Ideias" (lista-ideia) voltava p/ o lugar errado. Fix: usa sessionScope.lider
+   -> lider volta p/ minha-ideia.jsp; participante volta p/ lista-ideia.jsp.
+[UX-FECHAR-GRUPO] (2026-07-01) detalhes-ideia.jsp: o botao rotulado "Detalhes" abria o modal que
+   FECHA o grupo (acao irreversivel = encerra inscricoes). Rotulo -> "Fechar Grupo" + aviso vermelho
+   no modal + confirm() antes de submeter.
+[UX-CONFIRM] (2026-07-01) confirm() antes de acoes destrutivas sem volta: "Finalizar Ideia"
+   (colaboracao.jsp) e exclusao de post-it nos 9 canva-*.jsp (o form submetia direto no clique).
+[UX-ERRO-SAIDA] (2026-07-01) erros/404.jsp e 500.jsp: usuario ficava preso (logo sem href, sem link
+   de saida). Logo -> href=index.jsp + botao "Ir para o inicio".
+[UX-PERFIL-SUCESSO] (2026-07-01) AlteraUsuarioServlet + index-perfil.jsp: ao salvar, o servlet ia p/
+   wait.jsp -> index.jsp (usuario saia da tela sem NENHUM retorno). Agora volta p/ index-perfil.jsp
+   com respostaSucesso -> "Dados atualizados com sucesso!" (mesmo padrao do EnviouEmail).
+[UX-MSG] (2026-07-01) mensagens de erro mais claras/consistentes: perfil ("Senha atual incorreta.",
+   "Nome e e-mail sao obrigatorios.", "Este e-mail nao esta disponivel."); login "Campos em branco!"
+   -> "Preencha todos os campos..."; "Senhas nao batem" em <h1> -> <h6> (era o unico erro gigante).
+   NOTA DE SEGURANCA: mensagens de CREDENCIAL seguem GENERICAS de proposito (anti-enumeracao) — o
+   login ja era "Login e/ou senha invalido(s)" e o reset ja e anti-enumeracao (SEC-19). O que ficou
+   especifico e so validacao de form e erro da PROPRIA conta autenticada (nao vaza existencia de conta).
+[UX-PERFIL-BOTOES] (2026-07-01) index-perfil.jsp: "Salvar" movido p/ 1o botao (Enter no campo agora
+   salva; antes disparava o de trocar senha, que nao fazia nada); "Alterar senha"/"Anonimizar dados"
+   viraram type="button" (eram submit por padrao = risco de submit acidental); "Anonimizar dados"
+   isolado numa "Zona de risco" (divisoria + vermelho), longe do Salvar.
+[UX-LOGIN-REABRE] (2026-07-01) login.jsp: com erro de cadastro ou de redefinicao, a pagina reabria no
+   form de LOGIN e a msg do outro form ficava orfa. Agora um script reabre o register-form (erro de
+   cadastro) ou o reset-password-form (erro de redefinicao) conforme os flags do servidor.
+[UX-BORRACHA] (2026-07-01) storytelling.jsp + controle.js: botao "Borracha (OFF)"/"(ON)" descrevia
+   ESTADO (ambiguo). Trocado p/ ACAO: "Ativar borracha" <-> "Desativar borracha".
+[UX-BUSCA] (2026-07-01) lista-ideia.jsp: a busca filtrava pelo textContent da LINHA inteira (incluia
+   a data de criacao e o texto do botao "Participar"). Agora filtra so titulo + descricao.
+[UX-WAIT-NOTA] (2026-07-01) wait.jsp investigado e MANTIDO: nao e codigo morto — LogInServlet faz
+   forward p/ ele e ele faz <c:redirect> p/ index.jsp = Post-Redirect-Get do login (refresh nao
+   reenvia o POST).
+[STORYTELLING-FINALIZADO] (2026-07-02) exportar o Storytelling ENCERRA o modulo (ExportaStoryServlet:
+   status FINALIZADO + avanca a ideia p/ CF). Antes: alert() bloqueante "Storytelling exportado com
+   sucesso" + corte seco p/ minha-ideia.jsp. Agora: pagina de sucesso NOVA (storytelling-finalizado.jsp,
+   espelha canvas-finalizado.jsp) com cartao + link "Ver minhas ideias" (geraPDF.js redireciona p/ ela).
+   PADRONIZA os 3 modulos que encerram: Storytelling / Canvas (canvas-finalizado) / Caixa (finalize.jsp)
+   -> todos com pagina de sucesso + volta ao hub. PRINCIPIO (definido com o usuario): acao que ENCERRA
+   o modulo = pagina de sucesso + hub; passo INTERMEDIARIO = toast na propria pagina.
+
+--------------------------------------------------------------------------------
+VARREDURA DE UX DO TOOLKIT (2026-07-01) — mesmo "prompt magico" da secao acima
+--------------------------------------------------------------------------------
+Rodada sobre os 24 arquivos do Toolkit (WebContent/ view + tags), confirmando os
+redirects nos Controllers (Spring MVC). PRINCIPIO de feedback (definido com o
+usuario): acao que ENCERRA o modulo -> pagina de sucesso + volta ao hub (minha-
+ideia); passo INTERMEDIARIO dentro do modulo -> TOAST na propria pagina, sem tela
+intermediaria. (Ver storytelling na secao C do LIC p/ a padronizacao dos 3 modulos.)
+
+[TK-UX-FINALIZAR] (2026-07-01) "Finalizar Caixa" (header.tag) e um GET que muda o status da ideia p/
+   CV (irreversivel pela UI) e nao pedia confirmacao -> adicionado confirm(). Tambem faltava o item no
+   no-container-header.tag (telas de export) -> adicionado (com ${csrfToken}, que o CsrfInterceptor
+   expoe em TODA request). "Finalizar Caixa" segue indo p/ finalize.jsp (pagina de sucesso) -> hub.
+[TK-UX-EXPORT-TOAST] (2026-07-01) exportar mapa de empatia / POV (EmpathyExportController x2 +
+   PointOfViewController.exportar-geral) redirecionava MUDO p/ a lista e a success.jsp estava morta.
+   Como exportar e passo INTERMEDIARIO (a Caixa so termina no "Finalizar Caixa"), a solucao foi TOAST
+   verde na lista (RedirectAttributes.addFlashAttribute -> Materialize.toast), SEM reviver a
+   success.jsp. Fluxo limpo, sem pagina extra.
+[TK-UX-VALIDACAO] (2026-07-01) validacao server-side (savePersona / savePointOfView / savePOV) fazia
+   redirect MUDO na falha. Agora manda toast VERMELHO explicando (ex.: "Selecione ao menos uma persona
+   e preencha um dos campos") — cobre o form de POV, cujo validador client-side mirava #name-tags
+   (inexistente no form-pov.jsp). Sucesso do salvar tambem da toast verde.
+[TK-UX-ERROR-PT] (2026-07-01) ErrorController: mensagens tecnicas em ingles ("Http Error Code: 404.
+   Resource not found") -> PT amigavel ("Pagina nao encontrada.", "Ocorreu um erro interno...").
+[TK-UX-BREADCRUMB] (2026-07-01) 1o breadcrumb padronizado como "Personas" -> /persona/lista (convencao
+   ja usada nas 9 telas de empatia). A home (list-personas) tinha o <nav crumb> VAZIO -> agora mostra
+   "Personas" ativo; informacoes.jsp apontava p/ contextPath/ -> corrigido p/ /persona/lista.
+[TK-UX-CONFIRM-POV] (2026-07-01) list-point-of-view.jsp: o confirm de excluir dizia "deletar esta
+   PERSONA" numa acao que apaga um POV -> "deletar este Point of View".
+[TK-UX-RODAPE] (2026-07-01) no-container-footer.tag (telas de Visao Geral/Detalhada) estava "© 2017"
+   -> 2026 (o commit de footer 2026 nao pegou esse arquivo).
+[TK-UX-TYPOS] (2026-07-01) "Voce" com acento AGUDO ("Vocé") -> circunflexo ("Você") nos 8 confirm();
+   breadcrumb "O quela Diz e Faz" -> "O que ela Diz e Faz" (say-and-do.jsp).
+[TK-UX-LIMPEZA] (2026-07-01) 2 forms com action="/toolkit/..." hardcoded -> ${pageContext.request.
+   contextPath} (como o resto); <form:hidden path="ideiaCodigo" value="1"/> morto (o Controller
+   sobrescreve pelo cookie assinado) -> removido o value.
+
 
 
 ################################################################################
@@ -929,6 +1022,21 @@ A "parede" javax->jakarta governa tudo: tudo antes dela e tranquilo; cruzar e re
      um dia).
    - new Long(0) deprecado nos controllers do Toolkit (funcional); "lic_bd." hardcoded nas native
      queries (config) — nao sao bugs.
+
+--- K.6 UI/UX A REVISITAR ---
+   [POV-DESCOBERTA] (2026-07-01) descoberta da criacao de POV (ultimo item da varredura de UX do
+     Toolkit, ADIADO). Hoje NAO ha botao "Novo POV" na lista de Point of View; p/ criar um, o usuario
+     tem que ir na lista de PERSONAS, marcar checkboxes e clicar num FAB de icone-de-olho (sem rotulo,
+     desabilitado ate existir >=1 persona). O menu trata Persona e POV como irmaos, mas o POV so nasce
+     dentro de Persona -> modelo mental quebrado, baixa descoberta. As correcoes de 2026-07-01 mexeram
+     no FEEDBACK do POV (toast), NAO na descoberta. Fix futuro (mexe na navegacao): OPCAO A (recomend.)
+     botao "Novo Point of View" na lista de POV abre um modal com as personas (checkbox) -> vai p/ o
+     form-pov; OPCAO B botao leva a lista de Personas com destaque/instrucao; OPCAO C (barata,
+     complementar) melhorar o empty-state da lista de POV com o passo-a-passo. O form-pov EXIGE
+     ?personas=... entao o botao NAO pode ir direto ao formulario. Decisao de produto pendente.
+   [TK-ORFAOS] (2026-07-01) 2 arquivos orfaos a remover na limpeza: WebContent/error.jsp (raiz; o
+     web.xml usa /error -> WEB-INF/view/error.jsp) e WEB-INF/view/success.jsp (nenhum controller
+     retorna "success"; o feedback de export virou toast). Sem urgencia, so limpeza.
 
 
 

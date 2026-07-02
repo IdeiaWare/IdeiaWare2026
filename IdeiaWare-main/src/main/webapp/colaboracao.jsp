@@ -46,7 +46,7 @@
                 <div>
                   <form name="finalizar" action="FinalizarColaboracaoServlet" method="post">
                     <input type="hidden" value="${sessionScope.ideiaId}" name="ideiaId">
-                    <input class="btn-large orange darken-1 right" name="Finalizar Ideia" value="Finalizar Ideia" type="submit">
+                    <input class="btn-large orange darken-1 right" name="Finalizar Ideia" value="Finalizar Ideia" type="submit" onclick="return confirm('Finalizar a ideia encerra a colaboração. Esta ação não pode ser desfeita. Confirmar?')">
                   </form>
                 </div>
                 <div class="left">

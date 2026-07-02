@@ -6,7 +6,7 @@
 <t:header></t:header>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
-	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Inicio</a>
+	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
 	        <span class="breadcrumb active">Formulário Point Of View</span>
 	    </div>
   	</nav>
@@ -26,10 +26,10 @@
 			</c:forEach>
 		</div>
 		<div class="row">
-			<form:form action="/toolkit/point-of-view/salvar-pov" modelAttribute="pov" method="POST" class="col s12">
+			<form:form action="${pageContext.request.contextPath}/point-of-view/salvar-pov" modelAttribute="pov" method="POST" class="col s12">
 				<form:hidden class="attribute-id" path="id"/>
 				<form:hidden class="ids" path="personasId"/>
-				<form:hidden path="ideiaCodigo" value="1"/>
+				<form:hidden path="ideiaCodigo"/>
 	
 				<table>
 					<thead>

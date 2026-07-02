@@ -7,7 +7,7 @@
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
 	        <a href="${pageContext.request.contextPath}/persona/empatia/mapa?personaId=${personaId}" class="breadcrumb">Mapa de Empatia</a>
-	        <span class="breadcrumb active">O quela Diz e Faz</span>
+	        <span class="breadcrumb active">O que ela Diz e Faz</span>
 	    </div>
   	</nav>
 	<div class="row">
@@ -76,7 +76,7 @@
 			              			<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 			              		</a>
 			              		<a href="${deleteLink}"
-									onclick="if (!(confirm('Vocé tem certeza que deseja deletar este atributo?'))) return false">
+									onclick="if (!(confirm('Você tem certeza que deseja deletar este atributo?'))) return false">
 										<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 			            	</div>

@@ -39,7 +39,14 @@
                         <div class="row">
                             <div class="col s3">
                                 <!--                                se é lider, volta para minha-ideia, se é usuário, volta para lista-ideia-->
-                                <a href="minha-ideia.jsp" class="btn teal lighten-1">Voltar</a></p>
+                                <c:choose>
+                                <c:when test="${sessionScope.lider eq 'S'}">
+                                    <a href="minha-ideia.jsp" class="btn teal lighten-1">Voltar</a>
+                                </c:when>
+                                <c:otherwise>
+                                    <a href="lista-ideia.jsp" class="btn teal lighten-1">Voltar</a>
+                                </c:otherwise>
+                            </c:choose>
                             </div>
                             <!--                                se é lider, não aparece-->
                             <c:if test="${sessionScope.lider != 'S'}" >
@@ -79,7 +86,7 @@
                         </c:forEach>
                         <c:if test="${sessionScope.lider eq 'S'}" >
                             <p/>
-                            <a href="#modalFecharGrupo" class="btn orange darken-1 modal-trigger" data-target="modalFecharGrupo" data-codigoideia="${sessionScope.ideia.codigo}">Detalhes</a>
+                            <a href="#modalFecharGrupo" class="btn orange darken-1 modal-trigger" data-target="modalFecharGrupo" data-codigoideia="${sessionScope.ideia.codigo}">Fechar Grupo</a>
                         </c:if>
                     </div>
                     <div>
@@ -131,8 +138,9 @@
                             </div>
                         </div>
                         <div class="">
+                            <p class="red-text" style="font-size:13px;"><i class="material-icons tiny">warning</i> Fechar o grupo encerra as inscrições. Essa ação não pode ser desfeita.</p>
                             <input hidden="true" name="codigo" />
-                            <input class="btn orange darken-1" type="submit" name="fechar grupo" value="Fechar Grupo" />
+                            <input class="btn orange darken-1" type="submit" name="fechar grupo" value="Fechar Grupo" onclick="return confirm('Fechar o grupo encerra as inscrições. Confirmar?')"/>
                         </div>
                     </div>
                 </form>

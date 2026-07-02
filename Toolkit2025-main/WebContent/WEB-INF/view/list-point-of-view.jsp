@@ -6,7 +6,7 @@
 <t:header></t:header>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
-	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Inicio</a>
+	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
 	        <span class="breadcrumb active">Point Of View</span>
 	    </div>
   	</nav>
@@ -88,7 +88,7 @@
 									data-position="top" 
 									data-delay="50" 
 									data-tooltip="Excluir"
-									onclick="if (!(confirm('Vocé tem certeza que deseja deletar esta persona?'))) return false">
+									onclick="if (!(confirm('Você tem certeza que deseja deletar este Point of View?'))) return false">
 									<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 							</td>
@@ -130,7 +130,7 @@
   	
   	<!-- Modal Information Edit-->
   	<div class="modal modal-pov-edit pov-modal">
-  		<form:form action="/toolkit/point-of-view/atualizar" modelAttribute="pov" method="POST" class="col s12">
+  		<form:form action="${pageContext.request.contextPath}/point-of-view/atualizar" modelAttribute="pov" method="POST" class="col s12">
 	   	<div class="modal-content">
 	   		<div class="row">
 	   			<form:hidden id="pov-id" path="id" />
@@ -164,4 +164,12 @@
 	   	</div>
 	   	<input type="hidden" name="csrfToken" value="${csrfToken}"/></form:form>
   	</div>
+
+	<%-- UX: feedback (toast) na propria pagina apos salvar/exportar, sem tela intermediaria. --%>
+	<c:if test="${not empty toastOk}">
+		<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastOk}"/>', 4000, 'green'); });</script>
+	</c:if>
+	<c:if test="${not empty toastErro}">
+		<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastErro}"/>', 5000, 'red'); });</script>
+	</c:if>
 <t:footer></t:footer>

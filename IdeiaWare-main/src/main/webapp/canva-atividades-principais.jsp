@@ -1,4 +1,4 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+﻿<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"  session="true"%>
 <!-- HEADER -->
 <%@include file="header/headerCookiesCV.jsp" %>
@@ -94,7 +94,7 @@
 													<form name="deleteCanva" id="deleteCanva" action="DeleteCanvaServlet" method="POST">
 														<input hidden="true" value="${cv.codigo}" id="canva" name="canva">
 														<input hidden="true" value="EntrarCanvaAtividadeServlet" id="context" name="context">
-														<button class="btn-floating teal darken-1 tooltipped btn-postit" type="submit">
+														<button class="btn-floating teal darken-1 tooltipped btn-postit" type="submit" onclick="return confirm('Excluir este post-it? Esta ação não pode ser desfeita.')">
 															<i class="fa fa-trash" aria-hidden="true"></i>
 														</button>
 													</form>

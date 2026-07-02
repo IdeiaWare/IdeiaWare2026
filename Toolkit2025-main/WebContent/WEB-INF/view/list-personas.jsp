@@ -3,7 +3,11 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
-	<nav class="crumb"></nav>
+	<nav class="crumb">
+	    <div class="nav-wrapper">
+	        <span class="breadcrumb active">Personas</span>
+	    </div>
+  	</nav>
 	
 	<div class="row">
   		<div class="col s12 m5">
@@ -89,7 +93,7 @@
 									data-position="top" 
 									data-delay="50" 
 									data-tooltip="Excluir"
-									onclick="if (!(confirm('Vocé tem certeza que deseja deletar esta persona?'))) return false">
+									onclick="if (!(confirm('Você tem certeza que deseja deletar esta persona?'))) return false">
 									<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 							</td>
@@ -125,4 +129,12 @@
 	   	</div>
 	   	<input type="hidden" name="csrfToken" value="${csrfToken}"/></form:form>
   	</div>
+
+	<%-- UX: feedback (toast) na propria pagina apos salvar/exportar, sem tela intermediaria. --%>
+	<c:if test="${not empty toastOk}">
+		<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastOk}"/>', 4000, 'green'); });</script>
+	</c:if>
+	<c:if test="${not empty toastErro}">
+		<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastErro}"/>', 5000, 'red'); });</script>
+	</c:if>
 <t:footer></t:footer>

@@ -214,12 +214,12 @@ window.onload = function () {
     var x = document.getElementById("deletarAlgo");
     if (x.style.display === "") {
       x.style.display = "block";
-      x.innerHTML = "Borracha (ON)";
+      x.innerHTML = "Desativar borracha";
       stage.container().style.cursor = 'crosshair';
       stage.draw();
     } else {
       x.style.display = "";
-      x.innerHTML = "Borracha (OFF)";
+      x.innerHTML = "Ativar borracha";
       stage.container().style.cursor = 'default';
     }
   });

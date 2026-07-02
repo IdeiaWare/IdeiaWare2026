@@ -44,6 +44,7 @@
 		        <li><a href="${pageContext.request.contextPath}/persona/lista">Persona</a></li>
 		        <li><a href="${pageContext.request.contextPath}/point-of-view/lista">Point Of View</a></li>
 		        <li><a href="${pageContext.request.contextPath}/informacoes">Informações</a></li>
+		        <li><a href="${pageContext.request.contextPath}/ideia/finalize?csrfToken=${csrfToken}" onclick="return confirm('Finalizar a Caixa de Ferramentas conclui esta etapa da ideia e não pode ser desfeito. Deseja continuar?')">Finalizar Caixa</a></li>
 		        <li><a href="javascript:;" id="logout">Sair<i class="fa fa-sign-out" aria-hidden="true"></i></a></li>
 		      </ul>
 		    </div>
