@@ -510,6 +510,24 @@ C. UI / UX
    (href=index.jsp); "Sair" no nav (-> LogOutServlet); titulo "Meu Perfil" (h4); LABELS visiveis nos
    campos (Usuario/Nome/E-mail); typo tyme="e-mail" -> type="text". (O icone de "Inicio"/casinha foi
    removido depois, a pedido — ficou so o "Sair".)
+[CADASTRO-LABELS] (2026-07-01) login.jsp: formulario de "Criar conta" (register-form) so tinha
+   placeholder nos campos; ao comecar a digitar o placeholder sumia e o campo ficava sem rotulo.
+   Adicionadas labels visiveis (Nome/Usuario/E-mail/Senha/Confirmar senha) com a mesma classe
+   .perfil-label do index-perfil.jsp. Ids adicionados nos inputs p/ o for= funcionar.
+[FOOTER-2026] (2026-07-01) ano 2017 -> 2026 em TODOS os modulos do LIC. O footer.jsp (modulo
+   colaborativo) ja estava 2026; os demais usavam footers inline ou canva-footer.jsp separado. 10
+   arquivos corrigidos: header/canva-footer.jsp (usado pelos 9 canva-*.jsp + canvas-finalizado +
+   lista-canvas), index.jsp, storytelling.jsp, lista-storytelling.jsp, storytelling-show.jsp,
+   gerenciamento-ideia.jsp, lista-ideia-gerenciamento.jsp, validar-ideia.jsp, lista-caixa-de-
+   ferramentas.jsp. Bonus: typo "IdeaWare" (sem 'i') -> "IdeiaWare" corrigido nos 3 arquivos em
+   que persistia (gerenciamento-ideia, lista-ideia-gerenciamento, validar-ideia).
+[FOOTER-STICKY-TK] (2026-07-01) Toolkit: footer aparecia no meio da tela em paginas com pouco
+   conteudo (ex.: mapa de empatia). Fix: body { display:flex; flex-direction:column; min-height:100vh }
+   + #content { flex:1 } em header.tag. Mesmo padrao aplicado nas erros/404.jsp e 500.jsp do LIC.
+[FOOTER-INLINE] (2026-07-01) footer.jsp (modulo colaborativo): icone account_circle aparecia ao LADO
+   do nome (inline) em vez de ACIMA. Causa: display:inline adicionado no h6 p/ centralizar nas telas
+   de erro (onde ${nome} e vazio). Removido o inline; h6 volta a ser block -> icone em cima, nome
+   abaixo, igual a todos os outros modulos.
 [A11Y-01] Acessibilidade (passo mecanico, so ASCII): lang="pt-BR" em TODAS as paginas (32 JSPs;
    index.jsp tinha "en" errado); alt="IdeiaWare" em todos os <img idea.png> (15 logos + o do Toolkit,
    que tinha bug de aspas duplas png""); aria-label = placeholder em 22 inputs que so tinham placeholder.
@@ -842,6 +860,9 @@ K. PENDENCIAS
    - root/root do banco -> o entrypoint.sh faz sed nos configs a partir de DB_PASS (.env). [TK-05]
    - segredo HMAC da AssinaturaCaixa (LIC+Toolkit) -> getenv("CAIXA_HMAC_SECRET"), default = legado;
      o MESMO valor vale p/ os 2 (mesma env do container Docker). >>> trocar por um proprio no .env.
+   - e-mail remetente do SendGrid (senhaideiaware@outlook.com) -> EnvioEmail le
+     getenv("SENDGRID_FROM_EMAIL"); default = o e-mail antigo p/ nao quebrar. Adicionado ao
+     .env.example em 2026-07-01. [INFRA-11b]
    CODIGO FEITO + BUILD VERDE (defaults mantem os 42 testes passando). Falta o .env real + revogar a
    chave SendGrid (acao do usuario, na hora de subir o Docker).
 [#3-resto] reset de senha por LINK com token de expiracao + rate-limit (a anti-enumeracao SEC-19 ja

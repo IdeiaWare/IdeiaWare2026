@@ -10,7 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
  * AdminCookies so aceita o ideiaId se a assinatura bater -> o cookie deixa de ser FORJAVEL.
  *
  * IMPORTANTE: o SEGREDO TEM que ser IGUAL ao de edu.unisc.lic.classes.AssinaturaCaixa (LIC),
- * senao nenhuma assinatura valida. Hardcoded por enquanto (divida #5); externalizar (.env).
+ * senao nenhuma assinatura valida. Externalizado via CAIXA_HMAC_SECRET.
  */
 public class AssinaturaCaixa {
 

@@ -11,9 +11,8 @@ import javax.crypto.spec.SecretKeySpec;
  * LIC autorizou (usuario logado + participante da ideia). Antes, qualquer um setava o cookie
  * ideiaId=N na mao e acessava/editava os dados de qualquer ideia no Toolkit.
  *
- * IMPORTANTE: o SEGREDO esta hardcoded por enquanto (divida #5). DEVE ser IGUAL ao do
- * br.unisc.toolkit.classes.AssinaturaCaixa e, em producao, ser externalizado (env/.env) e
- * trocado por um valor proprio.
+ * IMPORTANTE: o SEGREDO DEVE ser IGUAL ao do br.unisc.toolkit.classes.AssinaturaCaixa.
+ * Externalizado via CAIXA_HMAC_SECRET (mesmo container no Docker = mesma env automaticamente).
  */
 public class AssinaturaCaixa {
 

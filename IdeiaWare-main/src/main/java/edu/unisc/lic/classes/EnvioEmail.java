@@ -12,7 +12,10 @@ import java.io.IOException;
  */
 public class EnvioEmail {
     public static boolean EnviaEmail(String email, String assunto, String texto) throws IOException{
-        String fromEmail = "senhaideiaware@outlook.com";
+        String fromEmail = System.getenv("SENDGRID_FROM_EMAIL");
+        if (fromEmail == null || fromEmail.isEmpty()) {
+            fromEmail = "senhaideiaware@outlook.com";
+        }
 
         // SEC-#5: chave do SendGrid via variavel de ambiente SENDGRID_API_KEY (era hardcoded ->
         // vazou no Git, REVOGAR a antiga). Sem a env definida (ex.: dev), nao envia -> retorna false.
