@@ -72,12 +72,16 @@
           <jsp:useBean id="iu"     class="edu.unisc.lic.domain.IdeiaUsuario" />
           <jsp:setProperty name="iu" property="usuario" value="${usuarioClasse}" />
 
+          <%--
+            STR-09: listarTodasIdeiasStorytelling inclui líderes e participantes.
+            Antes apenas líderes conseguiam ver o storytelling nesta lista.
+          --%>
+          <c:set var="ideiasStory" value="${iuDAO.listarTodasIdeiasStorytelling(iu)}" />
+          <%-- UX: <ul class="collapsible"> so aparece com conteudo -- vazia, o
+               Materialize ainda desenha a borda dela (uma linha fina sem nada
+               dentro), por cima da mensagem de estado vazio. --%>
+          <c:if test="${not empty ideiasStory}">
           <ul class="collapsible" data-collapsible="accordion">
-            <%--
-              STR-09: listarTodasIdeiasStorytelling inclui líderes e participantes.
-              Antes apenas líderes conseguiam ver o storytelling nesta lista.
-            --%>
-            <c:set var="ideiasStory" value="${iuDAO.listarTodasIdeiasStorytelling(iu)}" />
             <c:forEach var="iuItem" items="${ideiasStory}">
               <jsp:setProperty name="log" property="ideia" value="${iuItem.ideia}" />
               <c:set var="iLog" value="${logDAO.buscarDescricaoFinal(log)}" />
@@ -109,13 +113,16 @@
                   <div style="text-align:right; margin-top:10px;">
                     <form name="entrarStory" action="EntrarStorytellingServlet" method="POST">
                       <input type="hidden" value="${iuItem.ideia.codigo}" name="ideiaId" />
-                      <input class="btn indigo darken-1" type="submit" value="Entrar" name="StoryTelling" />
+                      <%-- UX-COR: indigo lighten-1 (cor exata do header/footer desta tela);
+                           indigo darken-1 (#3949ab) ficava visivelmente diferente. --%>
+                      <input class="btn indigo lighten-1" type="submit" value="Entrar" name="StoryTelling" />
                     </form>
                   </div>
                 </div>
               </li>
             </c:forEach>
           </ul>
+          </c:if>
           <%-- UX-01: estado vazio com mensagem contextual. --%>
           <c:if test="${empty ideiasStory}">
             <div class="center-align grey-text" style="padding: 40px 20px;">

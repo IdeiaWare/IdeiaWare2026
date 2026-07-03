@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.unisc.toolkit.classes.AdminCookies;
 import br.unisc.toolkit.classes.ToolkitValidacao;
@@ -56,18 +57,20 @@ public class PersonaController {
 	}
 	
 	@PostMapping("/salvar-persona")
-	public String savePersona(@ModelAttribute("persona") Persona thePersona, BindingResult result, HttpServletRequest request){	
+	public String savePersona(@ModelAttribute("persona") Persona thePersona, BindingResult result, HttpServletRequest request, RedirectAttributes redirectAttrs){
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 			// TK-VAL: backstop server-side (client-side e burlavel); BindingResult captura idade nao-numerica (evita 400).
 			if (result.hasErrors() || !ToolkitValidacao.textoValido(thePersona.getName(), 45)
 					|| !ToolkitValidacao.idadeValida(thePersona.getAge())) {
+				redirectAttrs.addFlashAttribute("toastErro", "Não foi possível salvar a persona. Verifique o nome e a idade.");
 				return "redirect:/persona/lista";
 			}
 			thePersona.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
-			
+
 			// save the persona using our service
 			personaService.savePersona(thePersona);
-			
+
+			redirectAttrs.addFlashAttribute("toastOk", "Persona salva com sucesso.");
 			return "redirect:/persona/lista";
 		}
 		else{

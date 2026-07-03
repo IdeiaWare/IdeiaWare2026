@@ -26,7 +26,10 @@
 
     // RET-04: se o usuário não existe mais (conta removida com sessão ativa),
     // redireciona para o login em vez de causar NullPointerException.
-    if (usuario == null || !usuario.getPermissao().equals("adm")) {
+    // RETENCAO-ACESSO: antes so admin acessava. A checagem de QUAL ideia o
+    // usuario pode ver ja aconteceu no GerenciarIdeiaServlet (so chega aqui se
+    // for admin OU participante da ideia -> session.ideiaId vem validado).
+    if (usuario == null) {
         response.sendRedirect("index.jsp");
         return;
     }
@@ -94,6 +97,10 @@
     <title>IdeiaWare - Gerenciamento de Ideias</title>
   </head>
   <body class="center-align light-blue darken-1">
+    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- icone
+         circular flutuante no canto superior esquerdo (fixed). Entrar nos detalhes
+         de uma ideia aqui nao tinha NENHUMA saida de volta pra listagem. --%>
+    <a href="lista-ideia-gerenciamento.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper light-blue darken-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
@@ -109,42 +116,16 @@
           </ul>
         </a>
         <ul id="nav-mobile" class="right hide-on-med-and-down" >
-          <c:if  test="${permicao eq 'adm'}" >
-              <li><a class='dropdown-button' data-constrainWidth="false" href='#'  data-beloworigin="true" data-activates='dropdown2'>Gestor<i class="material-icons right">arrow_drop_down</i></a></li>
-              <ul id='dropdown2' class='dropdown-content'>
-                <li><a href="lista-ideia-gerenciamento.jsp"><i class="material-icons">assessment</i>Gerenciar Ideias</a></li>
-                  <jsp:useBean id="tesDao" class="edu.unisc.lic.dao.IdeiaDAO" />
-                  <jsp:useBean id="tesX" class="edu.unisc.lic.domain.Ideia" />
-                  <jsp:setProperty name="tesX" property="status" value="PE"/>
-                  <c:choose>
-                      <c:when test="${tesDao.listarParametro(tesX).size() eq 0}" >
-                      <li class="tooltipped disabled" data-position="left" data-delay="50" data-tooltip="Sem ideias no momento"><a class="btn-flat disabled" disabled="true"><i class="material-icons">done</i>Validar Ideias</a></li>
-                      </c:when>
-                      <c:otherwise>
-                      <li><a href="validar-ideia.jsp"><i class="material-icons">done</i>Validar Ideias</a></li>
-                      </c:otherwise>
-                  </c:choose>
-              </ul>
-          </c:if>
+          <%-- UX: "Gerenciar Ideias" removido -- e a propria tela (redirecionaria p/
+               si mesma). "Validar Ideias" removido -- ja acessivel pelo cabecalho
+               do modulo colaborativo. --%>
           <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
         </ul>
 
       </div>
     </nav>
-    <div class="fixed-action-btn">
-      <a class="btn-floating btn-large orange darken-1">
-        <i class="large material-icons">menu</i>
-      </a>
-      <ul>
-        <li><a class="btn-floating tooltipped teal lighten-1" href="cadastro-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Cadastrar nova ideia"><i class="material-icons">add</i></a></li>
-        <li><a class="btn-floating tooltipped teal lighten-1" href="minha-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Minhas ideias"><i class="material-icons">account_box</i></a></li>
-        <li><a class="btn-floating tooltipped  teal lighten-1" href="lista-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Outras ideias"><i class="material-icons">web_asset</i></a></li>
-          <c:if  test="${permicao eq 'adm'}" >
-          <li><a class="btn-floating tooltipped teal lighten-2" href="validar-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Validar ideias"><i class="material-icons">done</i></a></li>
-          <li><a class="btn-floating tooltipped teal lighten-2" href="lista-ideia-gerenciamento.jsp" data-position="left" data-delay="50" data-tooltip="Gerenciar ideias"><i class="material-icons">assessment</i></a></li>
-          </c:if>
-      </ul>
-    </div>
+    <%-- UX: FAB removido -- so tinha atalhos do modulo COLABORATIVO (Cadastrar/Minhas/
+         Outras Ideias), nenhum deles e uma acao de Retencao do Conhecimento. --%>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script type="text/javascript" src="js/materialize.js"></script>
@@ -678,24 +659,17 @@
           html += "<c:forEach var="storytelling" items="${exportStoryDAO.listarParametro(exportStory)}">";
           html += "   <tr>";
           html += "       <td style='white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;'><c:out value="${ideia.titulo}"/></td>";
-          html += "       <td>";
-          // STM-25: restaurado o comportamento de DOIS botoes do programa original:
-          //   1) "Visualizar PDF" -> abre o PDF finalizado (blob) via openFileData;
-          //   2) "Abrir quadro"   -> EntrarStorytellingServlet; para um story
-          //      finalizado (status FN) ele leva ao storytelling-show.jsp, que
-          //      remonta o quadro com o Konva em modo SOMENTE-LEITURA.
-          // (O STM-10 havia removido o 2o botao por considera-lo redundante com o
-          //  PDF; o usuario quer os dois, como no original.)
-          // STM-26: botoes LADO A LADO (antes empilhavam um sobre o outro). Um
-          // container flex com nowrap mantem "Visualizar PDF" e "Abrir quadro" na
-          // mesma linha, alinhados a direita.
-          html += "           <div style='display:flex; gap:6px; justify-content:flex-end; align-items:center;'>";
-          html += "             <a class='btn red darken-1' onclick='openFileData(\"${storytelling.caminhoFinalizado}\")' href='javascript:;' target='_blank'>Visualizar PDF</a>";
-          html += "             <form name='entrarStory' action='EntrarStorytellingServlet' method='POST' style='margin:0;'>";
-          html += "                 <input hidden='true' value='${ideia.codigo}' name='ideiaId' />";
-          html += "                 <input class='btn indigo lighten-1' type='submit' value='Abrir quadro' name='StoryTelling' />";
-          html += "             </form>";
-          html += "           </div>";
+          html += "       <td style='text-align:right;'>";
+          // UX: "Abrir quadro" removido da Retencao -- nao servia p/ nada util aqui
+          // (reabria o quadro em modo leitura, mas o PDF ja mostra tudo). So
+          // "Visualizar PDF" fica, no mesmo padrao dos outros passos da timeline.
+          // UX-ALINHAMENTO: esta tabela so tem 2 colunas (sem Data/Excluir como as
+          // outras) -- a celula fica LARGA e sem align o botao caia colado na
+          // esquerda. text-align:right alinha com o padrao visual dos outros passos.
+          // UX-COR: indigo lighten-1 (cor EXATA do header/footer do modulo
+          // Storytelling); indigo darken-1 (#3949ab) ficava visivelmente diferente
+          // do header (indigo lighten-1, #5c6bc0).
+          html += "             <a class='btn indigo lighten-1' onclick='openFileData(\"${storytelling.caminhoFinalizado}\")' href='javascript:;' target='_blank'>Visualizar PDF</a>";
           html += "       </td>";
           html += "   </tr>";
           html += "</c:forEach>";
@@ -741,7 +715,8 @@
             html += "       <td style='white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;'><c:out value="${ideia.titulo}"/></td>";
             html += "       <td> ${data.formatarDataHoraCompleta(canva.date)}</td>";
             html += "       <td>";
-            html += "           <a class='btn red darken-1' onclick='openFileData(\"${canva.file}\")' href='javascript:;' target='_blank'>Entrar</a>";
+            // UX-COR: blue darken-4 (cor do proprio modulo Canvas), era red generico.
+            html += "           <a class='btn blue darken-4' onclick='openFileData(\"${canva.file}\")' href='javascript:;' target='_blank'>Entrar</a>";
             html += "       </td>";
             html += "       <td>";
             html += "           <i class='material-icons' title='Excluir' data-id='${canva.codigo}' onclick='deleteCanvaExport(${canva.codigo})' style='color:#f44336; cursor: pointer; display: inline-block; font-size:21px;'>delete</i>";

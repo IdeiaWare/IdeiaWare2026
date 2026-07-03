@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.unisc.toolkit.classes.AdminCookies;
 import br.unisc.toolkit.classes.ToolkitValidacao;
@@ -66,8 +67,8 @@ public class PointOfViewController {
 	}
 	
 	@PostMapping("/salvar-pov")
-	public String savePointOfView(@ModelAttribute("pointOfView") PointOfView thePOV, BindingResult result, HttpServletRequest request){
-		
+	public String savePointOfView(@ModelAttribute("pointOfView") PointOfView thePOV, BindingResult result, HttpServletRequest request, RedirectAttributes redirectAttrs){
+
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 			// SEC-24 (IDOR de escrita): se vier um id (UPDATE), confere que o POV e DESTA
 			// ideia ANTES de mexer na tabela auxiliar / salvar -> bloqueia editar ou
@@ -80,19 +81,21 @@ public class PointOfViewController {
 			if (result.hasErrors()
 					|| !ToolkitValidacao.algumTextoValido(thePOV.getUserText(), thePOV.getNeedText(), thePOV.getInsightText())
 					|| thePOV.getPersonasId() == null || thePOV.getPersonasId().length == 0) {
+				redirectAttrs.addFlashAttribute("toastErro", "Não foi possível criar o Point of View. Selecione ao menos uma persona e preencha um dos campos.");
 				return "redirect:/point-of-view/lista";
 			}
 			thePOV.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
-			
+
 			pointOfViewService.savePOV(thePOV);
-			
+
 			savePersonasPOVItem(thePOV);
-			
+
+			redirectAttrs.addFlashAttribute("toastOk", "Point of View criado com sucesso.");
 			return "redirect:/point-of-view/lista";
 		}
 		else{
 			return "redirect";
-		}	
+		}
 	}
 	
 	@GetMapping("/lista")
@@ -149,14 +152,15 @@ public class PointOfViewController {
 	}
 	
 	@PostMapping("/exportar-geral")
-	public String saveOverview(@ModelAttribute("overview") ExportFile file, Model theModel, HttpServletRequest request){				
+	public String saveOverview(@ModelAttribute("overview") ExportFile file, Model theModel, HttpServletRequest request, RedirectAttributes redirectAttrs){
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 			file.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
 			file.setCreated(new Date());
-			
+
 			exportFileService.saveFile(file);
 
-			// Apos exportar, volta para a listagem de POV (a pedido do usuario).
+			// Apos exportar, volta para a listagem de POV (a pedido do usuario) + toast de sucesso.
+			redirectAttrs.addFlashAttribute("toastOk", "Exportação concluída. O arquivo foi salvo na Retenção do Conhecimento.");
 			return "redirect:/point-of-view/lista";
 		}
 		else{
@@ -165,7 +169,7 @@ public class PointOfViewController {
 	}
 	
 	@PostMapping("/atualizar")
-	public String savePOV(@ModelAttribute("pov") PointOfView thePOV, BindingResult result, HttpServletRequest request){		
+	public String savePOV(@ModelAttribute("pov") PointOfView thePOV, BindingResult result, HttpServletRequest request, RedirectAttributes redirectAttrs){
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 			// SEC-24 (IDOR de escrita): se vier um id (UPDATE), confere que o POV e DESTA
 			// ideia ANTES de mexer na tabela auxiliar / salvar -> bloqueia editar ou
@@ -178,16 +182,18 @@ public class PointOfViewController {
 			if (result.hasErrors()
 					|| !ToolkitValidacao.algumTextoValido(thePOV.getUserText(), thePOV.getNeedText(), thePOV.getInsightText())
 					|| thePOV.getPersonasId() == null || thePOV.getPersonasId().length == 0) {
+				redirectAttrs.addFlashAttribute("toastErro", "Não foi possível salvar o Point of View. Selecione ao menos uma persona e preencha um dos campos.");
 				return "redirect:/point-of-view/lista";
 			}
 			thePOV.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
-			
+
 			personaPointOfViewService.removePOVIdFromAuxiliarTable(thePOV.getId());
 			pointOfViewService.savePOV(thePOV);
-					
+
 			savePersonasPOVItem(thePOV);
-			
-			return "redirect:/point-of-view/lista";			
+
+			redirectAttrs.addFlashAttribute("toastOk", "Point of View atualizado com sucesso.");
+			return "redirect:/point-of-view/lista";
 		}
 		else{
 			return "redirect";

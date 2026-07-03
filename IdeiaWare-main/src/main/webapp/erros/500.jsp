@@ -67,7 +67,7 @@
   <body class="blue-grey lighten-5" style="display:flex; flex-direction:column; min-height:100vh;">
     <nav>
       <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
-        <a  class="brand-logo" style="left: 50px">
+        <a href="${pageContext.request.contextPath}/index.jsp" class="brand-logo" style="left: 50px">
           <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
             <div class="row" style="padding-left: 10px">
               <div class="col s1 blue-grey lighten-3" style=" width: 50px;  height: 50px;
@@ -81,8 +81,9 @@
         </a>
       </div>
     </nav>
-    <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px;">
       <h2 class="center-align">Erro 500 - Tente novamente mais tarde</h2>
+      <a href="${pageContext.request.contextPath}/index.jsp" class="btn teal darken-2">Ir para o início</a>
     </div>
     <jsp:include page="../header/footer.jsp"/>
   </body>

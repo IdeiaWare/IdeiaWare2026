@@ -20,6 +20,12 @@
     <div>
       <div class="row" style="min-height: 80vh; padding-top: 20px; width: 95%">                 
         <div class="col s3 grey lighten-2 z-depth-2" style="min-height: 85vh; padding-top: 20px;">
+          <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo -- icone circular flutuante
+               no canto superior esquerdo (fixed), fora do fluxo da pagina. storytelling
+               usa cabecalho proprio (headerCookies_2.jsp) sem link pra
+               lista-storytelling.jsp -- so pra index.jsp. --%>
+          <a href="lista-storytelling.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+
           <h5 class="center grey-text text-darken-3" style="padding-top: 10px; padding-bottom: 5px">Ferramentas</h5>
 
           <!--<div class="story-tools">
@@ -28,13 +34,18 @@
             <button class="btn indigo accent-2" id="imprimirJSON">Imprimir JSON</button>
           </div>-->
           <div class="story-tools">
-            <button class="btn indigo accent-2" style="display: " id="deletarAlgo">Borracha (OFF)</button>
+            <button class="btn indigo accent-2" style="display: " id="deletarAlgo">Ativar borracha</button>
           </div>
           <ul class="collapsible" data-collapsible="accordion">
             <li class="white">
               <div id="b1" class="collapsible-header"><i class="material-icons">image</i>Adicionar Imagem</div>
               <div class="collapsible-body">
-                <form id="enviarImagem" method="POST" onsubmit="salvarProgresso()" action="UploadArquivoServlet" enctype="multipart/form-data">
+                <%-- BUG-403: request multipart/form-data NAO passa pelo getParameter() do
+                     servlet container (o UploadArquivoServlet le via Apache Commons
+                     FileUpload, nao @MultipartConfig), entao o CsrfFilter nunca achava
+                     o campo csrfToken do form e barrava com 403. Query string funciona
+                     pois nao depende de parsing do body -- so do content-type. --%>
+                <form id="enviarImagem" method="POST" action="UploadArquivoServlet?csrfToken=${csrfToken}" enctype="multipart/form-data">
                   </br><input type="file" id="arquivo" name="UploadImg" value="Carregar Imagem" /></br>
                   </br><input class="btn indigo accent-2" id="b1_1" type="submit" value="inserir arquivo" />
                 </form>
@@ -144,9 +155,14 @@
             <li class="white">
               <div id="b5" class="collapsible-header"><i class="material-icons">keyboard_voice</i>Adicionar Áudio</div>
               <div class="collapsible-body">
-                <input id="start-btn" class="center btn indigo accent-2" type="button" name="UploadImg" value="Gravar"  />
-                <input id="stop-btn" class="center btn indigo accent-2" type="button" name="UploadImg" value="Parar gravação" />
-                <input id="save-btn" class="center btn indigo accent-2" type="button" name="UploadImg" value="Salvar áudio" />
+                <%-- UX: botoes ficavam colados/empilhados sem espacamento (o "Salvar
+                     audio" grudava nos outros dois). Wrapper flex com gap resolve
+                     tanto lado-a-lado quanto quebrado em linhas (coluna estreita). --%>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                  <input id="start-btn" class="center btn indigo accent-2" type="button" name="UploadImg" value="Gravar"  />
+                  <input id="stop-btn" class="center btn indigo accent-2" type="button" name="UploadImg" value="Parar gravação" />
+                  <input id="save-btn" class="center btn indigo accent-2" type="button" name="UploadImg" value="Salvar áudio" />
+                </div>
                 <ul id="recordingslist"></ul>
               </div>
             </li>

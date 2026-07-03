@@ -3,11 +3,14 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
+	<%-- UX-VOLTAR-V2: mesmo padrao do resto do app -- icone circular flutuante no
+	     canto superior esquerdo, volta pro Mapa de Empatia (pai imediato). --%>
+	<a href="${pageContext.request.contextPath}/persona/empatia/mapa?personaId=${personaId}" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
 	        <a href="${pageContext.request.contextPath}/persona/empatia/mapa?personaId=${personaId}" class="breadcrumb">Mapa de Empatia</a>
-	        <span class="breadcrumb active">O quela Diz e Faz</span>
+	        <span class="breadcrumb active">O que ela Diz e Faz</span>
 	    </div>
   	</nav>
 	<div class="row">
@@ -76,7 +79,7 @@
 			              			<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 			              		</a>
 			              		<a href="${deleteLink}"
-									onclick="if (!(confirm('Vocé tem certeza que deseja deletar este atributo?'))) return false">
+									onclick="if (!(confirm('Você tem certeza que deseja deletar este atributo?'))) return false">
 										<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 			            	</div>

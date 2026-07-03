@@ -99,6 +99,11 @@
         <ul id="nav-mobile" class="right hide-on-med-and-down" >
           <!--// LucasFreitag 2024-->
           <li><a href="index-perfil.jsp">${sessionScope.nomeUsuario}<i style="padding-left: 10px" class="fa fa-user-o" aria-hidden="true"></i></a></li>
+          <%-- Gerenciar Usuarios: nao pertence a nenhum modulo (colaborativo, storytelling,
+               etc.), entao mora aqui na home em vez de dentro do header de algum modulo. --%>
+          <c:if test="${usuario.permissao eq 'adm'}">
+            <li><a href="gerenciar-usuarios.jsp">Gerenciar Usuários<i style="padding-left: 10px" class="fa fa-users" aria-hidden="true"></i></a></li>
+          </c:if>
           <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
         </ul>
       </div>
@@ -201,54 +206,32 @@
             </div>
           </div>
         </div>
-        <c:choose>
-            <c:when test="${usuario.permissao eq 'adm'}" >
-                <div class="col s12">
-                  <div class="card  light-blue darken-1 sticky-action knowledge">
-                    <a href="lista-ideia-gerenciamento.jsp">
-                      <div class="card-image " style="padding-top: 15px;padding-bottom: 15px;">
-                        <div class="icon center-align">
-                          <span class="fa-stack fa-lg">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa fa-database fa-stack-1x fa-inverse"></i>
-                          </span>
-                        </div>
-                      </div>
-                    </a>
-                    <div class="card-content">
-                      <span class="card-title activator grey-text text-darken-4">Retenção do conhecimento<i class="material-icons right">more_vert</i></span>
-                      <p><a href="lista-ideia-gerenciamento.jsp"><i class="fa fa-hand-o-right" aria-hidden="true"></i> Ferramentas para gestores!</a></p>
-                    </div>
-                    <div class="card-reveal">
-                      <span class="card-title grey-text text-darken-4">Retenção do conhecimento<i class="material-icons right">close</i></span>
-                      <p>Veja aqui todas suas ideias e informações gerais do seu desenvolvimento ideacional!</p>
-                    </div>
-                  </div>
+        <%-- RETENCAO-ACESSO: antes so admin tinha acesso a esta tela (o card de
+             colaborador ficava sem link nenhum, so um card-reveal morto). Agora
+             QUALQUER usuario acessa; admin ve todas as ideias, colaborador ve so
+             as que participa (filtro fica em lista-ideia-gerenciamento.jsp). --%>
+        <div class="col s12">
+          <div class="card light-blue darken-1 sticky-action knowledge">
+            <a href="lista-ideia-gerenciamento.jsp">
+              <div class="card-image " style="padding-top: 15px;padding-bottom: 15px;">
+                <div class="icon center-align">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-database fa-stack-1x fa-inverse"></i>
+                  </span>
                 </div>
-            </c:when>
-            <c:otherwise>
-                <div class="col s12">
-                  <div class="card grey darken-1 sticky-action knowledge">
-                    <div class="card-image" style="padding-top: 15px;padding-bottom: 15px;">
-                      <div class="icon center-align">
-                        <span class="fa-stack fa-lg">
-                          <i class="fa fa-circle fa-stack-2x"></i>
-                          <i class="fa fa-database fa-stack-1x fa-inverse" style="color: #757575"></i>
-                        </span>
-                      </div>
-                    </div>
-                    <div class="card-content">
-                      <br>
-                      <span class="card-title activator grey-text text-darken-4">Retenção do conhecimento<i class="material-icons right">more_vert</i></span>
-                    </div>
-                    <div class="card-reveal">
-                      <span class="card-title grey-text text-darken-4">Retenção do conhecimento<i class="material-icons right">close</i></span>
-                      <p>Veja aqui todas suas ideias e informações gerais do seu desenvolvimento ideacional!</p>
-                    </div>
-                  </div>
-                </div>
-            </c:otherwise>
-        </c:choose>
+              </div>
+            </a>
+            <div class="card-content">
+              <span class="card-title activator grey-text text-darken-4">Retenção do conhecimento<i class="material-icons right">more_vert</i></span>
+              <p><a href="lista-ideia-gerenciamento.jsp"><i class="fa fa-hand-o-right" aria-hidden="true"></i> Acompanhe o histórico das suas ideias!</a></p>
+            </div>
+            <div class="card-reveal">
+              <span class="card-title grey-text text-darken-4">Retenção do conhecimento<i class="material-icons right">close</i></span>
+              <p>Veja aqui todas suas ideias e informações gerais do seu desenvolvimento ideacional!</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   <script src="js/csrf.js"></script>

@@ -118,11 +118,11 @@
     <body class="center-align blue-grey lighten-5">
         <!--<body class="center-align light-blue darken-1 knowledge">-->
         <nav>
-            <div class="nav-wrapper blue-grey darken-2 knowledge">
+            <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
                 <a href="index.jsp" class="brand-logo" style="left: 50px">
                     <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
                         <div class="row" style="padding-left: 10px">
-                            <div class="col s1 blue-grey darken-1 knowledge" style=" width: 50px;  height: 50px;
+                            <div class="col s1 blue-grey lighten-3" style=" width: 50px;  height: 50px;
                                  margin-top: 5px;  padding: 6px 6px;
                                  border-radius: 100%;  box-sizing: border-box;">
                                 <img style="display: block;  width: 62%;  margin-left: 7px; margin-top: -1px" src="imagens/idea.png" alt="IdeiaWare"/>
@@ -199,5 +199,18 @@
 
     <script src="js/csrf.js"></script>
   </body>
-    <%@include file="header/footer.jsp" %>
+    <%-- UX: footer padronizado com a cor do header da home (antes era o footer teal
+         do modulo colaborativo, cor destoante do header azul desta tela). --%>
+    <footer class="center blue-grey lighten-1 page-footer">
+        <div class="container">
+            <div class="row">
+                <i class="small material-icons">account_circle</i><h6 class="white-text"> <c:out value="${nome}"/></h6>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <div class="container">
+                © 2026 IdeiaWare UNISC
+            </div>
+        </div>
+    </footer>
 </html>

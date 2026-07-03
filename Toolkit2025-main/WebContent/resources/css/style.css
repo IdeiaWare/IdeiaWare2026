@@ -9,9 +9,27 @@ a{
 blockquote{
 	margin: 0 0 20px;
 }
-.personas-list .fa-trash, 
-.pov-list .fa-trash {color:#f44336;}
 .fa-file-pdf-o {color:red;}
+
+/* UX-ACOES-TOOLKIT: os botoes de acao (ver/editar/excluir) usavam "btn-floating
+   btn-small", mas esta versao do Materialize nao define .btn-small -- entao
+   renderizavam no tamanho padrao (40px, circulo cheio). O icone da lixeira
+   ainda tinha um color:#f44336 direto (quase a mesma cor do fundo vermelho do
+   botao = icone invisivel, so a bolinha aparecia). Aqui: tamanho reduzido de
+   verdade + cantos menos arredondados (quadradinho) + icone branco (herda do
+   .btn-floating, igual os outros 2 botoes). */
+.personas-list .btn-floating,
+.pov-list .btn-floating {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  border-radius: 8px;
+}
+.personas-list .btn-floating i,
+.pov-list .btn-floating i {
+  line-height: 30px;
+  font-size: 1rem;
+}
 
 nav #nav-mobile.left{
 	width:300px

@@ -3,7 +3,15 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
-	<nav class="crumb"></nav>
+	<%-- UX-VOLTAR-V2: mesmo padrao do resto do app -- icone circular flutuante no
+	     canto superior esquerdo. Toolkit e acessado via LIC (minha-ideia.jsp),
+	     entao o alvo e cross-webapp (contexto /LIC). --%>
+	<a href="/LIC/minha-ideia.jsp" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+	<nav class="crumb">
+	    <div class="nav-wrapper">
+	        <span class="breadcrumb active">Personas</span>
+	    </div>
+  	</nav>
 	
 	<div class="row">
   		<div class="col s12 m5">
@@ -45,7 +53,7 @@
 		          	<th>#</th>
 	          		<th>Nome</th>
 		          	<th>Idade</th>
-		           	<th>Ação</th>
+		           	<th>Ações</th>
 		          </tr>
 		        </thead>
 		        <tbody>
@@ -77,19 +85,31 @@
 							</td>
 							<td>${tempPersona.age}</td>
 							<td>
-								<a href="javascript:;" class="tooltipped" 
-									data-position="top" 
-									data-delay="50" 
+								<%-- UX: acoes viraram btn-floating (antes eram icones soltos, sem
+								     peso visual nenhum -- dificil de bater o olho e entender que
+								     sao clicaveis). Mesmo padrao do Canvas do LIC: cor do MODULO
+								     (red darken-1, igual header/footer) pras 3 acoes, sem cor de
+								     "perigo" separada pro excluir -- o confirm() ja sinaliza isso.
+								     Adicionado tambem o icone de abrir o Mapa de Empatia (antes so
+								     dava pra chegar la clicando no NOME da persona, pouco obvio). --%>
+								<a href="${viewLink}" class="btn-floating btn-small red darken-1 tooltipped"
+									data-position="top"
+									data-delay="50"
+									data-tooltip="Abrir Mapa de Empatia">
+									<i class="fa fa-eye" aria-hidden="true"></i>
+								</a>
+								<a href="javascript:;" class="btn-floating btn-small red darken-1 tooltipped"
+									data-position="top"
+									data-delay="50"
 									data-tooltip="Editar"
 									data-id="${tempPersona.id}" data-name="<c:out value='${tempPersona.name}'/>" data-age="${tempPersona.age}" onclick="Toolkit.Persona.buildPersonaEditModal(this.dataset.id, this.dataset.name, this.dataset.age)">
 									<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 								</a>
-								<i class="fa fa-ellipsis-v" aria-hidden="true"></i>
-								<a href="${deleteLink}" class="tooltipped" 
-									data-position="top" 
-									data-delay="50" 
+								<a href="${deleteLink}" class="btn-floating btn-small red darken-1 tooltipped"
+									data-position="top"
+									data-delay="50"
 									data-tooltip="Excluir"
-									onclick="if (!(confirm('Vocé tem certeza que deseja deletar esta persona?'))) return false">
+									onclick="if (!(confirm('Você tem certeza que deseja deletar esta persona?'))) return false">
 									<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 							</td>
@@ -125,4 +145,12 @@
 	   	</div>
 	   	<input type="hidden" name="csrfToken" value="${csrfToken}"/></form:form>
   	</div>
+
+	<%-- UX: feedback (toast) na propria pagina apos salvar/exportar, sem tela intermediaria. --%>
+	<c:if test="${not empty toastOk}">
+		<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastOk}"/>', 4000, 'green'); });</script>
+	</c:if>
+	<c:if test="${not empty toastErro}">
+		<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastErro}"/>', 5000, 'red'); });</script>
+	</c:if>
 <t:footer></t:footer>

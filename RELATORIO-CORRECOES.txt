@@ -30,7 +30,7 @@ INDICE:
                             K. PENDENCIAS
                             L. APENDICE (becos de debug + correcoes ao relatorio)
 
-RESUMO QUANTITATIVO (~200 itens): bugs/robustez ~85; seguranca ~45; UI/UX ~25; testes 42;
+RESUMO QUANTITATIVO (~250 itens): bugs/robustez ~86; seguranca ~46; UI/UX ~75; testes 42;
 infra/build/encoding ~20; limpeza ~15; performance ~8; refatoracao ~3. Ganhos-chave:
 SHA-256->bcrypt; 0->CSRF; 0->headers de seguranca; XSS escapado em ~30 telas; ~50 MB de
 codigo morto/libs removidos; Toolkit build manual->Maven; encoding misto->UTF-8 (34 arq);
@@ -539,6 +539,316 @@ C. UI / UX
    revelava o body teal, sem margin "comia" a sombra), o usuario pediu p/ REMOVER tudo. A navegacao
    volta pelo logo IdeiaWare no cabecalho. (Mantido aqui so como historico.)
 
+--------------------------------------------------------------------------------
+VARREDURA DE UX POR MODULO (2026-07-01) — o "prompt magico"
+--------------------------------------------------------------------------------
+Metodo aprovado p/ revisar usabilidade em lote. Le TODOS os JSPs de um modulo e
+mapeia: (1) telas por modulo, (2) p/ onde cada acao do usuario leva, (3) mensagens
+de feedback confusas ou ausentes, (4) fluxos quebrados ou redundantes. NAO comenta
+estilo visual (CSS/cor) — so fluxo, navegacao, feedback e clareza da informacao.
+Em projeto Spring MVC (Toolkit), confirmar redirects no Controller antes de afirmar.
+Prompt-base:
+  "Leia todos os JSPs de <pasta> e mapeie: (1) quais telas existem por modulo,
+   (2) onde cada acao do usuario leva, (3) mensagens de feedback que estao confusas
+   ou ausentes, (4) fluxos que parecem quebrados ou redundantes."
+Rodado sobre os 38 JSPs do LIC (webapp/). Achados abaixo. Prox alvo: Toolkit
+(WebContent/ view + tags).
+
+[UX-VOLTAR] (2026-07-01) detalhes-ideia.jsp: botao "Voltar" era hardcoded p/ minha-ideia.jsp. Quem
+   chegava por "Outras Ideias" (lista-ideia) voltava p/ o lugar errado. Fix: usa sessionScope.lider
+   -> lider volta p/ minha-ideia.jsp; participante volta p/ lista-ideia.jsp.
+[UX-FECHAR-GRUPO] (2026-07-01) detalhes-ideia.jsp: o botao rotulado "Detalhes" abria o modal que
+   FECHA o grupo (acao irreversivel = encerra inscricoes). Rotulo -> "Fechar Grupo" + aviso vermelho
+   no modal + confirm() antes de submeter.
+[UX-CONFIRM] (2026-07-01) confirm() antes de acoes destrutivas sem volta: "Finalizar Ideia"
+   (colaboracao.jsp) e exclusao de post-it nos 9 canva-*.jsp (o form submetia direto no clique).
+[UX-ERRO-SAIDA] (2026-07-01) erros/404.jsp e 500.jsp: usuario ficava preso (logo sem href, sem link
+   de saida). Logo -> href=index.jsp + botao "Ir para o inicio".
+[UX-PERFIL-SUCESSO] (2026-07-01) AlteraUsuarioServlet + index-perfil.jsp: ao salvar, o servlet ia p/
+   wait.jsp -> index.jsp (usuario saia da tela sem NENHUM retorno). Agora volta p/ index-perfil.jsp
+   com respostaSucesso -> "Dados atualizados com sucesso!" (mesmo padrao do EnviouEmail).
+[UX-MSG] (2026-07-01) mensagens de erro mais claras/consistentes: perfil ("Senha atual incorreta.",
+   "Nome e e-mail sao obrigatorios.", "Este e-mail nao esta disponivel."); login "Campos em branco!"
+   -> "Preencha todos os campos..."; "Senhas nao batem" em <h1> -> <h6> (era o unico erro gigante).
+   NOTA DE SEGURANCA: mensagens de CREDENCIAL seguem GENERICAS de proposito (anti-enumeracao) — o
+   login ja era "Login e/ou senha invalido(s)" e o reset ja e anti-enumeracao (SEC-19). O que ficou
+   especifico e so validacao de form e erro da PROPRIA conta autenticada (nao vaza existencia de conta).
+[UX-PERFIL-BOTOES] (2026-07-01) index-perfil.jsp: "Salvar" movido p/ 1o botao (Enter no campo agora
+   salva; antes disparava o de trocar senha, que nao fazia nada); "Alterar senha"/"Anonimizar dados"
+   viraram type="button" (eram submit por padrao = risco de submit acidental); "Anonimizar dados"
+   isolado numa "Zona de risco" (divisoria + vermelho), longe do Salvar.
+[UX-LOGIN-REABRE] (2026-07-01) login.jsp: com erro de cadastro ou de redefinicao, a pagina reabria no
+   form de LOGIN e a msg do outro form ficava orfa. Agora um script reabre o register-form (erro de
+   cadastro) ou o reset-password-form (erro de redefinicao) conforme os flags do servidor.
+[UX-BORRACHA] (2026-07-01) storytelling.jsp + controle.js: botao "Borracha (OFF)"/"(ON)" descrevia
+   ESTADO (ambiguo). Trocado p/ ACAO: "Ativar borracha" <-> "Desativar borracha".
+[UX-BUSCA] (2026-07-01) lista-ideia.jsp: a busca filtrava pelo textContent da LINHA inteira (incluia
+   a data de criacao e o texto do botao "Participar"). Agora filtra so titulo + descricao.
+[UX-WAIT-NOTA] (2026-07-01) wait.jsp investigado e MANTIDO: nao e codigo morto — LogInServlet faz
+   forward p/ ele e ele faz <c:redirect> p/ index.jsp = Post-Redirect-Get do login (refresh nao
+   reenvia o POST).
+[STORYTELLING-FINALIZADO] (2026-07-02) exportar o Storytelling ENCERRA o modulo (ExportaStoryServlet:
+   status FINALIZADO + avanca a ideia p/ CF). Antes: alert() bloqueante "Storytelling exportado com
+   sucesso" + corte seco p/ minha-ideia.jsp. Agora: pagina de sucesso NOVA (storytelling-finalizado.jsp,
+   espelha canvas-finalizado.jsp) com cartao + link "Ver minhas ideias" (geraPDF.js redireciona p/ ela).
+   PADRONIZA os 3 modulos que encerram: Storytelling / Canvas (canvas-finalizado) / Caixa (finalize.jsp)
+   -> todos com pagina de sucesso + volta ao hub. PRINCIPIO (definido com o usuario): acao que ENCERRA
+   o modulo = pagina de sucesso + hub; passo INTERMEDIARIO = toast na propria pagina.
+
+--------------------------------------------------------------------------------
+VARREDURA DE UX DO TOOLKIT (2026-07-01) — mesmo "prompt magico" da secao acima
+--------------------------------------------------------------------------------
+Rodada sobre os 24 arquivos do Toolkit (WebContent/ view + tags), confirmando os
+redirects nos Controllers (Spring MVC). PRINCIPIO de feedback (definido com o
+usuario): acao que ENCERRA o modulo -> pagina de sucesso + volta ao hub (minha-
+ideia); passo INTERMEDIARIO dentro do modulo -> TOAST na propria pagina, sem tela
+intermediaria. (Ver storytelling na secao C do LIC p/ a padronizacao dos 3 modulos.)
+
+[TK-UX-FINALIZAR] (2026-07-01) "Finalizar Caixa" (header.tag) e um GET que muda o status da ideia p/
+   CV (irreversivel pela UI) e nao pedia confirmacao -> adicionado confirm(). Tambem faltava o item no
+   no-container-header.tag (telas de export) -> adicionado (com ${csrfToken}, que o CsrfInterceptor
+   expoe em TODA request). "Finalizar Caixa" segue indo p/ finalize.jsp (pagina de sucesso) -> hub.
+[TK-UX-EXPORT-TOAST] (2026-07-01) exportar mapa de empatia / POV (EmpathyExportController x2 +
+   PointOfViewController.exportar-geral) redirecionava MUDO p/ a lista e a success.jsp estava morta.
+   Como exportar e passo INTERMEDIARIO (a Caixa so termina no "Finalizar Caixa"), a solucao foi TOAST
+   verde na lista (RedirectAttributes.addFlashAttribute -> Materialize.toast), SEM reviver a
+   success.jsp. Fluxo limpo, sem pagina extra.
+[TK-UX-VALIDACAO] (2026-07-01) validacao server-side (savePersona / savePointOfView / savePOV) fazia
+   redirect MUDO na falha. Agora manda toast VERMELHO explicando (ex.: "Selecione ao menos uma persona
+   e preencha um dos campos") — cobre o form de POV, cujo validador client-side mirava #name-tags
+   (inexistente no form-pov.jsp). Sucesso do salvar tambem da toast verde.
+[TK-UX-ERROR-PT] (2026-07-01) ErrorController: mensagens tecnicas em ingles ("Http Error Code: 404.
+   Resource not found") -> PT amigavel ("Pagina nao encontrada.", "Ocorreu um erro interno...").
+[TK-UX-BREADCRUMB] (2026-07-01) 1o breadcrumb padronizado como "Personas" -> /persona/lista (convencao
+   ja usada nas 9 telas de empatia). A home (list-personas) tinha o <nav crumb> VAZIO -> agora mostra
+   "Personas" ativo; informacoes.jsp apontava p/ contextPath/ -> corrigido p/ /persona/lista.
+[TK-UX-CONFIRM-POV] (2026-07-01) list-point-of-view.jsp: o confirm de excluir dizia "deletar esta
+   PERSONA" numa acao que apaga um POV -> "deletar este Point of View".
+[TK-UX-RODAPE] (2026-07-01) no-container-footer.tag (telas de Visao Geral/Detalhada) estava "© 2017"
+   -> 2026 (o commit de footer 2026 nao pegou esse arquivo).
+[TK-UX-TYPOS] (2026-07-01) "Voce" com acento AGUDO ("Vocé") -> circunflexo ("Você") nos 8 confirm();
+   breadcrumb "O quela Diz e Faz" -> "O que ela Diz e Faz" (say-and-do.jsp).
+[TK-UX-LIMPEZA] (2026-07-01) 2 forms com action="/toolkit/..." hardcoded -> ${pageContext.request.
+   contextPath} (como o resto); <form:hidden path="ideiaCodigo" value="1"/> morto (o Controller
+   sobrescreve pelo cookie assinado) -> removido o value.
+
+--------------------------------------------------------------------------------
+RONDA DE TESTE MANUAL NO LIC (2026-07-02) — achados do usuario usando o sistema
+--------------------------------------------------------------------------------
+Diferente da varredura sistematica acima (leitura de todos os JSPs de uma vez), estes
+sao bugs/melhorias que so apareceram testando o sistema rodando de verdade.
+
+[UX-COLAB-HEADER] (2026-07-02) header/headerCookies.jsp (modulo colaborativo): dropdown
+   "Ideias" (Minhas/Outras/Cadastrar) e o FAB flutuante removidos -- redundantes com os 3
+   cards do index-colaboracao.jsp (o usuario ja bate o olho neles ao abrir o modulo).
+   "Validar Ideias"/"Gerenciar Ideias" (admin) subiram pro nav do topo, ao lado do "Sair".
+[UX-PARTICIPAR-REDIRECT] (2026-07-02) EntrarIdeiaServlet: apos "Participar" (e no caso "ja
+   participava"), redireciona p/ minha-ideia.jsp (era lista-ideia.jsp -- o usuario tinha
+   que navegar de novo pra achar a ideia que acabou de entrar).
+[UX-EDITAR-TEXTO] (2026-07-02) editar-texto.jsp (editor de descricao da ideia, Quill): DOIS
+   bugs na mesma tela. (1) a descricao ia pro #editor via <c:out>, que ESCAPA HTML -> o
+   Quill mostrava as tags (<p>, <b>...) como texto literal em vez de renderizar. (2) o
+   Concluir salvava #editor.innerHTML, que DEPOIS do Quill inicializar e a marcacao INTERNA
+   do widget (ql-editor/ql-clipboard, atributos contenteditable) -- os "caracteres
+   estranhos" reportados. Fix: descricao vai num textarea escondido, carregada no Quill via
+   quill.clipboard.dangerouslyPasteHTML() (API correta, so aceita formatos conhecidos); o
+   Concluir agora usa quill.root.innerHTML (conteudo limpo).
+[RETENCAO-ACESSO] (2026-07-02) Retencao do Conhecimento era 100% admin-only (JSP + servlet).
+   Liberado p/ QUALQUER usuario logado: admin ve todas as ideias, colaborador ve so as que
+   participa. Mudou em 4 arquivos:
+     - GerenciarIdeiaServlet.java: antes NAO checava login nem permissao nenhuma (a
+       protecao ficava so na JSP de destino). Agora exige login e, se nao-admin, verifica
+       via IdeiaUsuarioDAO que o usuario PARTICIPA da ideia pedida antes de liberar --
+       fecha um IDOR (sem isso, um colaborador podia trocar o ideiaId na URL e ver o
+       historico de qualquer ideia de outra pessoa).
+     - lista-ideia-gerenciamento.jsp: guard relaxado de "so admin" p/ "qualquer logado";
+       lista fica condicional (admin = IdeiaDAO.listar(), colaborador = so os vinculos do
+       IdeiaUsuarioDAO com ele mesmo).
+     - gerenciamento-ideia.jsp: mesmo relaxamento de guard (a checagem de QUAL ideia ja
+       aconteceu no servlet).
+     - index.jsp: o card "Retencao do conhecimento" tinha 2 ramos -- admin com link
+       funcional, colaborador com card-reveal MORTO (sem link nenhum, ja mapeado na
+       varredura de UX). Unificado num so, com link p/ todos e texto generico (antes
+       "Ferramentas para gestores!").
+[UX-RETENCAO-BOTOES] (2026-07-02) apos liberar o acesso, o usuario notou que "Gerenciar
+   Ideias" (nav + FAB de lista-ideia-gerenciamento.jsp e gerenciamento-ideia.jsp) so
+   redirecionava p/ a PROPRIA tela -- removido dos dois. "Validar Ideias" tambem removido
+   dali -- ja acessivel pelo header do modulo colaborativo (UX-COLAB-HEADER).
+[UX-STORYTELLING-QUADRO] (2026-07-02) gerenciamento-ideia.jsp, passo "Construcao
+   Storytelling": botao "Abrir quadro" (reabria o quadro no Konva em modo leitura) removido
+   por nao servir p/ nada util na Retencao -- o PDF ("Visualizar PDF", mantido) ja mostra
+   tudo. Unico lugar do projeto onde esse botao existia.
+[UX-MODAL-DUPLICADO] (2026-07-02) detalhes-ideia.jsp: o aviso de "Fechar o grupo encerra as
+   inscricoes..." aparecia DUAS vezes -- um <p> fixo dentro do modal E no confirm() do
+   clique. Removido o <p> (o confirm() sozinho ja e suficiente).
+[UX-CADASTRO-ORDEM] (2026-07-02) login.jsp (form de criar conta): ordem dos campos era
+   Senha -> medidor de forca -> Confirmar Senha (o medidor cortava o fluxo entre os dois
+   campos de senha, ficava estranho visualmente). Reordenado p/ Senha -> Confirmar Senha ->
+   medidor de forca + criterios.
+[UX-FOOTER-PADRAO] (2026-07-02) padronizacao de cor entre header e footer em 2 telas (antes
+   destoavam do header azul-acinzentado da home):
+     - gerenciar-usuarios.jsp: header era blue-grey darken-2 (+ classe "knowledge" solta,
+       resto de copia-e-cola) e footer era TEAL (herdado de header/footer.jsp, cor do
+       modulo colaborativo) -> os dois viraram blue-grey lighten-1, igual a home.
+     - index-perfil.jsp: header ja estava correto, mas a tela NAO TINHA FOOTER NENHUM ->
+       adicionado footer blue-grey lighten-1 (mesmo padrao).
+[UX-GERENCIAR-USUARIOS] (2026-07-02) botao "Gerenciar Usuarios" (admin) estava dentro do
+   header/headerCookies.jsp (nav do modulo colaborativo) -- mas nao e uma acao daquele
+   modulo, e uma tela isolada sem modulo proprio. Removido de la, adicionado na index.jsp
+   (home) ao lado do link de perfil, admin-only.
+[UX-STORYTELLING-TEXTO-SAVE] (2026-07-02) js/controleAdd.js: ao editar um texto (duplo-
+   clique) e apertar Enter, o codigo chamava window.salvarProgresso() -- salva o QUADRO
+   INTEIRO (todos os elementos), com overlay bloqueante + alert("Salvo com sucesso!"), so
+   por causa da edicao de UM texto. E o UNICO lugar do arquivo que fazia isso: arrastar
+   imagem/texto (dragend) ja salva so o elemento que mudou via AutoSalvarStoryServlet
+   escopado. Corrigido p/ seguir o mesmo padrao -- Enter agora salva so aquele texto,
+   silenciosamente, sem popup.
+[UX-STORYTELLING-AUDIO-API] (2026-07-02) js/controleAudio.js: o botao "Gravar" nao fazia
+   NADA perceptivel. Causa: navigator.getUserMedia (API antiga, baseada em callback) foi
+   REMOVIDA de todos os navegadores modernos ha anos -- a chamada falhava com um erro
+   silencioso no console. Trocado p/ navigator.mediaDevices.getUserMedia (API atual,
+   Promise-based) + alert visivel se o microfone for negado/indisponivel (antes falhava
+   sem avisar nada). PENDENTE (infra, fora do escopo do codigo): getUserMedia exige
+   contexto seguro (HTTPS ou localhost) -- o sistema roda em HTTP em producao hoje, entao o
+   microfone continua bloqueado pelo navegador ate isso mudar. Decisao do usuario: ok
+   deixar pra depois.
+[UX-STORYTELLING-UPLOAD-403] (2026-07-02) 🔴 storytelling.jsp, "Adicionar Imagem": upload
+   dava 403 depois de selecionar o arquivo e confirmar. Causa raiz confirmada lendo
+   CsrfFilter.java + UploadArquivoServlet.java: o filtro valida o token via
+   request.getParameter("csrfToken"), mas requests multipart/form-data NAO passam pelo
+   getParameter() do servlet container (o UploadArquivoServlet le o multipart manualmente
+   via Apache Commons FileUpload, nao usa @MultipartConfig) -- o filtro nunca achava o
+   token do form e barrava com 403, mesmo com o campo escondido preenchido certo. Fix: o
+   token vai na QUERY STRING da action (UploadArquivoServlet?csrfToken=${csrfToken}) --
+   isso funciona pois query string e lida pelo container independente do parsing do corpo.
+   Removido tambem um onsubmit="salvarProgresso()" duplicado no form (o click handler de
+   #b1_1 em controle.js ja fazia a mesma chamada).
+[UX-STORYTELLING-AUDIO-ESPACO] (2026-07-02) storytelling.jsp: botoes "Gravar"/"Parar
+   gravacao"/"Salvar audio" ficavam colados/empilhados sem espacamento algum (coluna
+   estreita da sidebar). Envolvidos num wrapper flex com gap -- funciona tanto lado-a-lado
+   quanto quebrado em linhas.
+
+--------------------------------------------------------------------------------
+RONDA 2 DE TESTE MANUAL (2026-07-02) — Canvas, cores por modulo, listagens, Toolkit,
+navegacao (botao Voltar) — achados/pedidos testando o sistema rodando de verdade
+--------------------------------------------------------------------------------
+
+[CAN-ACESSO-V2] (2026-07-02) 🔴 SUPERSEDE o [CAN-ACESSO] de 2026-06-25 (que era leader-
+   only por decisao da epoca). Modulo Canvas liberado p/ TODOS os participantes da ideia,
+   nao so o lider -- mesmo padrao dos outros modulos (Storytelling/Caixa). 3 mudancas:
+     - IdeiaUsuarioDAO.listarIdeiasCanva(): removido o filtro Restrictions.eq("flLider",
+       "S") -- lista-canvas.jsp passa a devolver o Canvas p/ qualquer participante.
+     - EntrarCanvaServlet.java: achado um IDOR de verdade durante a mudanca -- o servlet ja
+       CALCULAVA o vinculo (IdeiaUsuarioDAO.listarParametro) mas so usava o resultado p/
+       setar o "lider" da sessao, NUNCA p/ barrar acesso. Qualquer usuario logado que
+       adivinhasse/trocasse o ideiaId na URL entrava no Canvas de QUALQUER ideia, mesmo sem
+       participar. Fix: se a lista de vinculo vier vazia, redireciona p/ lista-canvas.jsp em
+       vez de prosseguir.
+     - minha-ideia.jsp: botao "Entrar" do status CV deixa de ser leader-only (habilitado p/
+       todo participante) -- seguro agora que o servlet valida no lado do servidor.
+[UX-COR-MODULO] (2026-07-02) cores incorretas/herdadas do modulo Colaborativo (teal) em
+   telas de OUTROS modulos -- padronizado p/ a cor do PROPRIO modulo em cada caso:
+     - storytelling-finalizado.jsp: reescrita completa. Usava header/footer.jsp (teal,
+       modulo colaborativo) + o header pesado do editor (Konva). Agora tem header/footer
+       proprios, leves, na cor indigo lighten-1 (#5c6bc0, a mesma do header/footer reais do
+       storytelling.jsp) -- card-panel de sucesso tambem.
+     - canvas-finalizado.jsp: card-panel teal -> blue darken-4 (cor do Canvas).
+     - Toolkit finalize.jsp: card-panel teal -> red darken-1 (cor do Toolkit).
+     - canva-visao-geral.jsp: botao "Exportar" era red -> blue darken-4.
+     - lista-canvas.jsp / gerenciamento-ideia.jsp (linha de retencao do Canvas): botao
+       "Entrar" era red darken-1 -> blue darken-4.
+     - lista-storytelling.jsp / gerenciamento-ideia.jsp (linha de retencao do
+       Storytelling): botao "Entrar"/"Visualizar PDF" usava indigo darken-1 (#3949ab) --
+       tom ERRADO, diferente do header/footer reais (indigo lighten-1, #5c6bc0). Corrigido
+       nos dois lugares p/ o tom certo.
+[UX-PDF-ALINHAMENTO] (2026-07-02) gerenciamento-ideia.jsp: botao "Visualizar PDF" (linha do
+   Storytelling) estava desalinhado (colado a esquerda, fora do padrao dos outros botoes da
+   tabela) -- td ganhou text-align:right, junto com o fix de cor acima.
+[CSS-CLICK-BLOQUEADO] (2026-07-02) 🔴 css/style.css: paginas de erro (404/500) tinham um
+   link "Ir para o inicio" que nao reagia a clique. Causa raiz confirmada com curl contra os
+   containers rodando (HTML/link estavam corretos): regra morta body:before {position:fixed;
+   width:100%; height:100%; ...} SEM pointer-events:none, cobrindo a pagina inteira e
+   interceptando cliques. Removida (junto com uma regra #video igualmente morta -- nenhuma
+   pagina do projeto usa id="video", resto de uma feature de video de fundo abandonada).
+   login.jsp/index-perfil.jsp carregam o mesmo CSS mas nao eram afetados por acidente (as
+   classes .form/.container de la ja tinham z-index:1 proprio).
+[UX-COLAB-BUSCA] (2026-07-02) lista-ideia.jsp e minha-ideia.jsp (modulo Colaborativo):
+     - lista-ideia.jsp: H1 "Lista de Ideias" -> "Outras Ideias" (nome inconsistente com o
+       card do hub, que ja chama de "Outras Ideias"). Busca + tabela agora só aparecem
+       quando ha ideias (antes mostrava cabecalho de colunas/campo de busca vazios p/ nada).
+     - minha-ideia.jsp: mesmo tratamento de estado vazio. Placeholder da busca encurtado de
+       "Buscar ideia (titulo, descricao, status)" p/ "Buscar ideia (titulo, descricao)" --
+       consistente com o de Outras Ideias (a busca continua incluindo status por baixo dos
+       panos, so o texto do campo ficou mais limpo).
+     - Busca client-side (JS) das duas: antes usava o textContent da LINHA INTEIRA (incluia
+       o texto do botao "Entrar"/"Participar" na comparacao) -- agora escopada so aos campos
+       relevantes (nome/titulo/descricao[/status]).
+[UX-LINHA-FININHA] (2026-07-02) lista-canvas.jsp, lista-storytelling.jsp, lista-caixa-de-
+   ferramentas.jsp: <ul class="collapsible"> do Materialize desenha borda/sombra mesmo
+   VAZIA (sem nenhum <li> dentro) -- aparecia uma linha fina por cima da mensagem de estado
+   vazio, sem eu saber o que era. Fix: <ul> so renderiza dentro de <c:if test="${not empty
+   ...}">, fechando antes da mensagem de vazio existente.
+[UX-TOOLKIT-ACOES] (2026-07-02) Toolkit list-personas.jsp / list-point-of-view.jsp: acoes
+   (ver/editar/excluir) eram icones soltos sem peso visual nenhum, dificeis de bater o olho
+   e perceber que eram clicaveis. Viraram btn-floating (mesmo padrao do Canvas do LIC), cor
+   do MODULO (red darken-1) p/ as 3 acoes -- sem cor de "perigo" separada p/ excluir, o
+   confirm() ja sinaliza isso. list-personas.jsp ganhou tambem o icone de "Abrir Mapa de
+   Empatia" (antes so dava p/ chegar la clicando no NOME da persona, pouco obvio).
+   list-point-of-view.jsp: "Introspecção(ões)" -> "Introspecções" (cabecalho da tabela +
+   label do modal); removidos separadores decorativos "|" (fa-ellipsis-v) entre os botoes
+   (botao de verdade ja tem espacamento proprio). NAO mexido, a pedido: os FABs "criar-
+   persona"/"criar-pov" -- fica p/ quando a navegacao/fluxo de criacao de POV for redesenhada
+   (ver [POV-DESCOBERTA]).
+[UX-TOOLKIT-ICONE-LIXEIRA] (2026-07-02) 🔴 Toolkit resources/css/style.css: o icone de
+   excluir (fa-trash) tinha um color:#f44336 fixo -- quase a MESMA cor do fundo vermelho
+   (red darken-1) do proprio botao, deixando o icone praticamente invisivel (so a bolinha
+   vermelha aparecia). Removida a regra -- o icone volta a herdar branco do .btn-floating,
+   igual os icones de olho/lapis ao lado. Descoberto tambem, ao investigar: esta versao do
+   Materialize empacotada no Toolkit NAO DEFINE a classe .btn-small -- os botoes
+   "btn-floating btn-small" das acoes sempre renderizaram no tamanho PADRAO (40px, circulo
+   cheio), a classe nunca teve efeito. Adicionada uma regra propria reduzindo p/ 30px com
+   cantos menos arredondados (8px, "quadradinho") nas acoes de Personas/POV.
+[UX-VOLTAR-V2] (2026-07-02) navegacao "Voltar" contextual, modulo a modulo -- reabordagem
+   do [UX-02] (revertido antes por mexer no header COMPARTILHADO e quebrar CSS). Desta vez:
+   icone circular flutuante (btn-floating btn-large, cor do proprio modulo/tela, icone
+   arrow_back, tooltip "Voltar"), position:fixed no canto superior esquerdo (top:75px;
+   left:20px), adicionado dentro de CADA JSP individualmente -- headerCookies.jsp/footer.jsp
+   e o header.tag do Toolkit continuam INTOCADOS, entao nao ha risco de repetir o bug de
+   margin-collapse/sombra da vez anterior.
+   REGRA aplicada (definida com o usuario apos 1a rodada): telas que sao a "porta de
+   entrada" de um modulo (1 clique a partir de index.jsp) NAO ganham o botao -- o logo do
+   cabecalho ja cobre exatamente o mesmo destino, botao ali e redundante. So telas mais
+   fundas (2+ cliques) ganham.
+   GANHARAM o botao (LIC): minha-ideia.jsp e lista-ideia.jsp (-> index-colaboracao.jsp);
+   colaboracao.jsp (-> minha-ideia.jsp OU gerenciamento-ideia.jsp, conforme sessionScope.
+   isRetencao); storytelling.jsp e storytelling-show.jsp (-> lista-storytelling.jsp);
+   gerenciamento-ideia.jsp (-> lista-ideia-gerenciamento.jsp); canva-mapa.jsp e
+   canva-visao-geral.jsp (-> lista-canvas.jsp) + as 9 telas de secao do canvas (->
+   EntrarCanvaServlet, mesmo destino que a "linha do tempo"/breadcrumb ja usava).
+   GANHARAM o botao (Toolkit): list-point-of-view.jsp, empathy-map.jsp, form-pov.jsp,
+   informacoes.jsp (-> persona/lista); as 6 secoes do mapa de empatia (think-and-feel/see/
+   say-and-do/hear/pain/gain -> persona/empatia/mapa, o pai imediato); empathy-map-overview.
+   jsp e empathy-map-detailed.jsp (-> persona/empatia/mapa; a detailed esta orfa de link no
+   menu desde antes, mas a rota continua ativa); point-of-view-overview.jsp (->
+   point-of-view/lista). EXCECAO a regra: list-personas.jsp (a propria "porta de entrada" do
+   Toolkit) MANTEVE o botao (-> /LIC/minha-ideia.jsp) -- diferente do LIC, o logo do Toolkit
+   pula direto p/ /LIC/index.jsp, ULTRAPASSANDO minha-ideia.jsp (de onde o usuario realmente
+   veio); o logo nao cobre a mesma funcao aqui.
+   NAO ganharam / removido depois de testado (sao a "porta de entrada" do proprio modulo,
+   1 clique de index.jsp, logo ja resolve): index-colaboracao.jsp, lista-storytelling.jsp,
+   lista-canvas.jsp, lista-caixa-de-ferramentas.jsp, lista-ideia-gerenciamento.jsp,
+   validar-ideia.jsp, index-perfil.jsp, gerenciar-usuarios.jsp.
+   Padrao DIFERENTE (nao e o icone flutuante) em cadastro-ideia.jsp e editar-texto.jsp: sao
+   telas de FORMULARIO, entao ganharam "Cancelar" ao lado do botao principal (Inserir/
+   Concluir) em vez do icone solto -- cadastro-ideia.jsp tambem teve o Cancelar existente
+   REPOSICIONADO (estava fora do <form>, btn-flat sem contraste, facil de nao perceber) p/
+   dentro do form, com peso visual de botao de verdade (btn grey lighten-1, mesmo padrao dos
+   "Fechar" de modal ja usados no resto do app).
+   Ja tinham saida propria e NAO foram mexidas: detalhes-ideia.jsp (ja tinha "Voltar"
+   contextual lider/nao-lider); storytelling-finalizado.jsp, canvas-finalizado.jsp,
+   finalize.jsp do Toolkit (ja tinham "Ver minhas ideias"); redirect.jsp, success.jsp,
+   error.jsp do Toolkit (ja tinham escape proprio); wait.jsp (so um <c:redirect>, sem UI).
+
 
 
 ################################################################################
@@ -929,6 +1239,26 @@ A "parede" javax->jakarta governa tudo: tudo antes dela e tranquilo; cruzar e re
      um dia).
    - new Long(0) deprecado nos controllers do Toolkit (funcional); "lic_bd." hardcoded nas native
      queries (config) — nao sao bugs.
+
+--- K.6 UI/UX A REVISITAR ---
+   [POV-DESCOBERTA] (2026-07-01) descoberta da criacao de POV (ultimo item da varredura de UX do
+     Toolkit, ADIADO). Hoje NAO ha botao "Novo POV" na lista de Point of View; p/ criar um, o usuario
+     tem que ir na lista de PERSONAS, marcar checkboxes e clicar num FAB de icone-de-olho (sem rotulo,
+     desabilitado ate existir >=1 persona). O menu trata Persona e POV como irmaos, mas o POV so nasce
+     dentro de Persona -> modelo mental quebrado, baixa descoberta. As correcoes de 2026-07-01 mexeram
+     no FEEDBACK do POV (toast), NAO na descoberta. Fix futuro (mexe na navegacao): OPCAO A (recomend.)
+     botao "Novo Point of View" na lista de POV abre um modal com as personas (checkbox) -> vai p/ o
+     form-pov; OPCAO B botao leva a lista de Personas com destaque/instrucao; OPCAO C (barata,
+     complementar) melhorar o empty-state da lista de POV com o passo-a-passo. O form-pov EXIGE
+     ?personas=... entao o botao NAO pode ir direto ao formulario. Decisao de produto pendente.
+   [TK-ORFAOS] (2026-07-01) 2 arquivos orfaos a remover na limpeza: WebContent/error.jsp (raiz; o
+     web.xml usa /error -> WEB-INF/view/error.jsp) e WEB-INF/view/success.jsp (nenhum controller
+     retorna "success"; o feedback de export virou toast). Sem urgencia, so limpeza.
+   [HTTP-PROD-MIC] (2026-07-02) gravacao de audio do Storytelling (UX-STORYTELLING-AUDIO-API) exige
+     contexto seguro (HTTPS ou localhost) -- e restricao do PROPRIO NAVEGADOR p/ getUserMedia, nao
+     tem contorno via codigo. O sistema roda em HTTP puro em producao hoje -> o microfone continua
+     bloqueado la mesmo com a API corrigida. ADIADO a pedido do usuario (fica p/ quando houver
+     HTTPS em producao). Sem isso, testar so funciona local (localhost) ou apos configurar TLS.
 
 
 

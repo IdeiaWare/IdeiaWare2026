@@ -26,6 +26,7 @@
     Boolean erroAlteracao  = (Boolean) request.getAttribute("erroAlteracao");
     Boolean EnviouEmail  = (Boolean) request.getAttribute("EnviouEmail");
     Boolean ErroEnvioEmail  = (Boolean) request.getAttribute("ErroEnvioEmail");
+    Boolean respostaSucesso  = (Boolean) request.getAttribute("respostaSucesso");
 %>
 
 <!DOCTYPE html>
@@ -187,10 +188,11 @@
         </nav>
         <div class="form">
             <h4 class="center-align perfil-titulo">Meu Perfil</h4>
-            <c:if test="${respostaSenhasDiferentes}"><div class="erro"><h6>Senhas não batem!</h6></div> </c:if>
-            <c:if test="${respostaSenhaInvalida}"><div class="erro"><h6>Senha inválida!</h6></div> </c:if>
-            <c:if test="${respostaNomeEmail}"><div class="erro"><h6>Nome ou e-mail inválidos!</h6></div> </c:if>
-            <c:if test="${respostaEmailCadastrado}"><div class="erro"><h6>E-mail já utilizado!</h6></div> </c:if>
+            <c:if test="${respostaSucesso}"><div class="sucesso"><h6>Dados atualizados com sucesso!</h6></div> </c:if>
+            <c:if test="${respostaSenhasDiferentes}"><div class="erro"><h6>A senha nova e a confirmação não coincidem.</h6></div> </c:if>
+            <c:if test="${respostaSenhaInvalida}"><div class="erro"><h6>Senha atual incorreta.</h6></div> </c:if>
+            <c:if test="${respostaNomeEmail}"><div class="erro"><h6>Nome e e-mail são obrigatórios.</h6></div> </c:if>
+            <c:if test="${respostaEmailCadastrado}"><div class="erro"><h6>Este e-mail não está disponível.</h6></div> </c:if>
             <c:if test="${erroAlteracao}"><div class="erro"><h6>Erro ao alterar dados!</h6></div> </c:if>
             <c:if test="${ErroEnvioEmail}"><div class="erro"><h6>Erro ao enviar e-mail!</h6></div> </c:if>
             <c:if test="${EnviouEmail}"><div class="sucesso"><h6>E-mail enviado!</h6></div> </c:if>
@@ -205,10 +207,12 @@
                 <label for="perfilEmail" class="perfil-label">E-mail</label>
                 <input id="perfilEmail" name="email" type="text" placeholder="email" aria-label="email" value="${email}" pattern="\w+(\+?\w+)@\w+(\.\w+)+" required title="email@exemplo.com" maxlength="100"/>
                 
-                <button class="blue accent-1" href="#" id="show-password-form">Alterar senha</button>
-                <button class="blue accent-1" type="submit" onclick="submitForm('EnviaDadosPessoaisServlet','userForm')">Enviar dados pessoais por e-mail</button>
-                <button class="blue accent-1" href="#" id="show-anonimiza-form">Anonimizar dados</button>
                 <button class="blue accent-1" type="submit" onclick="submitForm('AlteraUsuarioServlet','userForm')">Salvar</button>
+                <button class="blue accent-1" type="button" id="show-password-form">Alterar senha</button>
+                <button class="blue accent-1" type="submit" onclick="submitForm('EnviaDadosPessoaisServlet','userForm')">Enviar dados pessoais por e-mail</button>
+                <hr style="margin:24px 0 4px 0; border:none; border-top:1px solid #cfd8dc;"/>
+                <p style="margin:0 0 4px 0; font-size:12px; color:#90a4ae;">Zona de risco</p>
+                <button class="red lighten-1" type="button" id="show-anonimiza-form">Anonimizar dados</button>
             </form>
                 
             <form id="passwordForm" class="userForm" method="POST" style="display: none;">
@@ -367,7 +371,21 @@
                 strengthBar.style.backgroundColor = strengthColor;
                 strengthText.textContent = strengthMsg;
             }
-        </script>   
+        </script>
     <script src="js/csrf.js"></script>
   </body>
+  <%-- UX: footer padronizado com a cor do header (blue-grey, igual home) -- antes
+       esta tela nao tinha footer nenhum. --%>
+  <footer class="center blue-grey lighten-1 page-footer">
+    <div class="container">
+      <div class="row">
+        <i class="small material-icons">account_circle</i><h6 class="white-text"> <c:out value="${nome}"/></h6>
+      </div>
+    </div>
+    <div class="footer-copyright">
+      <div class="container">
+        © 2026 IdeiaWare UNISC
+      </div>
+    </div>
+  </footer>
 </html>

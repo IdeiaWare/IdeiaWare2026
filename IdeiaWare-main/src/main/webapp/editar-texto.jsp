@@ -18,15 +18,23 @@
         <h3><c:out value="${sessionScope.ideiaTitulo}"/></h3>
         <div style="padding: 10px" class="white" >
           <form action="SalvarTextoServlet" name="Salvar" method="POST">
-            <div id="editor">
-              <c:out value="${sessionScope.ideiaDescricao}"/>
-            </div>
+            <div id="editor"></div>
+            <%-- A descricao vai num textarea ESCONDIDO e e carregada no Quill via
+                 clipboard (dangerouslyPasteHTML) no fim da pagina. Antes ela ficava
+                 com <c:out> DENTRO do #editor -> o HTML vinha ESCAPADO e o Quill
+                 mostrava as tags (<p>, <b>...) como TEXTO literal no editor. --%>
+            <textarea id="descricao-inicial" style="display:none;"><c:out value="${sessionScope.ideiaDescricao}"/></textarea>
             <div>
               <br/>
               <input hidden="true" name="idUsuario" value="${idUsuario}">
               <input hidden="true" name="ideiaId" value="${ideiaId}">
               <input hidden="true" id="texto" name="texto">
-              <input class="btn-large orange darken-1 right" name="conluir" type="submit" value="Concluir" onclick="javascript:document.getElementById('texto').value = document.getElementById('editor').innerHTML;">
+              <%-- UX-VOLTAR: editor nao tinha cancelar -- so dava pra sair perdendo o
+                   contexto (voltando pelo logo). colaboracao.jsp le tudo de sessao
+                   (ideiaId/lider/isRetencao ja setados por EntrarColaboracaoServlet),
+                   entao um link direto reconstroi a tela certa sem precisar de servlet. --%>
+              <input class="btn-large orange darken-1 right" name="conluir" type="submit" value="Concluir" onclick="document.getElementById('texto').value = quill.root.innerHTML;">
+              <a href="colaboracao.jsp" class="btn-large btn-flat grey-text text-darken-1 right" style="margin-right: 8px;">Cancelar</a>
             </div>
           </form>
         </div>
@@ -104,7 +112,19 @@
                     },
                     theme: 'snow'
                   });
-                  console.log(Quill.imports);
+
+                  // Carrega a descricao atual DENTRO do Quill pela API de clipboard
+                  // (converte o HTML no modelo do Quill e mantem so os formatos
+                  // conhecidos). Resolve os DOIS bugs:
+                  //  (1) as tags apareciam como texto literal (era HTML escapado);
+                  //  (2) ao salvar, document.getElementById('editor').innerHTML trazia
+                  //      a marcacao INTERNA do Quill (ql-editor/ql-clipboard, atributos
+                  //      contenteditable) = os "caracteres estranhos/bugados".
+                  // Agora o Concluir usa quill.root.innerHTML = so o conteudo limpo.
+                  var descInicial = document.getElementById('descricao-inicial').value;
+                  if (descInicial && descInicial.trim() !== '') {
+                    quill.clipboard.dangerouslyPasteHTML(descInicial);
+                  }
 
 
 </script>

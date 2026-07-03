@@ -24,10 +24,26 @@
 
     // RET-05: evita NullPointerException caso a conta tenha sido removida
     // enquanto a sessão ainda estava ativa.
-    if (usuario == null || !usuario.getPermissao().equals("adm")) {
+    if (usuario == null) {
         response.sendRedirect("index.jsp");
         return;
     }
+
+    // RETENCAO-ACESSO: antes so admin acessava esta tela. Agora QUALQUER usuario
+    // logado ve a Retencao do Conhecimento; admin ve TODAS as ideias, colaborador
+    // ve so as que participa (a mesma logica de posse do EntrarCaixaServlet/etc).
+    List<edu.unisc.lic.domain.Ideia> todasIdeiasList;
+    if ("adm".equals(usuario.getPermissao())) {
+        todasIdeiasList = new edu.unisc.lic.dao.IdeiaDAO().listar();
+    } else {
+        List<IdeiaUsuario> vinculos = new edu.unisc.lic.dao.IdeiaUsuarioDAO()
+                .listarParametro(new IdeiaUsuario(usuario, null, null));
+        todasIdeiasList = new java.util.ArrayList<>();
+        for (IdeiaUsuario iu : vinculos) {
+            todasIdeiasList.add(iu.getIdeia());
+        }
+    }
+    request.setAttribute("todasIdeiasScriptlet", todasIdeiasList);
 %>
 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -98,39 +114,14 @@
           </ul>
         </a>
         <ul id="nav-mobile" class="right hide-on-med-and-down" >
-          <c:if  test="${permicao eq 'adm'}" >
-              <li><a class='dropdown-button' data-constrainWidth="false" href='#'  data-beloworigin="true" data-activates='dropdown2'>Gestor<i class="material-icons right">arrow_drop_down</i></a></li>
-              <ul id='dropdown2' class='dropdown-content'>
-                <li><a href="lista-ideia-gerenciamento.jsp"><i class="material-icons">assessment</i>Gerenciar Ideias</a></li>
-                  <jsp:useBean id="tesDao" class="edu.unisc.lic.dao.IdeiaDAO" />
-                  <jsp:useBean id="tesX" class="edu.unisc.lic.domain.Ideia" />
-                  <jsp:setProperty name="tesX" property="status" value="PE"/>
-                  <c:choose>
-                      <c:when test="${tesDao.listarParametro(tesX).size() eq 0}" >
-                      <li class="tooltipped disabled" data-position="left" data-delay="50" data-tooltip="Sem ideias no momento"><a class="btn-flat disabled" disabled="true"><i class="material-icons">done</i>Validar Ideias</a></li>
-                      </c:when>
-                      <c:otherwise>
-                      <li><a href="validar-ideia.jsp"><i class="material-icons">done</i>Validar Ideias</a></li>
-                      </c:otherwise>
-                  </c:choose>
-              </ul>
-          </c:if>
+          <%-- UX: "Gerenciar Ideias" removido -- e a propria tela (redirecionaria p/
+               si mesma). "Validar Ideias" removido -- ja acessivel pelo cabecalho
+               do modulo colaborativo. --%>
           <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
         </ul>
 
       </div>
     </nav>
-    <div class="fixed-action-btn">
-        <a class="btn-floating btn-large deep-orange lighten-2">
-            <i class="large material-icons">menu</i>
-        </a>
-        <ul>
-            <c:if  test="${permicao eq 'adm'}" >
-                <li><a class="btn-floating tooltipped light-blue darken-1" href="validar-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Validar ideias"><i class="material-icons">done</i></a></li>
-                <li><a class="btn-floating tooltipped light-blue darken-1" href="lista-ideia-gerenciamento.jsp" data-position="left" data-delay="50" data-tooltip="Gerenciar ideias"><i class="material-icons">assessment</i></a></li>
-            </c:if>
-        </ul>
-    </div>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script type="text/javascript" src="js/materialize.js"></script>
@@ -168,7 +159,7 @@
             <tbody>
               <!--inicio do corpo-->
               <%-- UX-01: estado vazio com mensagem contextual. --%>
-              <c:set var="todasIdeias" value="${ideiaDao.listar()}" />
+              <c:set var="todasIdeias" value="${todasIdeiasScriptlet}" />
               <c:if test="${empty todasIdeias}">
                 <tr><td colspan="5" class="center-align grey-text" style="padding: 30px;">Nenhuma ideia cadastrada no sistema ainda.</td></tr>
               </c:if>

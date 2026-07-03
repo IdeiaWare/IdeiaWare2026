@@ -122,8 +122,11 @@ public class AlteraUsuarioServlet extends HttpServlet {
             
             if (Alterar){
                 usuarioDAO.editar(usuario);
+                // UX: confirma o sucesso na propria tela de perfil (antes ia para
+                // wait.jsp -> index.jsp e o usuario nao recebia nenhum retorno).
+                request.setAttribute("respostaSucesso", true);
             }
-            request.getRequestDispatcher("wait.jsp").forward(request, response);
+            request.getRequestDispatcher("index-perfil.jsp").forward(request, response);
         }
     }
 

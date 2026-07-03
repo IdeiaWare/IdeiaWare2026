@@ -45,6 +45,11 @@
     </style>
   </head>
   <body class="indigo lighten-5">
+    <%-- UX-VOLTAR-V2: mesmo padrao do resto do app -- icone circular flutuante no
+         canto superior esquerdo. Visao somente-leitura do storytelling, so tinha
+         a logo do cabecalho (pra index.jsp) -- volta pra lista-storytelling.jsp,
+         igual storytelling.jsp (o editor). --%>
+    <a href="lista-storytelling.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 
     <nav>
       <div class="nav-wrapper indigo lighten-1 z-depth-2">

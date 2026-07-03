@@ -11,12 +11,34 @@
         <div class="white" style="min-height: 90vh" role="main">
             <div class="container">
                 <div style="padding: 10px; border-radius: 0.2em;" class="white">
-                    <h1>Lista de Ideias</h1>
+                    <h1>Outras Ideias</h1>
+                    <%-- UX-VOLTAR-V2: icone circular flutuante no canto superior esquerdo (fixed) --
+                         ver colaboracao.jsp pro raciocinio completo (nao mexe no header compartilhado). --%>
+                    <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
                     <jsp:useBean id="ideiaDAO" class="edu.unisc.lic.dao.IdeiaDAO" />
                     <jsp:useBean id="data"    class="edu.unisc.lic.classes.Data" />
 
+                    <%--
+                        listarIdeiasDisponiveis faz UMA única query HQL que:
+                          1. filtra status=VA e statusGrupo=AB
+                          2. exclui ideias em que o usuário já está inscrito
+                        Resolve COL-10 (N+1 queries) e COL-14 (carrega tudo).
+                    --%>
+                    <c:set var="ideiasDisponiveis" value="${ideiaDAO.listarIdeiasDisponiveis(usuarioClasse)}" />
+
+                    <%-- UX: busca e tabela so aparecem quando ha ideias -- nao faz
+                         sentido mostrar campo de busca ou cabecalho de colunas p/
+                         uma lista vazia. --%>
+                    <c:if test="${empty ideiasDisponiveis}">
+                        <div class="center-align grey-text" style="padding: 40px 20px;">
+                            <i class="material-icons" style="font-size: 3rem; display:block;">web_asset</i>
+                            No momento não há ideias de outros usuários disponíveis para colaboração. Volte mais tarde!
+                        </div>
+                    </c:if>
+
+                    <c:if test="${not empty ideiasDisponiveis}">
                     <form class="input-field">
-                        <input placeholder="Buscar título de ideia" aria-label="Buscar título de ideia" id="filtro-nome" type="text" class="validate">
+                        <input placeholder="Buscar ideia (título, descrição)" aria-label="Buscar ideia" id="filtro-nome" type="text" class="validate">
                     </form>
 
                     <table id="lista" class="list-ideas">
@@ -29,17 +51,6 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <%--
-                                listarIdeiasDisponiveis faz UMA única query HQL que:
-                                  1. filtra status=VA e statusGrupo=AB
-                                  2. exclui ideias em que o usuário já está inscrito
-                                Resolve COL-10 (N+1 queries) e COL-14 (carrega tudo).
-                            --%>
-                            <%-- UX-01: estado vazio com mensagem contextual. --%>
-                            <c:set var="ideiasDisponiveis" value="${ideiaDAO.listarIdeiasDisponiveis(usuarioClasse)}" />
-                            <c:if test="${empty ideiasDisponiveis}">
-                                <tr><td colspan="4" class="center-align grey-text" style="padding: 30px;">No momento não há ideias de outros usuários disponíveis para colaboração. Volte mais tarde!</td></tr>
-                            </c:if>
                             <c:forEach var="ideia" items="${ideiasDisponiveis}">
                                 <tr>
                                     <form name="detalhes" action="EntrarDetalheServlet" method="POST">
@@ -59,6 +70,7 @@
                             </c:forEach>
                         </tbody>
                     </table>
+                    </c:if>
                 </div>
 
                 <!-- Modal para visualizar detalhes da ideia -->
@@ -89,15 +101,23 @@
             $('#modal-detalhe-ideia').modal('open');
         });
 
+        // UX: campo de busca so existe no DOM quando ha ideias (c:if na JSP);
+        // guard evita TypeError ao chamar addEventListener em null na lista vazia.
         var input = document.getElementById('filtro-nome');
-        var trs   = Array.prototype.slice.call(document.querySelectorAll('#lista tbody tr'));
-
-        input.addEventListener('input', function () {
-            var search = input.value.toLowerCase();
-            trs.forEach(function (elem) {
-                elem.style.display = elem.textContent.toLowerCase().includes(search) ? '' : 'none';
+        if (input) {
+            var trs = Array.prototype.slice.call(document.querySelectorAll('#lista tbody tr'));
+            input.addEventListener('input', function () {
+                var search = input.value.toLowerCase();
+                trs.forEach(function (elem) {
+                    // Busca só em título + descrição (antes usava o textContent da linha
+                    // inteira, incluindo a data e o botão "Participar").
+                    var titulo    = (elem.querySelector('.title')       || {}).textContent || '';
+                    var descricao = (elem.querySelector('.description')  || {}).textContent || '';
+                    var alvo = (titulo + ' ' + descricao).toLowerCase();
+                    elem.style.display = alvo.includes(search) ? '' : 'none';
+                });
             });
-        });
+        }
     </script>
     <%@include file="header/footer.jsp" %>
 </html>

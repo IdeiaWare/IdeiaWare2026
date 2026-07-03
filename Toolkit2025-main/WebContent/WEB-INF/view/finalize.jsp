@@ -9,7 +9,7 @@
 	<div id="success">
 		 <div class="row">
 	      <div class="col s12">
-	        <div class="card-panel teal">
+	        <div class="card-panel red darken-1">
 	          <div class="white-text center-align" style="font-size:45px;"><i class="fa fa-smile-o" aria-hidden="true"></i></div>
 	          <div class="white-text center-align" style="text-transform:uppercase;">Caixa de Ferramentas finalizada!</div>
 	          <div class="right-align">

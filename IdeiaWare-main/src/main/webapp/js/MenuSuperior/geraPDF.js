@@ -80,10 +80,11 @@ function salvaPDF(base64data) {
     processData: false,
     data: base64data,
     success: function () {
-      $("#overlay").attr('style', 'display: none !important');
-      alert('Storytelling exportado com sucesso!');
+      // UX: exportar ENCERRA o modulo -> vai para a pagina de sucesso (que leva a
+      // "Minhas Ideias"), padronizando com Canvas (canvas-finalizado) e Caixa
+      // (finalize.jsp). Antes: alert() bloqueante + corte seco para minha-ideia.
       // STR-12: URL relativa — funciona em qualquer contexto de deploy
-      window.location.href = "minha-ideia.jsp";
+      window.location.href = "storytelling-finalizado.jsp";
     },
     error: function () {
       $("#overlay").attr('style', 'display: none !important');

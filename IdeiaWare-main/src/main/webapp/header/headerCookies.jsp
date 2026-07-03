@@ -84,34 +84,21 @@
         </ul>
       </a>
 
-      <ul id="nav-mobile" class="right hide-on-med-and-down" >
-        <li><a class='dropdown-button' data-constrainWidth="false" href='#'  data-beloworigin="true" data-activates='dropdown'>Ideias<i class="material-icons right">arrow_drop_down</i></a></li>
-        <ul id='dropdown' class='dropdown-content' >
-          <li><a href="cadastro-ideia.jsp"><i class="material-icons">add</i>Cadastrar Ideia</a></i>
-          <li><a href="minha-ideia.jsp"><i class="material-icons">account_box</i>Minhas Ideias</a></li>
-          <li><a href="lista-ideia.jsp"><i class="material-icons">web_asset</i>Outras Ideias</a></li>
-          <li class="divider"></li>
-        </ul>
+      <ul id="nav-mobile" class="right hide-on-med-and-down">
+        <%-- O dropdown "Ideias" (Minhas/Outras/Cadastrar) foi removido: e redundante
+             com os 3 cards do index-colaboracao.jsp. Os botoes exclusivos de admin
+             (antes escondidos no menu flutuante) subiram p/ ca, ao lado do "Sair".
+             "Gerenciar Usuarios" foi p/ a tela inicial (index.jsp) -- nao e uma acao
+             do modulo colaborativo, e uma tela isolada sem modulo proprio. --%>
+        <c:if test="${permicao eq 'adm'}">
+          <li><a href="validar-ideia.jsp"><i class="material-icons left">done</i>Validar Ideias</a></li>
+          <li><a href="lista-ideia-gerenciamento.jsp"><i class="material-icons left">assessment</i>Gerenciar Ideias</a></li>
+        </c:if>
         <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
       </ul>
 
     </div>
   </nav>
-  <div class="fixed-action-btn">
-    <a class="btn-floating btn-large orange darken-1">
-      <i class="large material-icons">menu</i>
-    </a>
-    <ul>
-      <li><a class="btn-floating tooltipped teal lighten-1" href="cadastro-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Cadastrar nova ideia"><i class="material-icons">add</i></a></li>
-      <li><a class="btn-floating tooltipped teal lighten-1" href="minha-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Minhas ideias"><i class="material-icons">account_box</i></a></li>
-      <li><a class="btn-floating tooltipped  teal lighten-1" href="lista-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Outras ideias"><i class="material-icons">web_asset</i></a></li>
-        <c:if  test="${permicao eq 'adm'}" >
-        <li><a class="btn-floating tooltipped teal lighten-2" href="validar-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Validar ideias"><i class="material-icons">done</i></a></li>
-        <li><a class="btn-floating tooltipped teal lighten-2" href="lista-ideia-gerenciamento.jsp" data-position="left" data-delay="50" data-tooltip="Gerenciar ideias"><i class="material-icons">assessment</i></a></li>
-        <li><a class="btn-floating tooltipped teal lighten-2" href="gerenciar-usuarios.jsp" data-position="left" data-delay="50" data-tooltip="Gerenciar usuários"><i class="material-icons">verified_user</i></a></li>
-        </c:if>
-    </ul>
-  </div>
   <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="js/materialize.min.js"></script>
   <script type="text/javascript" src="js/materialize.js"></script>

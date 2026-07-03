@@ -10,6 +10,10 @@
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     </head>
     <body class="center-align white m-5">
+        <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling -- icone circular
+             flutuante no canto superior esquerdo (fixed). Complementa a "linha do
+             tempo" (breadcrumb crumb) que ja existe, deixando o Voltar mais explicito. --%>
+        <a href="lista-canvas.jsp" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
     	<!-- VARIAVEIS -->
         <jsp:useBean id="data" class="edu.unisc.lic.classes.Data" />
         <jsp:useBean id="ideiaUsuarioDAO" class="edu.unisc.lic.dao.IdeiaUsuarioDAO" />

@@ -50,10 +50,15 @@
                   <label for="descricao">Descrição</label>
                 </div>
                 <br />
+                <%-- UX-VOLTAR: Cancelar reposicionado pra dentro do form, ao lado do
+                     Inserir, e com peso visual de botao de verdade (mesmo padrao dos
+                     "Fechar" de modal -- btn grey lighten-1 -- em vez de btn-flat solto
+                     fora do form, sem contraste). Volta pro hub do modulo (nao pra
+                     minha-ideia.jsp) -- e de onde o card "Cadastrar Nova Ideia" veio. --%>
                 <input class="btn orange darken-1" type="submit" value="Inserir" name="Inserir" />
+                <a href="index-colaboracao.jsp" class="btn grey lighten-1 black-text" name="Cancelar" style="margin-left: 8px;">Cancelar</a>
               </div>
             </form>
-            <a href="minha-ideia.jsp" class="btn-flat grey-text text-darken-1" name="Cancelar">Cancelar</a>
           </div>
         </div>
       </div>

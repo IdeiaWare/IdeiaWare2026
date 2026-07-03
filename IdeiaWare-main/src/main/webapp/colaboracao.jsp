@@ -11,6 +11,18 @@
       <div class="container">
         <div style="padding: 10px;" class="white">
           <h1>Colaboração da Ideia</h1>
+          <%-- UX-VOLTAR-V2: icone circular flutuante no canto superior esquerdo (fixed),
+               fora do fluxo normal da pagina -- NAO mexe no header/nav compartilhado
+               (headerCookies.jsp/footer.jsp), pra nao repetir o bug de margin-collapse
+               do [UX-02] revertido antes. Destino contextual igual antes. --%>
+          <c:choose>
+            <c:when test="${sessionScope.isRetencao eq false}">
+              <a href="minha-ideia.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+            </c:when>
+            <c:otherwise>
+              <a href="gerenciamento-ideia.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+            </c:otherwise>
+          </c:choose>
           <div class="container">
             <jsp:useBean id="colaboracaoIdeia"    class="edu.unisc.lic.domain.ColaboracaoIdeia" />
             <jsp:useBean id="colaboracaoIdeiaDAO" class="edu.unisc.lic.dao.ColaboracaoIdeiaDAO" />
@@ -46,7 +58,7 @@
                 <div>
                   <form name="finalizar" action="FinalizarColaboracaoServlet" method="post">
                     <input type="hidden" value="${sessionScope.ideiaId}" name="ideiaId">
-                    <input class="btn-large orange darken-1 right" name="Finalizar Ideia" value="Finalizar Ideia" type="submit">
+                    <input class="btn-large orange darken-1 right" name="Finalizar Ideia" value="Finalizar Ideia" type="submit" onclick="return confirm('Finalizar a ideia encerra a colaboração. Esta ação não pode ser desfeita. Confirmar?')">
                   </form>
                 </div>
                 <div class="left">

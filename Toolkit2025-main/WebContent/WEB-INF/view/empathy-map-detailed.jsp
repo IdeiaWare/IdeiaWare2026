@@ -3,6 +3,10 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:no-container-header></t:no-container-header>
+	<%-- UX-VOLTAR-V2: mesmo padrao do resto do app -- icone circular flutuante no
+	     canto superior esquerdo, volta pro Mapa de Empatia (pai imediato). Tela orfa
+	     de link no menu (removida por decisao anterior) mas rota ainda ativa. --%>
+	<a href="${pageContext.request.contextPath}/persona/empatia/mapa?personaId=${persona.id}" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>

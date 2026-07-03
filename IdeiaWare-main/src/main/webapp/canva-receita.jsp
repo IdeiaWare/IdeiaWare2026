@@ -1,4 +1,4 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+﻿<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"  session="true"%>
 <!-- HEADER -->
 <%@include file="header/headerCookiesCV.jsp" %>
@@ -11,6 +11,8 @@
         <script src="js/jquery-3.2.1.min.js"></script>
     </head>
     <body >
+	    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/canva-mapa.jsp. --%>
+	    <a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	    <div style="min-height: 80vh">
 	    
 	    	<!-- VARIAVEIS -->
@@ -94,7 +96,7 @@
 													<form name="deleteCanva" id="deleteCanva" action="DeleteCanvaServlet" method="POST">
 														<input hidden="true" value="${cv.codigo}" id="canva" name="canva">
 														<input hidden="true" value="EntrarCanvaReceitaServlet" id="context" name="context">
-														<button class="btn-floating teal darken-1 tooltipped btn-postit" type="submit">
+														<button class="btn-floating teal darken-1 tooltipped btn-postit" type="submit" onclick="return confirm('Excluir este post-it? Esta ação não pode ser desfeita.')">
 															<i class="fa fa-trash" aria-hidden="true"></i>
 														</button>
 													</form>

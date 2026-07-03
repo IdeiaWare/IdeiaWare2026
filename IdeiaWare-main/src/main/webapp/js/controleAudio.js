@@ -31,8 +31,17 @@ function Initialize() {
  * It only stops when the method stopRecording is triggered.
  */
 function startRecording() {
-  // Access the Microphone using the navigator.getUserMedia method to obtain a stream
-  navigator.getUserMedia({audio: true}, function (stream) {
+  // UX/BUG: navigator.getUserMedia (API antiga, baseada em callback) foi REMOVIDA
+  // de todos os navegadores modernos (Chrome/Firefox/Edge) ha anos -- o botao
+  // "Gravar" simplesmente nao fazia nada (TypeError silencioso no console). A API
+  // atual e navigator.mediaDevices.getUserMedia, baseada em Promise.
+  // OBS: exige contexto seguro (HTTPS ou localhost); em producao sem HTTPS o
+  // microfone continua bloqueado pelo proprio navegador, independente do JS.
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('Este navegador não suporta gravação de áudio, ou a página não está em um contexto seguro (HTTPS).');
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({audio: true}).then(function (stream) {
     // Expose the stream to be accessible globally
     audio_stream = stream;
     // Create the MediaStreamSource for the Recorder library
@@ -50,8 +59,9 @@ function startRecording() {
     // Disable Record button and enable stop button !
     document.getElementById("start-btn").disabled = true;
     document.getElementById("stop-btn").disabled = false;
-  }, function (e) {
+  }).catch(function (e) {
     console.error('No live audio input: ' + e);
+    alert('Não foi possível acessar o microfone. Verifique as permissões do navegador.');
   });
 }
 

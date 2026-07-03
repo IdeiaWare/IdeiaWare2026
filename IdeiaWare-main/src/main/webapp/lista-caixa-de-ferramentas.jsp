@@ -118,8 +118,12 @@
           <jsp:useBean id="ideia" class="edu.unisc.lic.domain.IdeiaUsuario" />
           <jsp:setProperty name="ideia" property="usuario" value="${usuarioClasse}" />
           <jsp:useBean id="data" class="edu.unisc.lic.classes.Data" />
+          <c:set var="ideiasCaixa" value="${ideiaDAO.listarCaixa(ideia)}" />
+          <%-- UX: <ul class="collapsible"> so aparece com conteudo -- vazia, o
+               Materialize ainda desenha a borda dela (uma linha fina sem nada
+               dentro), por cima da mensagem de estado vazio. --%>
+          <c:if test="${not empty ideiasCaixa}">
           <ul class="collapsible" data-collapsible="accordion">
-            <c:set var="ideiasCaixa" value="${ideiaDAO.listarCaixa(ideia)}" />
             <c:forEach var="caixa" items="${ideiasCaixa}" varStatus="id">
                 <jsp:setProperty name="log" property="ideia" value="${caixa.ideia}" />
                 <c:set var="iLog" value="${logDAO.buscarDescricaoFinal(log)}" />
@@ -153,6 +157,7 @@
                 </li>
             </c:forEach>
           </ul>
+          </c:if>
           <%-- UX-01: estado vazio com mensagem contextual. --%>
           <c:if test="${empty ideiasCaixa}">
             <div class="center-align grey-text" style="padding: 40px 20px;">
