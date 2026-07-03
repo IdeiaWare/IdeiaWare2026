@@ -112,8 +112,12 @@
           <jsp:useBean id="ideia" class="edu.unisc.lic.domain.IdeiaUsuario" />
           <jsp:setProperty name="ideia" property="usuario" value="${usuarioClasse}" />
           <jsp:useBean id="data" class="edu.unisc.lic.classes.Data" />
+          <c:set var="ideiasCanva" value="${ideiaDAO.listarIdeiasCanva(ideia)}" />
+          <%-- UX: <ul class="collapsible"> so aparece com conteudo -- vazia, o
+               Materialize ainda desenha a borda dela (uma linha fina sem nada
+               dentro), por cima da mensagem de estado vazio. --%>
+          <c:if test="${not empty ideiasCanva}">
           <ul class="collapsible" data-collapsible="accordion">
-            <c:set var="ideiasCanva" value="${ideiaDAO.listarIdeiasCanva(ideia)}" />
             <c:forEach var="canva" items="${ideiasCanva}" varStatus="id">
                 <jsp:setProperty name="log" property="ideia" value="${canva.ideia}" />
                 <c:set var="iLog" value="${logDAO.buscarDescricaoFinal(log)}" />
@@ -139,7 +143,7 @@
                         <form name="entrarCanva" action="EntrarCanvaServlet" method="POST">
                           <input hidden="true" value="${canva.ideia.codigo}" name="ideiaId" />
                           <input hidden="true" value="${nome}" name="usuarioNome">
-                          <input class="btn red darken-1" type="submit" value="Entrar"  name="Canva" />
+                          <input class="btn blue darken-4" type="submit" value="Entrar"  name="Canva" />
                         </form>
                       </span>
                     </div>
@@ -147,6 +151,7 @@
                 </li>
             </c:forEach>
           </ul>
+          </c:if>
           <%-- UX-01: estado vazio com mensagem contextual. --%>
           <c:if test="${empty ideiasCanva}">
             <div class="center-align grey-text" style="padding: 40px 20px;">

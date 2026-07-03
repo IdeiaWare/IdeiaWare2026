@@ -4,6 +4,10 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
+	<%-- UX-VOLTAR-V2: mesmo padrao do resto do app -- icone circular flutuante no
+	     canto superior esquerdo. Tela funda (breadcrumb ja mostra Personas > Point
+	     Of View), so tinha a logo do cabecalho (que pula direto pro /LIC/index.jsp). --%>
+	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
@@ -25,7 +29,7 @@
 	          		<th>Persona(s)</th>
 	          		<th>Usuário(s)</th>
 		          	<th>Necessidade(s)</th>
-		           	<th>Introspecção(ões)</th>
+		           	<th>Introspecções</th>
 		           	<th>Ações</th>
 		          </tr>
 		        </thead>
@@ -69,24 +73,26 @@
 								</div>
 							</td>
 							<td>
-								<a class="tooltipped pov-overview" href="${pageContext.request.contextPath}/point-of-view/visao-geral?povId=${tempPOV.value.povID}"
-									data-position="top" 
+								<%-- UX: acoes viraram btn-floating (mesmo padrao do Canvas do LIC e
+								     do list-personas.jsp) -- antes eram icones soltos, dificeis de
+								     bater o olho. Separadores "ellipsis-v" removidos: botoes reais
+								     ja tem espacamento proprio, nao precisam de divisor entre eles. --%>
+								<a class="btn-floating btn-small red darken-1 tooltipped pov-overview" href="${pageContext.request.contextPath}/point-of-view/visao-geral?povId=${tempPOV.value.povID}"
+									data-position="top"
 									data-delay="50"
 									data-tooltip="Visão Geral">
 									<i class="fa fa-binoculars" aria-hidden="true"></i>
 								</a>
-								<i class="fa fa-ellipsis-v" aria-hidden="true"></i>
-								<a href="javascript:;" class="tooltipped edit-pov" 
-									data-position="top" 
+								<a href="javascript:;" class="btn-floating btn-small red darken-1 tooltipped edit-pov"
+									data-position="top"
 									data-delay="50"
 									data-tooltip="Editar"
 									data-povid="${tempPOV.value.povID}" data-names="<c:out value='${tempPOV.value.names}'/>" data-user="<c:out value='${tempPOV.value.user}'/>" data-need="<c:out value='${tempPOV.value.need}'/>" data-insight="<c:out value='${tempPOV.value.insight}'/>" data-personasid="<c:out value='${tempPOV.value.personasID}'/>" onclick="Toolkit.PointOfView.buildPOVInfoEditOnModal(this.dataset.povid, this.dataset.names, this.dataset.user, this.dataset.need, this.dataset.insight, this.dataset.personasid)">
 									<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 								</a>
-								<i class="fa fa-ellipsis-v" aria-hidden="true"></i>
-								<a href="${deleteLink}" class="tooltipped" 
-									data-position="top" 
-									data-delay="50" 
+								<a href="${deleteLink}" class="btn-floating btn-small red darken-1 tooltipped"
+									data-position="top"
+									data-delay="50"
 									data-tooltip="Excluir"
 									onclick="if (!(confirm('Você tem certeza que deseja deletar este Point of View?'))) return false">
 									<i class="fa fa-trash" aria-hidden="true"></i>
@@ -120,7 +126,7 @@
      		<div class="user"></div>
      		<label>Necessidade(s)</label>
      		<div class="need"></div>
-     		<label>Introspecção(ões)</label>
+     		<label>Introspecções</label>
      		<div class="insight"></div>     		
 	    </div>
 	   	<div class="modal-footer">

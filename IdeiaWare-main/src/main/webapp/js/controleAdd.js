@@ -153,10 +153,16 @@ function drawText(stage, caracteristicas) {
         textNode.text(textarea.value);
         layer.draw();
         document.body.removeChild(textarea);
-        // STR-11: salva automaticamente ao confirmar edição de texto
-        if (typeof window.salvarProgresso === 'function') {
-          window.salvarProgresso();
-        }
+        // UX: salva SO este texto (mesmo padrao do dragend), nao o quadro inteiro.
+        // Antes chamava salvarProgresso() -- salvava TODOS os elementos do quadro
+        // com overlay bloqueante + alert só por causa de uma edição de texto.
+        var a = textNode.attrs;
+        $.ajax({
+          type: 'POST',
+          url: 'AutoSalvarStoryServlet',
+          contentType: 'application/json',
+          data: JSON.stringify([{ tipo: 'texto', codigo: a.id, x: a.x, y: a.y, conteudo: a.text, fonte: a.fontFamily, tamanhoFonte: a.fontSize, cor: a.fill }])
+        });
       }
     });
   });

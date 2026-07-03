@@ -11,6 +11,8 @@
         <script src="js/jquery-3.2.1.min.js"></script>
     </head>
     <body >
+	    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/canva-mapa.jsp. --%>
+	    <a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	    <div style="min-height: 80vh">
 	   		<!-- VARIAVEIS -->
 	    	<jsp:useBean id="ideiaDAO" class="edu.unisc.lic.dao.IdeiaDAO" />

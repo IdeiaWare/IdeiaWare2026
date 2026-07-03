@@ -250,6 +250,11 @@
                      senhas com '#' (e outros). Agora aceita qualquer caractere especial. -->
                 <input name="senha" id="senha" type="password" placeholder="senha" aria-label="senha" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,32}$" required title="O campo senha deve conter entre 8 e 32 caracteres. E os 5 requisitos abaixo." maxlength="32" oninput="checkPasswordStrength()"/>
 
+                <label for="reg-senha2" class="perfil-label">Confirmar senha</label>
+                <input id="reg-senha2" name="senha2" type="password" placeholder="digite a senha novamente" aria-label="digite a senha novamente" pattern=".{4,32}" required title="O campo repetir senha deve conter entre 4 e 32 caracteres" />
+
+                <%-- UX: forca da senha depois de Senha+Confirmar (antes ficava encaixada
+                     entre os dois campos, cortando o fluxo de preenchimento). --%>
                 <!--// LucasFreitag 2024-->
                 <div class="password-strength">
                     <div class="strength-bar" id="strength-bar"></div>
@@ -262,9 +267,6 @@
                     <li id="number-criterio">Pelo menos um número</li>
                     <li id="special-criterio">Pelo menos um caractere especial</li>
                 </ul>
-
-                <label for="reg-senha2" class="perfil-label">Confirmar senha</label>
-                <input id="reg-senha2" name="senha2" type="password" placeholder="digite a senha novamente" aria-label="digite a senha novamente" pattern=".{4,32}" required title="O campo repetir senha deve conter entre 4 e 32 caracteres" />
 
                 <c:if test="${respostaCadastro2}"><div class="erro"><h6>A senha e a confirmação não coincidem.</h6></div> </c:if>
                 <!--<input disabled="true" type="text" placeholder="e-mail " aria-label="e-mail "/>-->

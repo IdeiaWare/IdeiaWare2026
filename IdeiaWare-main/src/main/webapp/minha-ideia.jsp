@@ -16,15 +16,28 @@
       <div class="container">
         <div style="padding: 10px;" class="white">
           <h1>Minhas Ideias</h1>
+          <%-- UX-VOLTAR-V2: icone circular flutuante no canto superior esquerdo (fixed) --
+               ver colaboracao.jsp pro raciocinio completo (nao mexe no header compartilhado). --%>
+          <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
           <a href="cadastro-ideia.jsp"><input class="btn orange darken-1" type="submit" value="Cadastrar nova ideia" name="Cadastrar ideia"/></a>
             <jsp:useBean id="ideiaUsuarioDAO" class="edu.unisc.lic.dao.IdeiaUsuarioDAO" />
             <jsp:useBean id="ideiaUsuario" class="edu.unisc.lic.domain.IdeiaUsuario" />
             <jsp:useBean id="data" class="edu.unisc.lic.classes.Data" />
             <jsp:setProperty name="ideiaUsuario" property="usuario" value="${usuarioClasse}" />
+            <c:set var="minhasIdeias" value="${ideiaUsuarioDAO.listarParametro(ideiaUsuario)}" />
           <p/>
+          <%-- UX: busca e tabela so aparecem quando ha ideias -- nao faz sentido
+               mostrar campo de busca ou cabecalho de colunas p/ uma lista vazia. --%>
+          <c:if test="${empty minhasIdeias}">
+            <div class="center-align grey-text" style="padding: 40px 20px;">
+              <i class="material-icons" style="font-size: 3rem; display:block;">lightbulb_outline</i>
+              Você ainda não cadastrou nenhuma ideia. Clique em &quot;Cadastrar nova ideia&quot; para começar.
+            </div>
+          </c:if>
+          <c:if test="${not empty minhasIdeias}">
           <%-- Busca client-side: filtra as linhas da tabela pelo texto digitado. --%>
           <div class="input-field" style="margin:0 0 6px;">
-            <input id="filtro-minhas" type="text" placeholder="Buscar ideia (título, descrição, status...)" aria-label="Buscar ideia">
+            <input id="filtro-minhas" type="text" placeholder="Buscar ideia (título, descrição)" aria-label="Buscar ideia">
           </div>
           <table class="responsive-table my-ideas" id="lista-minhas">
             <colgroup>
@@ -36,7 +49,7 @@
               <col style="width: 10%;" />
             </colgroup>
             <thead>
-              <tr class="highlight" style="font-weight: bold "> 
+              <tr class="highlight" style="font-weight: bold ">
                 <td>Usuário</td>
                 <td>Título</td>
                 <td>Descrição da Ideia</td>
@@ -46,11 +59,6 @@
               </tr>
             </thead>
             <tbody>
-              <%-- UX-01: estado vazio com mensagem contextual em vez de tabela vazia. --%>
-              <c:set var="minhasIdeias" value="${ideiaUsuarioDAO.listarParametro(ideiaUsuario)}" />
-              <c:if test="${empty minhasIdeias}">
-                <tr><td colspan="5" class="center-align grey-text" style="padding: 30px;">Você ainda não cadastrou nenhuma ideia. Clique em &quot;Cadastrar nova ideia&quot; para começar.</td></tr>
-              </c:if>
               <c:forEach var="ideia" items="${minhasIdeias}" varStatus="id">
                   <tr>
                     <td class="name">
@@ -61,13 +69,13 @@
                     </td>
                     <td class="description">
                         <div class="ellipsis"><c:out value="${ideia.ideia.descricao}"/></div>
-                        <i class="material-icons info-icon"  
+                        <i class="material-icons info-icon"
                            style="color:#00796b; font-size:21px; cursor: pointer;">info_outline</i>
                     </td>
 <!--                                    <td style="text-align: center;">${data.formatarData(ideia.ideia.dtCriacao)}</td>-->
-                    <td>
+                    <td class="status">
                       <c:choose>
-                          <c:when test="${ideia.ideia.status eq 'VA'}">Validada</c:when>   
+                          <c:when test="${ideia.ideia.status eq 'VA'}">Validada</c:when>
                           <c:when test="${ideia.ideia.status eq 'RE'}">Rejeitada</c:when>
                           <c:when test="${ideia.ideia.status eq 'PE'}">Pendente</c:when>
                           <c:when test="${ideia.ideia.status eq 'DE'}">Em desenvolvimento</c:when>
@@ -114,22 +122,14 @@
                               </form>
                           </c:when>
                           <c:when test="${ideia.ideia.status eq 'CV'}">
-                              <%-- CAN-ACESSO: botao do Canvas no Minhas Ideias (faltava o case CV ->
-                                   ficava cinza pra todos). Opcao A: so o LIDER entra por aqui, pois
-                                   o canvas NAO trava edicao por lider no codigo (so pelo acesso).
-                                   Ver pendencia "endurecer edicao do canvas" no RELATORIO. --%>
-                              <c:choose>
-                                  <c:when test="${ideia.flLider eq 'S'}">
-                                      <form name="entrarCanva" action="EntrarCanvaServlet" method="POST">
-                                        <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
-                                        <input hidden="true" value="${nome}" name="usuarioNome" />
-                                        <input class="btn blue darken-1" type="submit" value="Entrar"  name="Canva" />
-                                      </form>
-                                  </c:when>
-                                  <c:otherwise>
-                                      <input class="btn disabled" disabled="true" value="Entrar" />
-                                  </c:otherwise>
-                              </c:choose>
+                              <%-- CAN-ACESSO: liberado p/ TODOS os participantes (antes so o lider).
+                                   O EntrarCanvaServlet agora exige participacao no SERVIDOR, entao
+                                   nao depende mais so deste botao pra restringir o acesso. --%>
+                              <form name="entrarCanva" action="EntrarCanvaServlet" method="POST">
+                                <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
+                                <input hidden="true" value="${nome}" name="usuarioNome" />
+                                <input class="btn blue darken-4" type="submit" value="Entrar"  name="Canva" />
+                              </form>
                           </c:when>
                           <c:otherwise>
                               <input class="btn disabled" disabled="true" value="Entrar" />
@@ -141,8 +141,26 @@
             </tbody>
           </table>
           <script>
-            (function(){var i=document.getElementById('filtro-minhas');if(!i)return;var t=[].slice.call(document.querySelectorAll('#lista-minhas tbody tr'));i.addEventListener('input',function(){var s=i.value.toLowerCase();t.forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(s)>-1?'':'none';});});})();
+            (function(){
+              var i=document.getElementById('filtro-minhas');
+              if(!i)return;
+              var t=[].slice.call(document.querySelectorAll('#lista-minhas tbody tr'));
+              i.addEventListener('input',function(){
+                var s=i.value.toLowerCase();
+                t.forEach(function(r){
+                  // UX: busca escopada a nome+titulo+descricao+status (antes usava o
+                  // textContent da linha inteira, incluindo o texto do botao "Entrar").
+                  var nome   = (r.querySelector('.name')        || {}).textContent || '';
+                  var titulo = (r.querySelector('.title')       || {}).textContent || '';
+                  var desc   = (r.querySelector('.description') || {}).textContent || '';
+                  var status = (r.querySelector('.status')      || {}).textContent || '';
+                  var alvo = (nome + ' ' + titulo + ' ' + desc + ' ' + status).toLowerCase();
+                  r.style.display = alvo.indexOf(s) > -1 ? '' : 'none';
+                });
+              });
+            })();
           </script>
+          </c:if>
         </div>
         <!--modal para rejeição das ideias-->
         <div id="modalRejeitar" class="modal">

@@ -1,10 +1,15 @@
 package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.dao.IdeiaDAO;
+import edu.unisc.lic.dao.IdeiaUsuarioDAO;
+import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Ideia;
+import edu.unisc.lic.domain.IdeiaUsuario;
+import edu.unisc.lic.domain.Usuario;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +25,22 @@ public class GerenciarIdeiaServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        
+
+        HttpSession session = request.getSession(true);
+
+        // RETENCAO-ACESSO: exige login. Antes este servlet nao checava sessao
+        // nenhuma (a checagem de permissao ficava so na JSP de destino).
+        Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
+        if (codigoUsuarioObj == null) {
+            response.sendRedirect(request.getContextPath() + File.separator + "login.jsp");
+            return;
+        }
+        Usuario usuario = new UsuarioDAO().buscar((Long) codigoUsuarioObj);
+        if (usuario == null) {
+            response.sendRedirect(request.getContextPath() + File.separator + "login.jsp");
+            return;
+        }
+
         // RET-14: valida o parametro e a existencia da ideia antes de usar. Sem
         // isso, ideiaId nulo/invalido dava 500 (NumberFormatException) e uma ideia
         // ja removida dava NPE em ideia.getCodigo().
@@ -38,12 +58,22 @@ public class GerenciarIdeiaServlet extends HttpServlet {
             return;
         }
 
-        HttpSession session = request.getSession(true);
+        // RETENCAO-ACESSO (IDOR): agora que a tela e liberada p/ todos, admin ve
+        // qualquer ideia mas colaborador so ve as que participa -- sem isso, dava
+        // p/ trocar o ideiaId na URL e ver o historico de uma ideia de outro usuario.
+        if (!"adm".equals(usuario.getPermissao())) {
+            List<IdeiaUsuario> vinculo = new IdeiaUsuarioDAO()
+                    .listarParametro(new IdeiaUsuario(usuario, ideia, null));
+            if (vinculo == null || vinculo.isEmpty()) {
+                response.sendRedirect(request.getContextPath() + File.separator + "lista-ideia-gerenciamento.jsp");
+                return;
+            }
+        }
 
         session.setAttribute("ideiaId", ideia.getCodigo());
 
         response.sendRedirect(request.getContextPath() + File.separator + "gerenciamento-ideia.jsp");
-        
+
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

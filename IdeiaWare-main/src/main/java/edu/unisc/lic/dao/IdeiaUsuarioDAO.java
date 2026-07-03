@@ -196,8 +196,10 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
 
             Criteria filtro = sessao.createCriteria(IdeiaUsuario.class);
 
+            // CAN-PARTICIPANTE: antes so o LIDER (flLider='S') via a ideia na listagem
+            // do Canvas. Agora TODOS os participantes veem -- o acesso real e reforcado
+            // no EntrarCanvaServlet (que agora exige participacao), nao mais so aqui.
             filtro.add(Restrictions.eq("usuario", iu.getUsuario()));
-            filtro.add(Restrictions.eq("flLider", "S"));
             filtro.addOrder(Order.desc("ideia")); // listagem com as ideias mais novas em cima
 
             List<IdeiaUsuario> resultadoAuxiliar = filtro.list();

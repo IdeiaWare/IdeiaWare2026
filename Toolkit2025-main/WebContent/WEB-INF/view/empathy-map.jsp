@@ -2,6 +2,9 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
+	<%-- UX-VOLTAR-V2: mesmo padrao do resto do app -- icone circular flutuante no
+	     canto superior esquerdo. --%>
+	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
@@ -20,13 +23,13 @@
   				</a>
   			</h2>
   		</div>
+  		<%-- UX: "Visão Detalhada" removida do menu -- mostrava as mesmas infos da
+  		     "Visão geral", so que sem formatação, sem uso real. A rota/controller
+  		     (EmpathyExportController.visao-detalhada, empathy-map-detailed.jsp)
+  		     continuam existindo caso queiram reativar no futuro. --%>
   		<div class="col m7 right-align">
   			<a class="empathy-overview" href="${pageContext.request.contextPath}/persona/empatia/visao-geral?personaId=${persona.id}">
 				<i class="fa fa-binoculars" aria-hidden="true"></i> Visão geral
-			</a>
-			 / 
-			<a class="empathy-overview" href="${pageContext.request.contextPath}/persona/empatia/visao-detalhada?personaId=${persona.id}">
-				<i class="fa fa-file-text-o" aria-hidden="true"></i> Visão Detalhada
 			</a>
   		</div>
   	</div>

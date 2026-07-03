@@ -138,7 +138,6 @@
                             </div>
                         </div>
                         <div class="">
-                            <p class="red-text" style="font-size:13px;"><i class="material-icons tiny">warning</i> Fechar o grupo encerra as inscrições. Essa ação não pode ser desfeita.</p>
                             <input hidden="true" name="codigo" />
                             <input class="btn orange darken-1" type="submit" name="fechar grupo" value="Fechar Grupo" onclick="return confirm('Fechar o grupo encerra as inscrições. Confirmar?')"/>
                         </div>

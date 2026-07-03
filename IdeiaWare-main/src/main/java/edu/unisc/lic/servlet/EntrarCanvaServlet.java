@@ -75,12 +75,21 @@ public class EntrarCanvaServlet extends HttpServlet {
         
         List<IdeiaUsuario> lista = iuDAO.listarParametro(iu);
         if (lista.size() > 0) {
-        	iu = lista.get(0);	
+        	iu = lista.get(0);
         } else {
         	iu = null;
         }
-        
-        
+
+        // CAN-PARTICIPANTE: exige que o usuario seja PARTICIPANTE da ideia (lider
+        // ou nao). Antes, o servlet so usava essa consulta pra saber o flLider (pro
+        // "lider" da sessao) mas NUNCA barrava quem nao participava -- qualquer
+        // usuario logado que soubesse/adivinhasse o ideiaId entrava no Canvas de
+        // QUALQUER ideia. A restricao ao lider so existia na UI (o botao/link).
+        if (iu == null) {
+        	response.sendRedirect(request.getContextPath() + File.separator + "lista-canvas.jsp");
+        	return;
+        }
+
         HttpSession session = request.getSession(true);
 
         String retencao = request.getParameter("retencao");

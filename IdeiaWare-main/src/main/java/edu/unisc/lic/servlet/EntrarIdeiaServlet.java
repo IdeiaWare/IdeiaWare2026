@@ -67,7 +67,9 @@ public class EntrarIdeiaServlet extends HttpServlet {
         List<IdeiaUsuario> jaVinculado = ideiaUsuarioDAO
                 .listarParametro(new IdeiaUsuario(usuario, ideia, null));
         if (jaVinculado != null && !jaVinculado.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + File.separator + "lista-ideia.jsp");
+            // UX: apos participar, leva o usuario direto p/ "Minhas Ideias" (onde a ideia
+            // agora aparece), em vez de voltar p/ a listagem de outras ideias.
+            response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
             return;
         }
 
@@ -75,7 +77,7 @@ public class EntrarIdeiaServlet extends HttpServlet {
         ideiaUsuario.setDtInscricao();
         ideiaUsuarioDAO.salvar(ideiaUsuario);
 
-        response.sendRedirect(request.getContextPath() + File.separator + "lista-ideia.jsp");
+        response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

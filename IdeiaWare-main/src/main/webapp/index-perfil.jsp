@@ -371,7 +371,21 @@
                 strengthBar.style.backgroundColor = strengthColor;
                 strengthText.textContent = strengthMsg;
             }
-        </script>   
+        </script>
     <script src="js/csrf.js"></script>
   </body>
+  <%-- UX: footer padronizado com a cor do header (blue-grey, igual home) -- antes
+       esta tela nao tinha footer nenhum. --%>
+  <footer class="center blue-grey lighten-1 page-footer">
+    <div class="container">
+      <div class="row">
+        <i class="small material-icons">account_circle</i><h6 class="white-text"> <c:out value="${nome}"/></h6>
+      </div>
+    </div>
+    <div class="footer-copyright">
+      <div class="container">
+        © 2026 IdeiaWare UNISC
+      </div>
+    </div>
+  </footer>
 </html>
