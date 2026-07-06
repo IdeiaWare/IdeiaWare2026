@@ -232,7 +232,7 @@
                 <%-- UX: "olhinho" pra revelar a senha digitada. --%>
                 <div style="position:relative;">
                     <input name="senha" id="login-senha" type="password" placeholder="senha" aria-label="senha"/>
-                    <button type="button" id="toggle-login-senha" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('login-senha','toggle-login-senha')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
+                    <button type="button" id="toggle-login-senha" tabindex="-1" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('login-senha','toggle-login-senha')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
                 </div>
                 <p class="forgot-password"><a href="#" id="forgot-password-link">Esqueceu a senha?</a></p>
 
@@ -252,13 +252,13 @@
                      senhas com '#' (e outros). Agora aceita qualquer caractere especial. -->
                 <div style="position:relative;">
                     <input name="senha" id="senha" type="password" placeholder="senha" aria-label="senha" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,32}$" required title="O campo senha deve conter entre 8 e 32 caracteres. E os 5 requisitos abaixo." maxlength="32" oninput="checkPasswordStrength()"/>
-                    <button type="button" id="toggle-reg-senha" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('senha','toggle-reg-senha')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
+                    <button type="button" id="toggle-reg-senha" tabindex="-1" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('senha','toggle-reg-senha')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
                 </div>
 
                 <label for="reg-senha2" class="perfil-label">Confirmar senha</label>
                 <div style="position:relative;">
                     <input id="reg-senha2" name="senha2" type="password" placeholder="digite a senha novamente" aria-label="digite a senha novamente" pattern=".{4,32}" required title="O campo repetir senha deve conter entre 4 e 32 caracteres" />
-                    <button type="button" id="toggle-reg-senha2" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('reg-senha2','toggle-reg-senha2')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
+                    <button type="button" id="toggle-reg-senha2" tabindex="-1" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('reg-senha2','toggle-reg-senha2')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
                 </div>
 
                 <%-- UX: forca da senha depois de Senha+Confirmar (antes ficava encaixada

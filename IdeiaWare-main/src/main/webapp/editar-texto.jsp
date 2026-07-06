@@ -8,6 +8,10 @@
     <title>IdeiaWare - Editar Texto</title>
   </head>
   <body class="center-align">
+    <%-- UX-VOLTAR-V2 (2026-07-06, achado real testando): faltava o icone flutuante
+         padrao do resto do app -- so tinha o "Cancelar" no fim do form. Mesmo destino
+         (colaboracao.jsp le tudo de sessao, ver comentario UX-VOLTAR mais abaixo). --%>
+    <a href="colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <div class="white" style="min-height: 90vh;">
       <div class="container">
         <jsp:useBean id="colaboracaoIdeia" class="edu.unisc.lic.domain.ColaboracaoIdeia" />

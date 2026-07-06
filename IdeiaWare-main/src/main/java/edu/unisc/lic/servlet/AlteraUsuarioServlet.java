@@ -141,6 +141,12 @@ public class AlteraUsuarioServlet extends HttpServlet {
                     request.getRequestDispatcher("index-perfil.jsp").forward(request, response);
                     return;
                 }
+                // TEST-04 (2026-07-06): LogInServlet grava "nomeUsuario" na sessao SO no
+                // login -- editar o nome aqui persistia no banco mas o header (index.jsp,
+                // le sessionScope.nomeUsuario) continuava mostrando o nome antigo ate o
+                // usuario deslogar/logar de novo, nem F5 resolvia. Atualiza a sessao junto
+                // com o banco.
+                session.setAttribute("nomeUsuario", usuario.getNome());
                 // UX: confirma o sucesso na propria tela de perfil (antes ia para
                 // wait.jsp -> index.jsp e o usuario nao recebia nenhum retorno).
                 request.setAttribute("respostaSucesso", true);

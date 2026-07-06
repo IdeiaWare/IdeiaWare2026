@@ -7,6 +7,10 @@
     <title>Cadastro de Ideia</title>
   </head>
   <body class="center-align teal darken-1">
+    <%-- UX-VOLTAR-V2 (2026-07-06, achado real testando): faltava o icone flutuante
+         padrao do resto do app -- so tinha o "Cancelar" dentro do form. Mesmo destino
+         do Cancelar (ver comentario UX-VOLTAR mais abaixo). --%>
+    <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <div class="white" style="min-height: 90vh" role="main">
       <div class="container">
         <div style="padding: 10px;" class="white">

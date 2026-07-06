@@ -133,6 +133,10 @@ public class AlteraUsuarioServletTest {
 		verify(request).setAttribute("respostaSucesso", true);
 		Usuario recarregado = usuarioDAO.buscar(u.getCodigo());
 		assertEquals("Nome Novo", recarregado.getNome());
+		// TEST-04 (2026-07-06): achado real testando -- o header (index.jsp) le
+		// sessionScope.nomeUsuario, que so era gravado no login; editar o nome aqui
+		// persistia no banco mas o header continuava com o nome antigo ate relogar.
+		verify(request.getSession(true)).setAttribute("nomeUsuario", "Nome Novo");
 	}
 
 	@Test

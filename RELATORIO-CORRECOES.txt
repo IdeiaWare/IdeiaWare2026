@@ -2102,6 +2102,38 @@ A "parede" javax->jakarta governa tudo: tudo antes dela e tranquilo; cruzar e re
    nao cobre JSP/CSS). Fixes feitos DEPOIS do ultimo rebuild do Docker desta sessao --
    precisam de novo rebuild/redeploy pra aparecer no ambiente que o usuario esta testando.
 
+   RONDA 6 (mesmo dia, mais achados reais testando manualmente -- login/cadastro,
+   perfil, e 2 telas sem o icone de voltar padrao):
+   [FEITO] login.jsp:235,255,261 -- ao preencher a senha no CADASTRO e dar Tab, o foco
+     ia pro botao "olhinho" (mostrar/ocultar senha, adicionado numa sessao anterior)
+     em vez de pular pro campo "Confirmar senha" -- o botao fica no HTML ENTRE os 2
+     campos de senha e, por padrao, um `<button>` entra na ordem de Tab do teclado.
+     Conferido: index-perfil.jsp NAO tem esse botao entre os campos de senha, entao
+     la o Tab ja funcionava certo (achado especifico do cadastro). Fix: `tabindex="-1"`
+     nos 3 botoes de olhinho (login, cadastro-senha, cadastro-confirma-senha) -- saem
+     da ordem de Tab do teclado, continuam clicaveis com mouse.
+   [FEITO] AlteraUsuarioServlet.java -- trocar o nome no perfil salvava no banco
+     corretamente, mas o header (index.jsp, le `sessionScope.nomeUsuario`) continuava
+     mostrando o nome ANTIGO ate o usuario deslogar/logar de novo -- nem F5 resolvia.
+     Causa raiz: `LogInServlet` grava esse atributo de sessao SO no momento do login;
+     `AlteraUsuarioServlet` atualizava o banco mas nunca essa mesma sessao. Fix:
+     `session.setAttribute("nomeUsuario", usuario.getNome())` logo apos o
+     `usuarioDAO.editar(usuario)` bem-sucedido. Teste novo (assert em
+     `trocaNomeValido_salvaComSucesso`, verifica `session.setAttribute` com o nome
+     novo) -- unico achado desta ronda com mudanca de Java, os outros 3 sao so JSP.
+   [FEITO] editar-texto.jsp e cadastro-ideia.jsp -- as 2 unicas telas do fluxo principal
+     que so tinham um link/botao "Cancelar" dentro do proprio form, sem o icone
+     flutuante `UX-VOLTAR-V2` que o resto do app usa (padrao estabelecido no K.10).
+     Fix: icone adicionado nas 2, MESMO destino que o Cancelar ja usava
+     (colaboracao.jsp e index-colaboracao.jsp respectivamente) -- o Cancelar foi
+     MANTIDO nas 2 (e uma acao de formulario legitima, par do botao principal, nao um
+     link de navegacao solto redundante como os casos ja corrigidos no K.10).
+   LIC 281 -> 282 (teste do fix de sessao do nome). Suite completa: 282/282 verde.
+   Confirmado headers de seguranca (Referrer-Policy/X-Content-Type-Options/
+   X-Frame-Options) presentes numa resposta real capturada pelo usuario no DevTools.
+   Fixes feitos DEPOIS do ultimo rebuild do Docker desta sessao -- precisam de novo
+   rebuild/redeploy pra aparecer no ambiente que o usuario esta testando.
+
 
 
 ################################################################################
