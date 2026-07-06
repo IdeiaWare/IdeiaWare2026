@@ -22,8 +22,10 @@ public class Storytelling extends GenericDomain {
     @JoinColumn(nullable = false)
     private Usuario usuario;
 
+    // K.8 #3 (2026-07-06): unique=true trava no BANCO que uma ideia tenha mais de 1
+    // storytelling -- antes so o @OneToOne em Java "sugeria" isso, sem constraint real.
     @OneToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "ideia_codigo", nullable = false, unique = true)
     private Ideia ideia;
 
     // Atributos

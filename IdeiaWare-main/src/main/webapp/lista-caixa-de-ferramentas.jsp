@@ -87,6 +87,9 @@
     <title>IdeiaWare - Lista Caixa de Ferramentas</title>
   </head>
   <body class="red darken-1">
+    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
+         saida de volta pra tela inicial (index.jsp). --%>
+    <a href="index.jsp" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper red darken-1 z-depth-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">

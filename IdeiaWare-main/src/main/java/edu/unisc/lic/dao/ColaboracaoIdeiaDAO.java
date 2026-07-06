@@ -4,9 +4,7 @@ import edu.unisc.lic.domain.ColaboracaoIdeia;
 import edu.unisc.lic.util.HibernateUtil;
 import java.util.List;
 import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 
@@ -16,14 +14,8 @@ import org.hibernate.criterion.Restrictions;
  */
 public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
 
-    private Session sessao;
-    private Transaction transacao;
-
     public List<ColaboracaoIdeia> listarParametro(ColaboracaoIdeia ci) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
-
-        List<ColaboracaoIdeia> resultado = null;
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
             Criteria filtro = sessao.createCriteria(ColaboracaoIdeia.class);
@@ -34,29 +26,15 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
 
             filtro.addOrder(Order.asc("codigo"));
 
-            resultado = filtro.list();
+            return filtro.list();
 
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
         } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
+            sessao.close();
         }
-        return resultado;
     }
 
     public ColaboracaoIdeia ultimaColab(ColaboracaoIdeia ci) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
-
-        List<ColaboracaoIdeia> resultado = null;
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
             Criteria filtro = sessao.createCriteria(ColaboracaoIdeia.class);
@@ -68,24 +46,18 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
             filtro.addOrder(Order.desc("dtModificacao"));
             filtro.setMaxResults(1);
 
-            resultado = filtro.list();
-
             // RET-14: retorna null em vez de estourar IndexOutOfBounds se nao
             // houver colaboracoes (defensivo).
-            return (resultado != null && !resultado.isEmpty()) ? resultado.get(0) : null;
+            List<ColaboracaoIdeia> resultado = filtro.list();
+            return resultado.isEmpty() ? null : resultado.get(0);
 
-        } catch (RuntimeException erro) {
-            throw erro;
         } finally {
-            sessao.close(); // finaliza a sessão (TEM QUE COLOCAR)
+            sessao.close();
         }
     }
 
     public int quantidadeMes(ColaboracaoIdeia ci) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
-
-        int resultado = 0;
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
             Criteria filtro = sessao.createCriteria(ColaboracaoIdeia.class);
@@ -96,21 +68,10 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
 
             filtro.addOrder(Order.asc("dtModificacao"));
 
-            resultado = filtro.list().size();
+            return filtro.list().size();
 
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
         } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
+            sessao.close();
         }
-        return resultado;
     }
 }

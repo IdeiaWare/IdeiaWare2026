@@ -15,12 +15,21 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 public class AddDescricaoServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+
+        // AUTORIZACAO: exige login. Antes o servlet nao checava sessao nenhuma.
+        HttpSession session = request.getSession(false);
+        Object codigoUsuarioObj = session == null ? null : session.getAttribute("codigoUsuario");
+        if (codigoUsuarioObj == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
 
         ColaboracaoIdeiaDAO colaboracaoIdeiaDAO = new ColaboracaoIdeiaDAO();
         // RET-14: protege o parse do parametro (evita 500 com valor invalido/nulo).
@@ -38,11 +47,43 @@ public class AddDescricaoServlet extends HttpServlet {
             return;
         }
 
+        Ideia ideiaDaColab = colaboracaoIdeia.getIdeia();
+
+        // AUTORIZACAO: so o LIDER da ideia pode "adicionar a descricao" -- essa
+        // restricao so existia na UI (colaboracao.jsp escondia o botao pra quem nao
+        // era lider); o servlet aceitava de qualquer usuario logado, mesmo sem
+        // nenhum vinculo com a ideia.
+        Usuario sessionUser = new Usuario();
+        sessionUser.setCodigo((Long) codigoUsuarioObj);
+        List<IdeiaUsuario> souLider = new IdeiaUsuarioDAO()
+                .listarParametro(new IdeiaUsuario(sessionUser, ideiaDaColab, "S"));
+        if (souLider == null || souLider.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("Apenas o líder pode adicionar à descrição.");
+            return;
+        }
+
+        Ideia ideia = colaboracaoIdeia.getIdeia();
+        LogColaboracaoDAO logColaboracaoDAO = new LogColaboracaoDAO();
+
+        // K.8 #8: "ad" so e setado por ESTE servlet e nunca e lido em nenhum outro lugar
+        // do sistema -- serve como marcador de idempotencia. Sem esta checagem, um
+        // duplo-POST (duplo-clique, retry de rede) na MESMA colaboracao reaplicava o
+        // texto 2x na descricao oficial da ideia. Se ja processada, devolve a descricao
+        // atual (calculada na 1a chamada) em vez de acrescentar de novo.
+        if ("ad".equals(colaboracaoIdeia.getFlSalvado())) {
+            LogColaboracao jaProcessada = logColaboracaoDAO
+                    .buscarDescricaoFinal(new LogColaboracao(ideia, new Usuario(), null, null));
+            response.setContentType("text/plain");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(jaProcessada != null && jaProcessada.getDescricao() != null
+                    ? jaProcessada.getDescricao() : "");
+            return;
+        }
+
         colaboracaoIdeia.setFlSalvado("ad");
         colaboracaoIdeia.setDtModificacao();
         colaboracaoIdeiaDAO.editar(colaboracaoIdeia);
-
-        Ideia ideia = colaboracaoIdeia.getIdeia();
 
         List<IdeiaUsuario> liderList = new IdeiaUsuarioDAO()
                 .listarParametro(new IdeiaUsuario(new Usuario(), ideia, "S"));
@@ -53,7 +94,6 @@ public class AddDescricaoServlet extends HttpServlet {
             return;
         }
 
-        LogColaboracaoDAO logColaboracaoDAO = new LogColaboracaoDAO();
         LogColaboracao descricaoAtual = logColaboracaoDAO
                 .buscarDescricaoFinal(new LogColaboracao(ideia, new Usuario(), null, null));
 

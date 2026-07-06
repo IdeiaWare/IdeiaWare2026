@@ -2,9 +2,9 @@ package edu.unisc.lic.dao;
 
 import edu.unisc.lic.domain.ElementosStorytelling;
 import edu.unisc.lic.util.HibernateUtil;
+import java.util.Collections;
 import java.util.List;
 import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
@@ -16,9 +16,6 @@ import org.hibernate.criterion.Restrictions;
  */
 public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> {
 
-    private Session sessao;
-    private Transaction transacao;
-
     /**
      * Lista todos os elementos de determinado storytelling e seu respectivo
      * tipo
@@ -27,10 +24,7 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
      * @return
      */
     public List<ElementosStorytelling> listarParametro(ElementosStorytelling est) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
-
-        List<ElementosStorytelling> resultado = null;
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
             Criteria filtro = sessao.createCriteria(ElementosStorytelling.class);
@@ -43,30 +37,15 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
                 filtro.add(Restrictions.eq("tipo", est.getTipo()));
             }
 
-            resultado = filtro.list();
+            return filtro.list();
 
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
         } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
+            sessao.close();
         }
-
-        return resultado;
     }
 
     public ElementosStorytelling ultimoAdicionado(ElementosStorytelling est) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
-
-        List<ElementosStorytelling> resultado = null;
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
             Criteria filtro = sessao.createCriteria(ElementosStorytelling.class);
@@ -82,15 +61,122 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
             filtro.addOrder(Order.desc("codigo"));
             filtro.setMaxResults(1);
 
-            resultado = filtro.list();
-
             // STM-03: evita IndexOutOfBounds quando não há elementos.
-            return (resultado != null && !resultado.isEmpty()) ? resultado.get(0) : null;
+            List<ElementosStorytelling> resultado = filtro.list();
+            return resultado.isEmpty() ? null : resultado.get(0);
+
+        } finally {
+            sessao.close();
+        }
+    }
+
+    /**
+     * PERF-02: busca varios elementos por codigo NUMA SO query (Restrictions.in), em vez de
+     * um buscar(codigo) por elemento. Usado pelo AutoSalvarStoryServlet para eliminar o N+1
+     * do autosave do quadro de Storytelling.
+     */
+    @SuppressWarnings("unchecked")
+    public List<ElementosStorytelling> buscarPorCodigos(List<Long> codigos) {
+        if (codigos == null || codigos.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
+
+        try {
+            Criteria filtro = sessao.createCriteria(ElementosStorytelling.class);
+            filtro.add(Restrictions.in("codigo", codigos));
+
+            return filtro.list();
+
+        } finally {
+            sessao.close();
+        }
+    }
+
+    /**
+     * PERF-02: salva/atualiza uma lista inteira numa UNICA Session/Transaction (1 commit no
+     * final), em vez de 1 editar() por elemento (cada um abrindo sua propria conexao).
+     */
+    public void salvarLote(List<ElementosStorytelling> elementos) {
+        if (elementos == null || elementos.isEmpty()) {
+            return;
+        }
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
+        Transaction transacao = null;
+
+        try {
+            transacao = sessao.beginTransaction();
+            for (ElementosStorytelling e : elementos) {
+                sessao.update(e);
+            }
+            transacao.commit();
 
         } catch (RuntimeException erro) {
+            if (transacao != null) {
+                transacao.rollback();
+            }
             throw erro;
         } finally {
-            sessao.close(); // finaliza a sessão (TEM QUE COLOCAR)
+            sessao.close();
+        }
+    }
+
+    /**
+     * PERF-02: exclui uma lista inteira numa UNICA Session/Transaction, em vez de 1 excluir()
+     * por elemento. Usado pelo SalvarAudioServlet (remove o audio anterior do storytelling).
+     */
+    public void excluirTodos(List<ElementosStorytelling> elementos) {
+        if (elementos == null || elementos.isEmpty()) {
+            return;
+        }
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
+        Transaction transacao = null;
+
+        try {
+            transacao = sessao.beginTransaction();
+            for (ElementosStorytelling e : elementos) {
+                sessao.delete(e);
+            }
+            transacao.commit();
+
+        } catch (RuntimeException erro) {
+            if (transacao != null) {
+                transacao.rollback();
+            }
+            throw erro;
+        } finally {
+            sessao.close();
+        }
+    }
+
+    /**
+     * K.8 #7 (2026-07-06): substitui o(s) audio(s) antigo(s) do storytelling pelo novo
+     * numa UNICA Session/Transaction. Antes, SalvarAudioServlet chamava excluirTodos(...)
+     * e depois salvar(...) em 2 transacoes SEPARADAS -- uma falha exatamente entre as duas
+     * apagava o audio antigo (ja commitado) sem o novo ser salvo, perda total do audio.
+     * Agora ou os dois passos commitam juntos, ou nenhum commita (rollback).
+     */
+    public void substituirAudio(List<ElementosStorytelling> antigos, ElementosStorytelling novo) {
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
+        Transaction transacao = null;
+
+        try {
+            transacao = sessao.beginTransaction();
+            if (antigos != null) {
+                for (ElementosStorytelling e : antigos) {
+                    sessao.delete(e);
+                }
+            }
+            sessao.save(novo);
+            transacao.commit();
+
+        } catch (RuntimeException erro) {
+            if (transacao != null) {
+                transacao.rollback();
+            }
+            throw erro;
+        } finally {
+            sessao.close();
         }
     }
 }

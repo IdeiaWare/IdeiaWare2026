@@ -52,6 +52,17 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <!-- SEC-26: Referrer-Policy (o filtro nativo do Tomcat acima nao cobre esse header).
+         Ver SecurityHeadersFilter pro raciocinio de NAO incluir CSP aqui ainda. -->
+    <filter>
+        <filter-name>securityHeadersFilter</filter-name>
+        <filter-class>edu.unisc.lic.util.SecurityHeadersFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>securityHeadersFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!-- CSRF-02: protecao CSRF por token (double-submit cookie). Gera/valida o cookie
          XSRF-TOKEN e exige o token (param csrfToken ou header X-CSRF-Token) em todo
          POST. O campo nos forms e o header no AJAX vem do resources/js/csrf.js. -->

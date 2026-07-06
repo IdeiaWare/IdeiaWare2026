@@ -100,7 +100,7 @@
     <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- icone
          circular flutuante no canto superior esquerdo (fixed). Entrar nos detalhes
          de uma ideia aqui nao tinha NENHUMA saida de volta pra listagem. --%>
-    <a href="lista-ideia-gerenciamento.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+    <a href="lista-ideia-gerenciamento.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper light-blue darken-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
@@ -557,12 +557,16 @@
                 "              </tr>\n" +
                 "            </thead>";
         html += "<tbody>";
+        // UX: mensagem consistente com storytelling()/canva() abaixo (CTA com link
+        // pra onde exportar, em vez de um texto seco sem acao nenhuma).
         if (${exportDAO.listarParametro(export).size()} === 0)
-          html = "Não há arquivos exportados.";
+          html = "<div style='text-align:center'>\n" +
+                 "   Nenhum Point of View foi exportado. <a href='lista-caixa-de-ferramentas.jsp'>Acesse-o agora</a>, exporte-o e volte aqui :)\n" +
+                 "</div>";
         else {
           html += "<c:forEach var="pov" items="${exportDAO.listarParametro(export)}">";
           html += "<tr>";
-          html += "<td style='white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;'>${pov.fileName}</td>";
+          html += "<td style='white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;'><c:out value="${pov.fileName}"/></td>";
           html += "<td>";
           html += " ${data.formatarDataHoraCompleta(pov.created)}";
           html += "</td>";
@@ -606,8 +610,12 @@
                 "              </tr>\n" +
                 "            </thead>";
         html += "<tbody>";
+        // UX: mensagem consistente com storytelling()/canva() abaixo (CTA com link
+        // pra onde exportar, em vez de um texto seco sem acao nenhuma).
         if (${export1DAO.listarParametro(export1).size()} === 0)
-          html = "Não há arquivos exportados.";
+          html = "<div style='text-align:center'>\n" +
+                 "   Nenhuma Persona foi exportada. <a href='lista-caixa-de-ferramentas.jsp'>Acesse-o agora</a>, exporte-a e volte aqui :)\n" +
+                 "</div>";
         else {
           html += "<c:forEach var="persona" items="${export1DAO.listarParametro(export1)}">";
           html += "<tr>";

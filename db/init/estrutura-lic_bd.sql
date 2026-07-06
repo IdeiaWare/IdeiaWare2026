@@ -22,6 +22,9 @@ USE `lic_bd`;
 -- ---------------------------------------------------------------------
 -- 1) usuario  (raiz: ninguem depende de tabela anterior)
 -- ---------------------------------------------------------------------
+-- RACE-01 (2026-07-03): UNIQUE em usuario/email -- sem isso, 2 cadastros simultaneos com
+-- o mesmo login passavam os 2 pela checagem em Java e os 2 inseriam, deixando as 2 contas
+-- trancadas pra sempre (LogInServlet exige exatamente 1 resultado pra deixar logar).
 CREATE TABLE IF NOT EXISTS `usuario` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
   `nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -31,8 +34,17 @@ CREATE TABLE IF NOT EXISTS `usuario` (
   `email` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `DataAnonimizado` datetime DEFAULT NULL,
   `anonimizado` varchar(1) COLLATE utf8mb4_unicode_ci DEFAULT 'N',
-  PRIMARY KEY (`codigo`)
+  PRIMARY KEY (`codigo`),
+  UNIQUE KEY `uk_usuario_login` (`usuario`),
+  UNIQUE KEY `uk_usuario_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Banco ja existente (deploy anterior a 2026-07-03) NAO ganha a constraint sozinho --
+-- este script so roda no 1o boot de um volume vazio. Rodar manualmente uma vez:
+--   ALTER TABLE usuario ADD UNIQUE KEY uk_usuario_login (usuario);
+--   ALTER TABLE usuario ADD UNIQUE KEY uk_usuario_email (email);
+-- (falha com "Duplicate entry" se ja existir duplicata real no banco -- resolver a
+-- duplicata primeiro, ela ja seria o proprio bug RACE-01 acontecendo na pratica.)
 
 -- ---------------------------------------------------------------------
 -- 2) ideia  (FK -> usuario)
@@ -124,6 +136,10 @@ CREATE TABLE IF NOT EXISTS `empathy` (
 -- ---------------------------------------------------------------------
 -- 7) ideiausuario  (LIC, FK -> ideia, usuario)
 -- ---------------------------------------------------------------------
+-- K.8 #2 (2026-07-06): UNIQUE em (usuario_codigo, ideia_codigo) -- sem isso, clique duplo
+-- em "Entrar" (EntrarIdeiaServlet) podia passar os 2 pela checagem em Java e inserir 2
+-- vinculos do mesmo usuario na mesma ideia (a KEY antiga idx_iu_usuario_ideia nao travava,
+-- so acelerava a consulta).
 CREATE TABLE IF NOT EXISTS `ideiausuario` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
   `dtInscricao` datetime DEFAULT NULL,
@@ -132,11 +148,15 @@ CREATE TABLE IF NOT EXISTS `ideiausuario` (
   `usuario_codigo` bigint(20) NOT NULL,
   PRIMARY KEY (`codigo`),
   KEY `FK5a3ec83gur52ox47jh3p2m5xa` (`ideia_codigo`),
-  KEY `FK6wjmsj6giwc74vyr9pgk6cr8a` (`usuario_codigo`),
-  KEY `idx_iu_usuario_ideia` (`usuario_codigo`,`ideia_codigo`),
+  UNIQUE KEY `uk_ideiausuario_par` (`usuario_codigo`,`ideia_codigo`),
   CONSTRAINT `FK5a3ec83gur52ox47jh3p2m5xa` FOREIGN KEY (`ideia_codigo`) REFERENCES `ideia` (`codigo`),
   CONSTRAINT `FK6wjmsj6giwc74vyr9pgk6cr8a` FOREIGN KEY (`usuario_codigo`) REFERENCES `usuario` (`codigo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Banco ja existente (deploy anterior a 2026-07-06) NAO ganha a constraint sozinho --
+-- rodar manualmente uma vez: ALTER TABLE ideiausuario ADD UNIQUE KEY uk_ideiausuario_par
+-- (usuario_codigo, ideia_codigo); (falha com "Duplicate entry" se ja existir duplicata
+-- real -- resolver a duplicata primeiro, ex.: manter a linha mais antiga e apagar as demais.)
 
 -- ---------------------------------------------------------------------
 -- 8) logcolaboracao  (LIC, FK -> ideia, usuario)
@@ -177,6 +197,9 @@ CREATE TABLE IF NOT EXISTS `colaboracaoideia` (
 -- ---------------------------------------------------------------------
 -- 10) storytelling  (LIC, FK -> ideia, usuario)
 -- ---------------------------------------------------------------------
+-- K.8 #3 (2026-07-06): UNIQUE em ideia_codigo -- regra de negocio e 1 storytelling por
+-- ideia (a entidade Java e @OneToOne), mas sem trava no banco, "Finalizar Colaboracao"
+-- 2x quase-simultaneo (FinalizarColaboracaoServlet) podia criar 2 linhas duplicadas.
 CREATE TABLE IF NOT EXISTS `storytelling` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
   `caminhoFinalizado` longtext COLLATE utf8mb4_unicode_ci,
@@ -186,11 +209,15 @@ CREATE TABLE IF NOT EXISTS `storytelling` (
   `ideia_codigo` bigint(20) NOT NULL,
   `usuario_codigo` bigint(20) NOT NULL,
   PRIMARY KEY (`codigo`),
-  KEY `FKq2tqmjwc02je1hyquqj5a0sla` (`ideia_codigo`),
+  UNIQUE KEY `uk_storytelling_ideia` (`ideia_codigo`),
   KEY `FK4hb323iwc39gt5yv0e135juoa` (`usuario_codigo`),
   CONSTRAINT `FK4hb323iwc39gt5yv0e135juoa` FOREIGN KEY (`usuario_codigo`) REFERENCES `usuario` (`codigo`),
   CONSTRAINT `FKq2tqmjwc02je1hyquqj5a0sla` FOREIGN KEY (`ideia_codigo`) REFERENCES `ideia` (`codigo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Banco ja existente (deploy anterior a 2026-07-06): ALTER TABLE storytelling ADD UNIQUE
+-- KEY uk_storytelling_ideia (ideia_codigo); (falha se ja existir duplicata real -- limpar
+-- antes, mantendo a linha mais recente/valida.)
 
 -- ---------------------------------------------------------------------
 -- 11) elementosstorytelling  (LIC, FK -> storytelling)
@@ -232,15 +259,22 @@ CREATE TABLE IF NOT EXISTS `canva` (
 -- ---------------------------------------------------------------------
 -- 13) canvaexport  (LIC, FK -> ideia)
 -- ---------------------------------------------------------------------
+-- K.8 #4 (2026-07-06): UNIQUE em ideia_codigo -- regra de negocio e 1 export de Canvas
+-- por ideia (ExportCanvaServlet faz update se ja existe), mas sem trava no banco, 2
+-- exports quase-simultaneos podiam criar 2 linhas duplicadas.
 CREATE TABLE IF NOT EXISTS `canvaexport` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
   `created` datetime DEFAULT NULL,
   `file` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
   `ideia_codigo` bigint(20) NOT NULL,
   PRIMARY KEY (`codigo`),
-  KEY `FKc7v6vqa68cgd1syiblxxq2n52` (`ideia_codigo`),
+  UNIQUE KEY `uk_canvaexport_ideia` (`ideia_codigo`),
   CONSTRAINT `FKc7v6vqa68cgd1syiblxxq2n52` FOREIGN KEY (`ideia_codigo`) REFERENCES `ideia` (`codigo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Banco ja existente (deploy anterior a 2026-07-06): ALTER TABLE canvaexport ADD UNIQUE
+-- KEY uk_canvaexport_ideia (ideia_codigo); (falha se ja existir duplicata real -- limpar
+-- antes, mantendo a linha mais recente.)
 
 -- ---------------------------------------------------------------------
 -- 14) export_file  (compartilhada LIC/Toolkit, FK -> ideia)

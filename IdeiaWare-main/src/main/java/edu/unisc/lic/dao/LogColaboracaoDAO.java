@@ -4,9 +4,7 @@ import edu.unisc.lic.domain.LogColaboracao;
 import edu.unisc.lic.util.HibernateUtil;
 import java.util.List;
 import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 
@@ -16,9 +14,6 @@ import org.hibernate.criterion.Restrictions;
  */
 public class LogColaboracaoDAO extends GenericDAO<LogColaboracao> {
 
-    private Session sessao;
-    private Transaction transacao;
-
     /**
      * Esse método retorna uma lista de objetos LogColaboracao, conforme os
      * parâmetros que foram passados dentro de lc.
@@ -27,10 +22,7 @@ public class LogColaboracaoDAO extends GenericDAO<LogColaboracao> {
      * @return lista de LogColaboracao
      */
     public List<LogColaboracao> listarParametro(LogColaboracao lc) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
-
-        List<LogColaboracao> resultado = null;
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
             Criteria filtro = sessao.createCriteria(LogColaboracao.class);
@@ -42,23 +34,11 @@ public class LogColaboracaoDAO extends GenericDAO<LogColaboracao> {
                 filtro.add(Restrictions.eq("ideia", lc.getIdeia()));
             }
 
-            resultado = filtro.list();
+            return filtro.list();
 
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
         } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
+            sessao.close();
         }
-
-        return resultado;
 
     }
 
@@ -70,10 +50,7 @@ public class LogColaboracaoDAO extends GenericDAO<LogColaboracao> {
      * @return lista de LogColaboracao
      */
     public LogColaboracao buscarDescricaoFinal(LogColaboracao lc) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
-
-        List<LogColaboracao> resultado;
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
             Criteria filtro = sessao.createCriteria(LogColaboracao.class);
@@ -87,28 +64,12 @@ public class LogColaboracaoDAO extends GenericDAO<LogColaboracao> {
 
             filtro.addOrder(Order.desc("codigo"));
 
-            resultado = filtro.list();
-            
-            if (resultado.size() > 0){
-            	return resultado.get(0);
-            } else {
-            	return null;
-            }
-            
+            List<LogColaboracao> resultado = filtro.list();
 
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
+            return resultado.isEmpty() ? null : resultado.get(0);
+
         } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
+            sessao.close();
         }
-        return null;
     }
 }

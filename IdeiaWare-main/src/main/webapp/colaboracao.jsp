@@ -17,10 +17,10 @@
                do [UX-02] revertido antes. Destino contextual igual antes. --%>
           <c:choose>
             <c:when test="${sessionScope.isRetencao eq false}">
-              <a href="minha-ideia.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+              <a href="minha-ideia.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
             </c:when>
             <c:otherwise>
-              <a href="gerenciamento-ideia.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+              <a href="gerenciamento-ideia.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
             </c:otherwise>
           </c:choose>
           <div class="container">
@@ -72,53 +72,60 @@
             <br/>
           </div>
 
-          <table id="tabelaColab">
+          <%-- UX-01: mensagem de estado vazio com icone, tabela substituida por inteiro
+               (nao mais um <br><h5> dentro da propria tag <table>). TEST-04 (2026-07-06):
+               achado real testando -- a 1a versao deste fix tirava a <table> do DOM via
+               c:if quando vazia, mas o JS de "Enviar colaboracao"/polling faz
+               appendTo("#tabelaColab") em tempo real (sem reload); numa ideia nova (0
+               colaboracoes), o elemento nao existia ainda no DOM e o appendTo falhava em
+               silencio -- a colaboracao so aparecia depois de um F5. Agora a <table> FICA
+               sempre no DOM (JS sempre acha o alvo), so escondida via CSS quando vazia; o
+               JS revela a tabela e esconde a mensagem apos o 1o appendTo bem-sucedido. --%>
+          <div id="colaboracoesVazio" class="center-align grey-text" style="padding: 40px 20px; ${empty colaboracoes ? '' : 'display:none;'}">
+            <i class="material-icons" style="font-size: 3rem; display:block;">forum</i>
+            Ainda não há colaborações para esta ideia.
+          </div>
+
+          <table id="tabelaColab" style="${empty colaboracoes ? 'display:none;' : ''}">
             <%-- COL-12: usa ${colaboracoes} (já em cache) — sem nova query --%>
-            <c:choose>
-              <c:when test="${empty colaboracoes}">
-                <br><br><h5>Ainda não há colaborações para esta ideia</h5>
-              </c:when>
-              <c:otherwise>
-                <thead>
-                  <tr class="highlight" style="font-weight: bold">
-                    <td style="width: 15%" class="usuario">Usuário</td>
-                    <td style="max-width: 80%; width: 70%; min-width: 70%">Colaboração</td>
-                    <c:if test="${sessionScope.lider eq 'S' and isRetencao eq false}">
-                      <td style="width: 5%"></td>
-                    </c:if>
-                  </tr>
-                </thead>
-                <c:forEach var="cola" items="${colaboracoes}">
-                  <tr>
-                    <td><c:out value="${cola.usuario.nome}"/></td>
-                    <td><c:out value="${cola.descricaoIdeiaAtual}"/></td>
-                    <c:if test="${sessionScope.lider eq 'S' and isRetencao eq false}">
-                      <c:choose>
-                        <c:when test="${cola.flSalvado eq null}">
-                          <td>
-                            <form name="addDescricao" id="addDescricao" action="AddDescricaoServlet" method="POST">
-                              <input type="hidden" value="${cola.codigo}" id="colaboracao" name="colaboracao">
-                              <button class="btn-floating teal darken-1 tooltipped"
-                                      data-position="right" data-delay="50"
-                                      data-tooltip="Adicionar à Descrição">
-                                <a type="submit" name="adicionar"><i class="material-icons">add</i></a>
-                              </button>
-                            </form>
-                          </td>
-                        </c:when>
-                        <c:otherwise>
-                          <td>
-                            <button class="btn-floating disabled teal darken-1" disabled="true">
-                              <a name="adicionar"><i class="material-icons">add</i></a>
-                            </button>
-                          </td>
-                        </c:otherwise>
-                      </c:choose>
-                    </c:if>
-                  </tr>
-                </c:forEach>
-              </c:otherwise>
-            </c:choose>
+            <thead>
+              <tr class="highlight" style="font-weight: bold">
+                <td style="width: 15%" class="usuario">Usuário</td>
+                <td style="max-width: 80%; width: 70%; min-width: 70%">Colaboração</td>
+                <c:if test="${sessionScope.lider eq 'S' and isRetencao eq false}">
+                  <td style="width: 5%"></td>
+                </c:if>
+              </tr>
+            </thead>
+            <c:forEach var="cola" items="${colaboracoes}">
+              <tr>
+                <td><c:out value="${cola.usuario.nome}"/></td>
+                <td><c:out value="${cola.descricaoIdeiaAtual}"/></td>
+                <c:if test="${sessionScope.lider eq 'S' and isRetencao eq false}">
+                  <c:choose>
+                    <c:when test="${cola.flSalvado eq null}">
+                      <td>
+                        <form name="addDescricao" id="addDescricao" action="AddDescricaoServlet" method="POST">
+                          <input type="hidden" value="${cola.codigo}" id="colaboracao" name="colaboracao">
+                          <button class="btn-floating teal darken-1 tooltipped"
+                                  data-position="right" data-delay="50"
+                                  data-tooltip="Adicionar à Descrição" aria-label="Adicionar à Descrição">
+                            <a type="submit" name="adicionar"><i class="material-icons">add</i></a>
+                          </button>
+                        </form>
+                      </td>
+                    </c:when>
+                    <c:otherwise>
+                      <td>
+                        <button class="btn-floating disabled teal darken-1" disabled="true" aria-label="Adicionar à Descrição (já enviado)">
+                          <a name="adicionar"><i class="material-icons">add</i></a>
+                        </button>
+                      </td>
+                    </c:otherwise>
+                  </c:choose>
+                </c:if>
+              </tr>
+            </c:forEach>
           </table>
 
           <c:if test="${isRetencao eq false}">
@@ -142,6 +149,14 @@
   </body>
 
   <script>
+    // TEST-04 (2026-07-06): revela a tabela (que agora fica sempre no DOM, so oculta
+    // via CSS quando a ideia comeca sem nenhuma colaboracao) e esconde a mensagem de
+    // vazio, chamado apos o 1o appendTo bem-sucedido (enviar colaboracao ou polling).
+    function revelarTabelaColaboracoes() {
+      $("#colaboracoesVazio").hide();
+      $("#tabelaColab").show();
+    }
+
     $(document).on("submit", "#enviarColaboracao", function (event) {
       event.preventDefault();
       chamaAjaxEnviar();
@@ -199,6 +214,7 @@
           }
 
           tr.html(texto).appendTo("#tabelaColab");
+          revelarTabelaColaboracoes();
           $("#descricao").val("");
           numMensagens++;
         },
@@ -239,6 +255,7 @@
           }
 
           tr.html(texto).appendTo("#tabelaColab");
+          revelarTabelaColaboracoes();
           numMensagens++;
         },
         <%-- COL-13: error handler adicionado ao polling --%>

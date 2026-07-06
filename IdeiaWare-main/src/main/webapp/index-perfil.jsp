@@ -37,7 +37,6 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
         <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900'>
         <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Montserrat:400,700'>
-        <link rel='stylesheet prefetch' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css'>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
@@ -45,10 +44,27 @@
         <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" href="css/style.css">
         <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
-        <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     </head>
     <style>
+        /* TEST-04 (2026-07-06): footer flutuando quase no meio da tela quando o form
+           visivel eh curto (ex.: Anonimizar dados). ".form" nao tem altura minima e o
+           body/html nao tinha layout de coluna, entao o footer so seguia o fluxo normal
+           do documento e "subia" conforme o conteudo acima encolhia. Escopado soh nesta
+           pagina (nao mexe em css/style.css) pra nao afetar outras telas que usam .form
+           (ex.: login.jsp). margin:0 auto do .form continua centralizando no eixo
+           cruzado de um flex column normalmente. */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .form {
+            flex: 1 0 auto;
+        }
+        footer {
+            flex-shrink: 0;
+        }
         .title-app {
             color:#fff;
             font-family: 'Condiment';
@@ -167,6 +183,9 @@
     </style>
 
     <body class="blue-grey lighten-5">
+        <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
+             saida de volta pra tela inicial (index.jsp). --%>
+        <a href="index.jsp" class="btn-floating btn-large blue-grey darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
         <nav>
             <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
                 <a class="brand-logo" href="index.jsp" style="left: 50px">
@@ -236,20 +255,24 @@
                 <input name="senha2" id="senha2" type="password" placeholder="digite a senha novamente" aria-label="digite a senha novamente" pattern=".{4,32}|^$" title="O campo repetir senha deve conter entre 4 e 32 caracteres" onchange="setRequiredPassword()"/>
                 
                 <button class="blue accent-1" type="submit" onclick="submitForm('AlteraUsuarioServlet','passwordForm')">Salvar</button>
-                <p class="message"><a href="#" id="show-user-form">Voltar ao perfil</a></p>
+                <p class="message"><a href="#" class="show-user-form">Voltar ao perfil</a></p>
             </form>
                 
             <form id="AnonimizaForm" class="userForm" method="POST" style="display: none;">
                 <input name="usuario" type="text" placeholder="usuário" aria-label="usuário" value="${usuario}" pattern=".{4.32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres" disabled />
-                <input name="senhaAtual" id="senhaAtual" type="password" placeholder="senha atual" aria-label="senha atual" required title="O campo senha deve conter entre 8 e 32 caracteres." maxlength="32"/>
-                
+                <input name="senhaAtual" id="senhaAtualAnonimiza" type="password" placeholder="senha atual" aria-label="senha atual" required title="O campo senha deve conter entre 8 e 32 caracteres." maxlength="32"/>
+
                 <div style="text-align: left; margin-bottom: 10px">
                    <input type="checkbox" id="termos" name="termos" value="termos" required title="Necessário confirmar que os dados serão anonimizados." />
                    <label class="message2" for="termos">Esta ação é irreversível, tem certeza que deseja continuar com a anonimização?</label>
                 </div>
-                
+
                 <button class="red accent-1" type="submit" onclick="submitForm('AnonimizaUsuarioServlet','AnonimizaForm')">Anonimizar</button>
-                <p class="message"><a href="#" id="show-user-form">Voltar ao perfil</a></p>
+                <%-- A11Y/bug real: id="show-user-form" estava DUPLICADO (tambem em passwordForm
+                     acima) -- $('#show-user-form').click(...) so vinculava no 1o match do DOM,
+                     entao clicar em "Voltar ao perfil" AQUI (dentro do AnonimizaForm) nao fazia
+                     nada. Trocado por classe compartilhada, um so listener cobre os 2 links. --%>
+                <p class="message"><a href="#" class="show-user-form">Voltar ao perfil</a></p>
             </form>
         </div>
                 
@@ -272,7 +295,7 @@
             }  
         </script>
         
-        <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script>            
             $(document).ready(function(){
                 $('#show-password-form').click(function(e){
@@ -282,7 +305,7 @@
                     $('#passwordForm').fadeIn();
                 });
                 
-                $('#show-user-form').click(function(e){
+                $('.show-user-form').click(function(e){
                     e.preventDefault();
                     $('#passwordForm').hide();
                     $('#AnonimizaForm').hide();

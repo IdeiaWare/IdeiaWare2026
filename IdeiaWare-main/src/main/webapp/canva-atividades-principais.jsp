@@ -12,7 +12,7 @@
     </head>
     <body >
 	    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/canva-mapa.jsp. --%>
-	    <a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+	    <a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
 	    <div style="min-height: 80vh">
 	    
 	    	<!-- VARIAVEIS -->
@@ -41,9 +41,9 @@
 				        	<div class="row">
 				            	<div class="input-field">
 				                	<textarea id="descricao" type="text" class="materialize-textarea"  name="text" data-length="200" maxlength="200" minlength="5"></textarea>
-				                    <label for="text">Post-it</label>
+				                    <label for="descricao">Post-it</label>
 				                </div>
-				                <label class="lbl-post-it" for="color">Cor do post-it</label>
+				                <label class="lbl-post-it">Cor do post-it</label>
 				                <div class="input-field col s12">			        	
 						        	<div class="post-it">		        
 								  		<div class="btn blue active" data-color="blue"></div>
@@ -90,13 +90,13 @@
 								    		<div class="col s12 card ${cv.color}">
 									    		<div class="card-content card-paragrafer"><c:out value="${cv.text}"/></div>
 									    		<div class="card-action">
-										    		<button class="editCanva btn-floating teal darken-1 tooltipped btn-postit" canva-id="${cv.codigo}">
+										    		<button class="editCanva btn-floating teal darken-1 tooltipped btn-postit" canva-id="${cv.codigo}" aria-label="Editar post-it" data-tooltip="Editar" data-position="right" data-delay="50">
 										    			<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 										    		</button>
 													<form name="deleteCanva" id="deleteCanva" action="DeleteCanvaServlet" method="POST">
 														<input hidden="true" value="${cv.codigo}" id="canva" name="canva">
 														<input hidden="true" value="EntrarCanvaAtividadeServlet" id="context" name="context">
-														<button class="btn-floating teal darken-1 tooltipped btn-postit" type="submit" onclick="return confirm('Excluir este post-it? Esta ação não pode ser desfeita.')">
+														<button class="btn-floating teal darken-1 tooltipped btn-postit" type="submit" aria-label="Excluir post-it" data-tooltip="Excluir" data-position="right" data-delay="50" onclick="return confirm('Excluir este post-it? Esta ação não pode ser desfeita.')">
 															<i class="fa fa-trash" aria-hidden="true"></i>
 														</button>
 													</form>

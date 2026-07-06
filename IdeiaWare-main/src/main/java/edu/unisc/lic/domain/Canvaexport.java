@@ -20,8 +20,10 @@ import edu.unisc.lic.classes.Data;
 public class Canvaexport extends GenericDomain {
 
     //Chave estrangeira
+    // K.8 #4 (2026-07-06): unique=true trava no BANCO que uma ideia tenha mais de 1
+    // export de Canvas -- antes so o @OneToOne em Java "sugeria" isso, sem constraint real.
 	@OneToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "ideia_codigo", nullable = false, unique = true)
     private Ideia ideia;
 
     //Atributos

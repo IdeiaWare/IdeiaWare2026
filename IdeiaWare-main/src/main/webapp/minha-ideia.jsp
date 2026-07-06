@@ -18,7 +18,7 @@
           <h1>Minhas Ideias</h1>
           <%-- UX-VOLTAR-V2: icone circular flutuante no canto superior esquerdo (fixed) --
                ver colaboracao.jsp pro raciocinio completo (nao mexe no header compartilhado). --%>
-          <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+          <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
           <a href="cadastro-ideia.jsp"><input class="btn orange darken-1" type="submit" value="Cadastrar nova ideia" name="Cadastrar ideia"/></a>
             <jsp:useBean id="ideiaUsuarioDAO" class="edu.unisc.lic.dao.IdeiaUsuarioDAO" />
             <jsp:useBean id="ideiaUsuario" class="edu.unisc.lic.domain.IdeiaUsuario" />
@@ -117,7 +117,9 @@
                           <c:when test="${ideia.ideia.status eq 'CF'}">
                               <form name="entrarCaixa" action="EntrarCaixaServlet" method="POST">
                                 <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
-                                <input hidden="true" value="${nome}" name="usuarioNome" />
+                                <%-- XSS: nome de sessao e texto livre de cadastro -- escapado
+                                     dentro do atributo (mesmo padrao ja usado em validar-ideia.jsp). --%>
+                                <input hidden="true" value="<c:out value='${nome}'/>" name="usuarioNome" />
                                 <input class="btn red darken-1" type="submit" value="Entrar"  name="Caixa" />
                               </form>
                           </c:when>
@@ -127,7 +129,9 @@
                                    nao depende mais so deste botao pra restringir o acesso. --%>
                               <form name="entrarCanva" action="EntrarCanvaServlet" method="POST">
                                 <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
-                                <input hidden="true" value="${nome}" name="usuarioNome" />
+                                <%-- XSS: nome de sessao e texto livre de cadastro -- escapado
+                                     dentro do atributo (mesmo padrao ja usado em validar-ideia.jsp). --%>
+                                <input hidden="true" value="<c:out value='${nome}'/>" name="usuarioNome" />
                                 <input class="btn blue darken-4" type="submit" value="Entrar"  name="Canva" />
                               </form>
                           </c:when>

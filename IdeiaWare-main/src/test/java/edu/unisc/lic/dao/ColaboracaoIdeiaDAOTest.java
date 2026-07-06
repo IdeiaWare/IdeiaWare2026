@@ -1,50 +1,97 @@
 package edu.unisc.lic.dao;
 
-import edu.unisc.lic.classes.Data;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.Date;
+import java.util.List;
+
+import org.junit.Test;
+
+import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.domain.ColaboracaoIdeia;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
-import java.util.List;
-import org.junit.Ignore;
-import org.junit.Test;
 
 /**
- *
- * @author viniciussdsilva
+ * TEST-04: reativado a partir do scratch @Ignore original (sem assert*, hits em
+ * IDs fixos de um MySQL real). Agora roda contra H2, com dados proprios por teste.
  */
 public class ColaboracaoIdeiaDAOTest {
-    
-    @Test
-    @Ignore
-    public void inserir() {
-        IdeiaDAO iDAO = new IdeiaDAO();
-        UsuarioDAO uDAO = new UsuarioDAO();
-        ColaboracaoIdeiaDAO ciDAO = new ColaboracaoIdeiaDAO();
-        
-        Ideia i = iDAO.buscar(3L);
-        Usuario u = uDAO.buscar(3L);
-        ColaboracaoIdeia ci = new ColaboracaoIdeia(i, u, Data.horaAtual(), "O bebedor deve ser aqueles de encher");
-        
-        ciDAO.salvar(ci);
-        
-    }
-    
-    @Test
-    @Ignore
-    public void listarParametro() {
-        IdeiaDAO iDAO = new IdeiaDAO();
-        
-        ColaboracaoIdeia ci = new ColaboracaoIdeia();
-        ci.setIdeia(iDAO.buscar(2L));
-        
-        ColaboracaoIdeiaDAO ciDAO = new ColaboracaoIdeiaDAO();
-        
-        List<ColaboracaoIdeia> listaCI = ciDAO.listarParametro(ci);
-        
-        for (ColaboracaoIdeia colabIdeia : listaCI) {
-            System.out.println(colabIdeia.getDescricaoIdeiaAtual());
-        }
-        
-    }
-    
+
+	private final ColaboracaoIdeiaDAO colaboracaoIdeiaDAO = new ColaboracaoIdeiaDAO();
+	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
+	private final UsuarioDAO usuarioDAO = new UsuarioDAO();
+
+	private Ideia novaIdeiaSalva() {
+		Usuario autor = new Usuario("Autor Colab", "autor_colab_" + System.nanoTime(), "s", "usr", "autor_colab_" + System.nanoTime() + "@x.com");
+		usuarioDAO.salvar(autor);
+
+		Ideia ideia = new Ideia(autor, "Ideia Colab", "Descricao", StatusIdeia.PENDENTE, StatusIdeia.GRUPO_ABERTO);
+		ideia.setDtCriacao();
+		ideiaDAO.salvar(ideia);
+		return ideia;
+	}
+
+	@Test
+	public void salvarEListarParametro_retornaOrdenadoPorCodigoAsc() {
+		Ideia ideia = novaIdeiaSalva();
+		Usuario colaborador = ideia.getUsuario();
+
+		ColaboracaoIdeia c1 = new ColaboracaoIdeia(ideia, colaborador, new Date(1000), "Primeira versao");
+		ColaboracaoIdeia c2 = new ColaboracaoIdeia(ideia, colaborador, new Date(2000), "Segunda versao");
+		colaboracaoIdeiaDAO.salvar(c1);
+		colaboracaoIdeiaDAO.salvar(c2);
+
+		ColaboracaoIdeia filtro = new ColaboracaoIdeia();
+		filtro.setIdeia(ideia);
+		List<ColaboracaoIdeia> resultado = colaboracaoIdeiaDAO.listarParametro(filtro);
+
+		assertEquals(2, resultado.size());
+		assertEquals("Primeira versao", resultado.get(0).getDescricaoIdeiaAtual());
+		assertEquals("Segunda versao", resultado.get(1).getDescricaoIdeiaAtual());
+	}
+
+	@Test
+	public void ultimaColab_retornaAMaisRecentePorData() {
+		Ideia ideia = novaIdeiaSalva();
+		Usuario colaborador = ideia.getUsuario();
+
+		colaboracaoIdeiaDAO.salvar(new ColaboracaoIdeia(ideia, colaborador, new Date(1000), "Antiga"));
+		colaboracaoIdeiaDAO.salvar(new ColaboracaoIdeia(ideia, colaborador, new Date(9000), "Mais recente"));
+		colaboracaoIdeiaDAO.salvar(new ColaboracaoIdeia(ideia, colaborador, new Date(5000), "Meio termo"));
+
+		ColaboracaoIdeia filtro = new ColaboracaoIdeia();
+		filtro.setIdeia(ideia);
+		ColaboracaoIdeia ultima = colaboracaoIdeiaDAO.ultimaColab(filtro);
+
+		assertNotNull(ultima);
+		assertEquals("Mais recente", ultima.getDescricaoIdeiaAtual());
+	}
+
+	@Test
+	public void ultimaColab_semColaboracoes_retornaNull() {
+		Ideia ideia = novaIdeiaSalva();
+
+		ColaboracaoIdeia filtro = new ColaboracaoIdeia();
+		filtro.setIdeia(ideia);
+
+		assertNull(colaboracaoIdeiaDAO.ultimaColab(filtro));
+	}
+
+	@Test
+	public void quantidadeMes_contaSoAsColaboracoesDaIdeiaFiltrada() {
+		Ideia ideiaA = novaIdeiaSalva();
+		Ideia ideiaB = novaIdeiaSalva();
+
+		colaboracaoIdeiaDAO.salvar(new ColaboracaoIdeia(ideiaA, ideiaA.getUsuario(), new Date(1000), "A1"));
+		colaboracaoIdeiaDAO.salvar(new ColaboracaoIdeia(ideiaA, ideiaA.getUsuario(), new Date(2000), "A2"));
+		colaboracaoIdeiaDAO.salvar(new ColaboracaoIdeia(ideiaB, ideiaB.getUsuario(), new Date(1000), "B1"));
+
+		ColaboracaoIdeia filtro = new ColaboracaoIdeia();
+		filtro.setIdeia(ideiaA);
+
+		assertEquals(2, colaboracaoIdeiaDAO.quantidadeMes(filtro));
+	}
 }

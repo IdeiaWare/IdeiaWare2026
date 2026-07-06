@@ -61,7 +61,7 @@
 	padding-top: 10px;
 }
 
-/*CONFIGURÇÕES GERAIS*/
+/*CONFIGURACOES GERAIS*/
 
 .b-left{
     border-left: 1px solid black;
@@ -111,7 +111,7 @@
     margin-top: 15px;
 }
 
-/*MENU DE NAVEGAÇÃO - UTILIZADO TAMBÉM EM ALGUNS ELEMENTOS DO MAPA*/
+/*MENU DE NAVEGACAO - UTILIZADO TAMBEM EM ALGUNS ELEMENTOS DO MAPA*/
 
 .navCanva{
 	margin: 0 auto;
@@ -124,7 +124,7 @@
   	margin-right: auto;
 }
 
-/*EDIÇÃO DE POSTITS*/
+/*EDICAO DE POSTITS*/
 
 .card-action{
 	float: right;
@@ -149,7 +149,7 @@
 }
 
 
-/*CONFIGURAÇÃO PARA ORGANIZAÇÃO DE POSTITS*/
+/*CONFIGURACAO PARA ORGANIZACAO DE POSTITS*/
 
 .row.equal-cols {
   display: -webkit-flex;

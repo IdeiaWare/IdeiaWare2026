@@ -2,8 +2,13 @@ package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.classes.AbrirPDF;
 import edu.unisc.lic.dao.ExportFileDAO;
+import edu.unisc.lic.dao.IdeiaUsuarioDAO;
+import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.ExportFile;
+import edu.unisc.lic.domain.IdeiaUsuario;
+import edu.unisc.lic.domain.Usuario;
 import java.io.IOException;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -49,6 +54,24 @@ public class AbrirPointOfView extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
+
+        // AUTORIZACAO (IDOR): exige que o usuario seja PARTICIPANTE da ideia dona
+        // deste export, ou admin -- antes, qualquer usuario logado baixava o PDF de
+        // qualquer export so adivinhando o codigo.
+        Usuario sessionUser = new UsuarioDAO().buscar((Long) session.getAttribute("codigoUsuario"));
+        if (sessionUser == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+        if (!"adm".equals(sessionUser.getPermissao())) {
+            List<IdeiaUsuario> vinculo = new IdeiaUsuarioDAO()
+                    .listarParametro(new IdeiaUsuario(sessionUser, pov.getIdeia(), null));
+            if (vinculo == null || vinculo.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
+        }
+
         AbrirPDF.abrir(response, pov.getFileLocation(), pov.getFileName());
     }
 

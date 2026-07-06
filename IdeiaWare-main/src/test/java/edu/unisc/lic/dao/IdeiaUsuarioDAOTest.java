@@ -1,86 +1,112 @@
 package edu.unisc.lic.dao;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
+import org.junit.Test;
+
+import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
-import java.util.List;
-import org.junit.Ignore;
-import org.junit.Test;
 
 /**
- *
- * @author viniciussdsilva
+ * TEST-04: reativado a partir do scratch @Ignore original. Cobre tambem os 3
+ * metodos do PERF-01 (listarTodasIdeiasStorytelling/listarCaixa/listarIdeiasCanva),
+ * que nunca tiveram teste algum antes.
  */
 public class IdeiaUsuarioDAOTest {
 
-    @Test
-    @Ignore
-    public void inserir() {
-        UsuarioDAO uDao = new UsuarioDAO();
-        IdeiaDAO iDao = new IdeiaDAO();
-        IdeiaUsuarioDAO iuDao = new IdeiaUsuarioDAO();
+	private final IdeiaUsuarioDAO ideiaUsuarioDAO = new IdeiaUsuarioDAO();
+	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
+	private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 
-        Usuario u = uDao.buscar(3L);
-        Ideia i = iDao.buscar(1L);
-        IdeiaUsuario iu = new IdeiaUsuario();
+	private Usuario novoUsuarioSalvo(String nome) {
+		Usuario u = new Usuario(nome, "login_iu_" + System.nanoTime(), "s", "usr", nome + "@x.com");
+		usuarioDAO.salvar(u);
+		return u;
+	}
 
-        iu.setUsuario(u);
-        iu.setIdeia(i);
+	private Ideia novaIdeiaSalva(Usuario autor, String status) {
+		Ideia ideia = new Ideia(autor, "Ideia IU", "Descricao", status, StatusIdeia.GRUPO_ABERTO);
+		ideia.setDtCriacao();
+		ideiaDAO.salvar(ideia);
+		return ideia;
+	}
 
-        iuDao.salvar(iu);
+	@Test
+	public void salvarEListarParametro_filtraPorUsuarioIdeiaEFlLider() {
+		Usuario u = novoUsuarioSalvo("Membro IU");
+		Ideia ideia = novaIdeiaSalva(u, StatusIdeia.PENDENTE);
 
-    }
+		ideiaUsuarioDAO.salvar(new IdeiaUsuario(u, ideia, "S"));
 
-    @Test
-    @Ignore
-    public void listar() {
-        IdeiaUsuarioDAO iuDAO = new IdeiaUsuarioDAO();
+		IdeiaUsuario filtro = new IdeiaUsuario(u, null, "S");
+		List<IdeiaUsuario> resultado = ideiaUsuarioDAO.listarParametro(filtro);
 
-        List<IdeiaUsuario> resultado = iuDAO.listar();
+		assertEquals(1, resultado.size());
+		assertEquals(u.getCodigo(), resultado.get(0).getUsuario().getCodigo());
+		assertEquals("S", resultado.get(0).getFlLider());
+	}
 
-        for (IdeiaUsuario iu : resultado) {
-            System.out.println(iu);
-        }
-    }
+	@Test
+	public void listarParametro_flLiderN_naoRetornaOsLideres() {
+		Usuario u = novoUsuarioSalvo("Membro Nao Lider");
+		Ideia ideia = novaIdeiaSalva(u, StatusIdeia.PENDENTE);
 
-    @Test
-    @Ignore
-    public void listarParametro() {
-        IdeiaUsuarioDAO iuDAO = new IdeiaUsuarioDAO();
+		ideiaUsuarioDAO.salvar(new IdeiaUsuario(u, ideia, "S"));
 
-//        Ideia i = new Ideia();
-//        i.setCodigo(1L);
-//        IdeiaUsuario iu = new IdeiaUsuario(null, i, null);
-        Usuario u = new Usuario();
-        u.setCodigo(1L);
+		IdeiaUsuario filtro = new IdeiaUsuario(u, null, "N");
+		assertTrue(ideiaUsuarioDAO.listarParametro(filtro).isEmpty());
+	}
 
-        IdeiaUsuario iu = new IdeiaUsuario(u, null, null);
+	@Test
+	public void listarTodasIdeiasStorytelling_retornaSoIdeiasNesseStatus() {
+		Usuario u = novoUsuarioSalvo("User Story");
+		Ideia ideiaStory = novaIdeiaSalva(u, StatusIdeia.STORYTELLING);
+		Ideia ideiaPendente = novaIdeiaSalva(u, StatusIdeia.PENDENTE);
 
-        List<IdeiaUsuario> resultado = iuDAO.listarParametro(iu);
+		ideiaUsuarioDAO.salvar(new IdeiaUsuario(u, ideiaStory, "S"));
+		ideiaUsuarioDAO.salvar(new IdeiaUsuario(u, ideiaPendente, "S"));
 
-        for (IdeiaUsuario ideiaUsuario : resultado) {
-//            System.out.println(ideiaUsuario.getIdeia());
-            System.out.println("\n\n" + ideiaUsuario.getIdeia().getUsuario().getNome());
-        }
+		IdeiaUsuario filtro = new IdeiaUsuario(u, null, null);
+		List<IdeiaUsuario> resultado = ideiaUsuarioDAO.listarTodasIdeiasStorytelling(filtro);
 
-        System.out.println("\n\n");
-    }
+		assertEquals(1, resultado.size());
+		assertEquals(StatusIdeia.STORYTELLING, resultado.get(0).getIdeia().getStatus());
+	}
 
-    @Test
-    @Ignore
-    public void listarIdeiasLider() {
-        Usuario u = new UsuarioDAO().buscar(1L);
-        IdeiaUsuario iu = new IdeiaUsuario();
-        iu.setUsuario(u);
+	@Test
+	public void listarCaixa_retornaSoIdeiasEmCaixaDeFerramentas() {
+		Usuario u = novoUsuarioSalvo("User Caixa");
+		Ideia ideiaCaixa = novaIdeiaSalva(u, StatusIdeia.CAIXA_FERRAMENTAS);
+		Ideia ideiaValidada = novaIdeiaSalva(u, StatusIdeia.VALIDADA);
 
-        List<IdeiaUsuario> resultado = new IdeiaUsuarioDAO().listarIdeiasLiderStorytelling(iu);
+		ideiaUsuarioDAO.salvar(new IdeiaUsuario(u, ideiaCaixa, "N"));
+		ideiaUsuarioDAO.salvar(new IdeiaUsuario(u, ideiaValidada, "N"));
 
-        System.out.println(resultado.size());
+		IdeiaUsuario filtro = new IdeiaUsuario(u, null, null);
+		List<IdeiaUsuario> resultado = ideiaUsuarioDAO.listarCaixa(filtro);
 
-        for (IdeiaUsuario iuAux : resultado) {
-            System.out.println(iuAux.getUsuario().getCodigo() + " - " + iuAux.getIdeia().getCodigo() + " - " + iuAux.getFlLider() + " - " + iuAux.getIdeia().getStatus());
-        }
+		assertEquals(1, resultado.size());
+		assertEquals(StatusIdeia.CAIXA_FERRAMENTAS, resultado.get(0).getIdeia().getStatus());
+	}
 
-    }
+	@Test
+	public void listarIdeiasCanva_retornaSoIdeiasEmCanvasParaTodosOsParticipantes() {
+		Usuario lider = novoUsuarioSalvo("Lider Canva");
+		Usuario membro = novoUsuarioSalvo("Membro Canva");
+		Ideia ideiaCanva = novaIdeiaSalva(lider, StatusIdeia.CANVAS);
 
+		ideiaUsuarioDAO.salvar(new IdeiaUsuario(lider, ideiaCanva, "S"));
+		ideiaUsuarioDAO.salvar(new IdeiaUsuario(membro, ideiaCanva, "N"));
+
+		IdeiaUsuario filtroMembro = new IdeiaUsuario(membro, null, null);
+		List<IdeiaUsuario> resultado = ideiaUsuarioDAO.listarIdeiasCanva(filtroMembro);
+
+		assertEquals("CAN-PARTICIPANTE: membro nao-lider tambem deve ver a ideia no Canvas", 1, resultado.size());
+		assertEquals(StatusIdeia.CANVAS, resultado.get(0).getIdeia().getStatus());
+	}
 }

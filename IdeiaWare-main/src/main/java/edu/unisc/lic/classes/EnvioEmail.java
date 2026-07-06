@@ -37,6 +37,10 @@ public class EnvioEmail {
         request.setEndpoint("mail/send");
         request.setBody(mail.build());
         Response response = sg.api(request);
-        return true;
+
+        // O SendGrid retorna 202 quando aceita o envio; qualquer outro status
+        // (401/403/429/5xx) significa que o e-mail NAO foi enviado de fato.
+        // Antes o retorno era sempre true, mesmo com a API recusando o envio.
+        return response.getStatusCode() >= 200 && response.getStatusCode() < 300;
     }
 }

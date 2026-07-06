@@ -30,11 +30,47 @@ INDICE:
                             K. PENDENCIAS
                             L. APENDICE (becos de debug + correcoes ao relatorio)
 
-RESUMO QUANTITATIVO (~250 itens): bugs/robustez ~86; seguranca ~46; UI/UX ~75; testes 42;
-infra/build/encoding ~20; limpeza ~15; performance ~8; refatoracao ~3. Ganhos-chave:
+RESUMO QUANTITATIVO (~270 itens): bugs/robustez ~93; seguranca ~56; UI/UX ~75; testes 39;
+infra/build/encoding ~21; limpeza ~16; performance ~9; refatoracao ~3. Ganhos-chave:
 SHA-256->bcrypt; 0->CSRF; 0->headers de seguranca; XSS escapado em ~30 telas; ~50 MB de
 codigo morto/libs removidos; Toolkit build manual->Maven; encoding misto->UTF-8 (34 arq);
-0->42 testes; cookie ideiaId forjavel->assinado (HMAC).
+0->38 testes (42 antes da limpeza de CriptografaDadosTest, ver B.8) -> 105 em 2026-07-03
+(LIC 14->77 reais + 0 @Ignore restante, ver G/TEST-04); cookie ideiaId forjavel->assinado
+(HMAC); 10 DAOs com race condition de Session/Transaction corrigida; 9 IDOR de servlet
+fechados (colaboracao, storytelling, detalhe, editar-texto, PDFs exportados — ver B.9),
+todos os 51 servlets do LIC lidos e conferidos. Varredura de cobertura de webapp em
+2026-07-03 (ver B.10/E/F): XSS no footer.jsp/canva-footer.jsp, 5 AJAX sem tratamento de
+erro, 2 arquivos mortos, mojibake em canva.css — src/main/java + src/main/webapp do LIC
+100% mapeados/conferidos. Docker agora RODA os testes no build (removido -DskipTests, ver
+J/TEST-GATE); 2 N+1 corrigidos em AutoSalvarStoryServlet/SalvarAudioServlet (ver B/PERF-02);
+upload de imagem do Storytelling nao dispara mais um save do quadro inteiro por engano (ver
+C); Vue.js morto + html2canvas morto removidos, versao de jQuery/FontAwesome unificada (ver
+G/LIBS-AUDIT); Konva/jsPDF/Materialize mapeados como upgrade de verdade, ainda pendente
+(ver K.4; libs do Toolkit ainda NAO mapeadas, ver K.4/TOOLKIT-NAO-MAPEADO). Segunda passada
+em classes/ (2026-07-03) achou 2 bugs reais que a varredura original tinha dado como "sem
+achado": AbrirPDF sempre baixava PDF como "null.pdf", EnvioEmail sem tratamento de excecao
+de rede em 2 servlets (ver B.8/RET-14-PDF e RET-14-EMAIL). RACE-01 (2026-07-03, ver B.8):
+CadastroUsuarioServlet sem UNIQUE no banco pra usuario/email -- 2 cadastros simultaneos
+com o mesmo login podiam trancar as 2 contas pra sempre; corrigido em 3 camadas (entidade
++ schema SQL + catch no servlet) e provado com um teste de concorrencia de verdade (1o
+teste de servlet do projeto). MODELAGEM-01: Usuario.email alinhado (era length=100 no
+Java, banco sempre foi varchar(50)). Tier 1/2/3 de testes de servlet (2026-07-03 a
+2026-07-06): os 51 servlets do LIC estavam com ZERO teste ate o RACE-01 -- agora TODOS
+tem cobertura (LIC 278 testes reais, 306 no total dos 2 projetos, ver G/TIER 1-2-3).
+K.8 (prompt magico de concorrencia/modelagem de banco, rodado e corrigido em
+2026-07-06): 10 achados confirmados (codigo + schema), 7 corrigidos -- transacao unica
+p/ FecharGrupoServlet/SalvarAudioServlet (antes 2-4 transacoes separadas podiam deixar
+ideia sem lider ou perder audio de vez), UNIQUE no banco + catch pro mesmo padrao do
+RACE-01 em 3 pares check-then-insert que nao tinham trava real (EntrarIdeiaServlet/
+IdeiaUsuario, FinalizarColaboracaoServlet/Storytelling, ExportCanvaServlet/Canvaexport),
+e o mesmo catch de e-mail duplicado do RACE-01 replicado em AlteraUsuarioServlet (achado
+no processo: um editar() propaga a excecao ENVOLVIDA numa PersistenceException,
+diferente do salvar(), que propaga crua -- fix percorre a cadeia de causas). Todos os 7
+provados com teste de concorrencia real (threads). 3 achados de baixo ganho/custo
+desproporcional (duplo-POST em CadastroIdeiaServlet/AddDescricaoServlet/6 servlets
+mecanicos) documentados mas nao corrigidos, ver K.8 pro detalhamento das opcoes.
+2 achados novos durante a escrita dos testes Tier 3 (ver B.11): EntrarCanvaServlet sem
+guard de login nenhum, DeleteCanvaServlet com allow-list fraca no anti open-redirect.
 
 
 
@@ -84,6 +120,14 @@ cada varredura cobria so um conjunto de telas/campos. Estado final: ZERO sink cr
    innerHTML; stored mirando o admin); Toolkit point-of-view-overview ${tempPOV.value.*},
    empathy-map/-detailed ${persona.name}, form-pov ${personaParts[0]}, list-personas
    ${tempPersona.name} no value. >>> Corrige a afirmacao antiga de "XSS 100% fechado" (DIV-2).
+[FOOTER-XSS] 🟡 (2026-07-03) header/footer.jsp e header/canva-footer.jsp — os 2 includes de
+   rodape (nunca cobertos por nenhuma varredura anterior, achados so numa checagem de cobertura
+   arquivo-por-arquivo) renderizavam ${nome} CRU, sem <c:out> e sem sequer importar a taglib c.
+   nome = usuario.getNome() do proprio usuario logado (nunca de outro usuario, confirmado via
+   grep de todo setAttribute("nome",...) no projeto) -> impacto self-XSS (baixo, cookie de
+   sessao ja e HttpOnly), mas e a MESMA classe de bug que o SEC-07/SEC-08 ja fecharam em ~20
+   outras telas; so esses 2 arquivos pequenos ficaram fora do padrao. Fix: taglib c + <c:out
+   value="${nome}"/> nos 2 arquivos.
 
 --- A.2 IDOR / AUTORIZACAO (endpoints sem checar dono/login) ---
 [COL-07]  🔴 ValidarIdeiaServlet — exige permissao 'adm'. Antes qualquer um validava ideias.
@@ -439,6 +483,315 @@ estourava o pacote do MySQL. Evolucao: screenshot blindado -> PDF NATIVO (vetori
    do FileReader.readAsDataURL). Fix: decodifica o base64 (aceita data-URI ou puro) e escreve os
    bytes do PDF na resposta (Content-Type application/pdf).
 (Becos de debug deste tema — TK-15 v1/v2/v3, TK-16, CACHE-BUST — ver L.1, mantidos detalhados.)
+
+--- B.8 DAOs / CAMADA DE PERSISTENCIA (2026-07-02, branch dao-classes-robustez) ---
+Varredura completa das 4 pastas edu.unisc.lic.{classes,dao,util,domain} (34 arquivos,
+~2825 linhas), mesmo metodo do "prompt magico" (ver C, secao de metodologia), adaptado
+p/ robustez de DAO/dominio: (1) operacoes sem tratamento de excecao adequado, (2) queries
+que podem retornar null sem verificacao, (3) campos obrigatorios sem validacao na camada
+de persistencia.
+
+[DAO-SESSAO] 🔴 10 DAOs (CanvaDAO, CanvaexportDAO, ColaboracaoIdeiaDAO,
+   ElementosStorytellingDAO, ExportFileDAO, IdeiaDAO, IdeiaUsuarioDAO, LogColaboracaoDAO,
+   StorytellingDAO, UsuarioDAO) guardavam Session/Transaction como CAMPOS DE INSTANCIA da
+   classe DAO (`private Session sessao; private Transaction transacao;`). Se a mesma
+   instancia de DAO for reaproveitada entre requisicoes (padrao comum nesse tipo de
+   codigo), duas threads pisam na mesma Session do Hibernate ao mesmo tempo — race
+   condition real, nao teorica. Fix: Session vira VARIAVEL LOCAL de cada metodo (o
+   GenericDAO ja fazia certo — serviu de modelo). Bonus: consultas so-leitura pararam de
+   abrir Transaction (`beginTransaction()`) sem necessidade; o bloco de rollback manual
+   (`catch HibernateException` + `System.out.println` engolindo o erro) saiu junto — so
+   sobrou um `finally { sessao.close(); }` limpo. Resultado: -301 linhas liquidas (394
+   remocoes, 93 insercoes) so nesse refactor, quase toda boilerplate repetida por metodo
+   (ver explicacao do "porque encolheu tanto" no resumo do chat desta sessao).
+   Bonus de seguranca no mesmo lote: `AssinaturaCaixa.assinar()` mudou de "erro -> retorna
+   null" (cookie de assinatura HMAC quebrado passaria SILENCIOSO) p/ "erro -> lanca
+   IllegalStateException" (aborta em vez de degradar o controle de seguranca calado).
+[CFGBANCO-REMOVIDO] 🔴 IMPORTANTE, NAO CONFUNDIR com senha/anonimizacao (ver nota abaixo).
+   Existia um mecanismo de config alternativa do banco: HibernateUtil checava se um
+   arquivo cfgbanco.txt existia em $CATALINA_BASE/conf/ (via classes/ManipulaTxt.java) e,
+   se sim, USAVA os dados de conexao (host/porta/schema/usuario/senha) desse arquivo em
+   vez do hibernate.cfg.xml, descriptografando cada linha com classes/CriptografaDados.java
+   (AES SEM MODO ESPECIFICADO — cai no default AES/ECB/PKCS5Padding, modo fraco). Achado:
+   esse arquivo cfgbanco.txt NUNCA EXISTIU em nenhum deploy real do projeto — nem no Docker
+   (entrypoint.sh so patcha o hibernate.cfg.xml via sed) nem no deploy manual Ubuntu (H.4,
+   tambem edita o XML direto). Confirmado por grep: "cfgbanco" so aparecia neste proprio
+   RELATORIO (nota historica), em NENHUM script/config real. Ou seja, era codigo morto
+   desde sempre na pratica — a fraqueza do AES/ECB nunca era exercitada, mas nao valia a
+   pena consertar o modo de algo que nunca roda. Removidos: o bloco inteiro em
+   HibernateUtil.criarFabricaDeSessoes() (agora so `new Configuration().configure()` +
+   `buildSessionFactory()`), classes/ManipulaTxt.java, classes/CriptografaDados.java, e o
+   teste orfao test/.../CriptografaDadosTest.java (3 casos — a contagem de testes do LIC
+   cai de 14 p/ 11).
+   >>> NAO E A MESMA COISA que a criptografia de senha (bcrypt, Usuario.CriptografaSenha())
+   nem a anonimizacao de dados (Usuario.AnonimizaDadosPessoais(), SEC/anonimizacao) — essas
+   duas funcionalidades NUNCA usaram CriptografaDados/AES, continuam 100% intactas e nao
+   foram tocadas nesta limpeza. CriptografaDados so descriptografava a STRING DE CONEXAO DO
+   BANCO de um arquivo de config que nunca existiu — nada a ver com dado de usuario.
+[IUS-DEADCODE] `IdeiaUsuarioDAO.listarIdeiasLiderStorytelling()` — metodo morto, sem
+   nenhuma chamada em Java ou JSP em todo o projeto. Foi substituido pelo
+   `listarTodasIdeiasStorytelling()` (que corrigiu STR-09: passou a incluir nao-lideres
+   tambem), mas o antigo nunca foi apagado. Removido, junto com o unico teste que o
+   chamava (`IdeiaUsuarioDAOTest.listarIdeiasLider`, @Ignore — nao rodava, mas ainda
+   precisava compilar).
+[MANIPULATXT-THROWS] `ManipulaTxt.lerTxt()` declarava `throws FileNotFoundException,
+   IOException`, mas o proprio corpo do metodo ja captura IOException internamente (a
+   FileNotFoundException e subclasse) — nunca propagava de verdade. Quem chamasse com
+   try/catch defensivo em volta estava tratando um erro que jamais disparava. (Este fix
+   ficou junto do CFGBANCO-REMOVIDO acima, ja que a classe inteira foi removida depois.)
+[DAO-PERF-STATUS] `listarTodasIdeiasStorytelling`, `listarCaixa` e `listarIdeiasCanva`
+   (IdeiaUsuarioDAO) carregavam TODAS as ideias do usuario do banco e filtravam por status
+   DEPOIS, em Java (loop + lista auxiliar) — mesmo padrao ineficiente em 3 metodos. Agora o
+   filtro de status vai pra dentro da propria query via `createAlias("ideia", "i")` +
+   `Restrictions.eq("i.status", ...)` — uma unica consulta ja filtrada, sem trazer linhas
+   que iam ser descartadas. Mesmo principio ja demonstrado em
+   IdeiaDAO.listarIdeiasDisponiveis (HQL com filtro no banco).
+Varredura de classes/ (8 arquivos), util/ (4) e domain/ (11): NENHUMA outra mudanca
+necessaria. classes/ restante (AbrirPDF, AssinaturaCaixa, Constantes, Data, EnvioEmail,
+StatusIdeia) ja bem guardado. util/CsrfFilter, LowerCaseTableNamingStrategy e
+PostOnlyFilter ja solidos, sem achados. domain/ (as 11 entidades) ja tem construtores
+DEFENSIVOS -- toda entidade com FK (Ideia, IdeiaUsuario, Canva, etc.) inicializa a
+associacao com um objeto vazio em vez de null no construtor sem parametros (ex.:
+`public Ideia() { usuario = new Usuario(); }`), entao o padrao comum nos DAOs de
+`if (x.getIdeia().getCodigo() != null)` e seguro por design -- `getIdeia()` nunca
+retorna null. Colunas obrigatorias ja tem `@Column(nullable = false)` correto.
+>>> CORRECAO (2026-07-03): a linha acima ("AbrirPDF/EnvioEmail ja bem guardado") estava
+ERRADA -- uma segunda passada, pedida explicitamente pelo usuario pra fechar os 4
+arquivos de classes/ que ainda nao tinham sido abertos de verdade nesta conversa,
+achou 2 bugs reais nos 2:
+[RET-14-PDF] 🟡 AbrirPDF.abrir(): o parametro `titulo` (usado no header Content-
+   disposition como nome do arquivo) vem de `ExportFile.getFileName()`, que e SEMPRE
+   null na pratica -- confirmado por grep no LIC E no Toolkit inteiros: `setFileName(...)`
+   so aparece na propria definicao do metodo, nenhum caller chama de verdade. Resultado:
+   todo PDF de Persona/POV baixava como "null.pdf". Fix (local, dentro do proprio
+   AbrirPDF, sem precisar mexer no Toolkit): fallback pra "documento.pdf" quando
+   titulo e null/vazio, e sanitizacao (remove aspas/CR/LF) de qualquer titulo que vier
+   preenchido no futuro, ja que nunca era limpo antes de ir pro header. 5 testes novos
+   em AbrirPDFTest (Mockito).
+[RET-14-EMAIL] 🟠 ResetPasswordServlet e EnviaDadosPessoaisServlet chamavam
+   EnvioEmail.EnviaEmail() (que declara `throws IOException`) sem try/catch -- uma
+   falha de REDE no SendGrid (diferente de um status de erro, que ja era tratado)
+   subia sem tratamento. No ResetPasswordServlet isso e serio: a senha JA tinha sido
+   trocada no banco ANTES da tentativa de envio -- se a excecao estourasse, o usuario
+   caia numa pagina de erro generica E ficava trancado fora da propria conta, sem
+   saber a senha nova (o e-mail com a senha temporaria nunca chegou a ser tentado
+   dizer que falhou). Fix: try/catch nos 2 servlets, tratando IOException igual a
+   `enviado=false` (mesma resposta anti-enumeracao SEC-19 nos dois casos).
+   Nota a parte: [INFRA-03] no K.5 ("EnviaEmail sempre retorna true") esta DESATUALIZADO
+   -- o codigo atual de EnvioEmail.java ja checa o status code do SendGrid direito
+   (corrigido em sessao anterior a esta conversa); so a excecao de rede continuava
+   sem tratamento nos 2 CALLERS, achado acima. Corrigido o texto do K.5.
+Licao: a varredura original (B.8, antes desta conversa) tinha classificado esses 2
+arquivos como "sem achado" sem os ter reaberto byte a byte -- os 2 bugs so apareceram
+numa segunda passada dedicada, pedida explicitamente pelo usuario para fechar a lacuna
+de cobertura. Nao presumir "sem achado" como permanente sem reconferir.
+[RACE-01] 🔴 (2026-07-03) CadastroUsuarioServlet fazia "verifica se usuario/email ja
+   existe -> se nao, insere" em 2 passos SEM nenhuma trava de verdade -- so checagem em
+   Java (2 SELECTs). Achado numa reflexao pedida pelo usuario sobre que tipo de bug o
+   "prompt magico" original (focado em excecao/null/validacao) estruturalmente NAO
+   pegaria; confirmado lendo o schema completo (db/init/estrutura-lic_bd.sql): a tabela
+   `usuario` so tinha PRIMARY KEY (codigo), nenhuma UNIQUE em usuario/email.
+   Consequencia real: 2 cadastros SIMULTANEOS com o mesmo login passam os 2 pela
+   checagem e os 2 inserem -> 2 contas com login identico -> LogInServlet exige
+   `lista.size()==1` pra deixar logar, entao as 2 contas ficam TRANCADAS PRA SEMPRE
+   (sem erro visivel, so "login e/ou senha invalido"), so recuperavel com intervencao
+   manual no banco. Fix em 3 camadas:
+   1) Usuario.java: `@Column(unique = true)` em `usuario` e `email` -- a trava passa a
+      ser o BANCO, nao mais so o Java.
+   2) db/init/estrutura-lic_bd.sql: UNIQUE KEY nos 2 campos da tabela `usuario`. NOTA:
+      esse script so roda no 1o boot de um volume vazio -- um banco ja existente
+      (deploy anterior a 2026-07-03) precisa do ALTER TABLE manual documentado no
+      proprio arquivo SQL (comentario ao lado da tabela).
+   3) CadastroUsuarioServlet.java: try/catch em volta do `usuarioDAO.salvar()` pra
+      `org.hibernate.exception.ConstraintViolationException` -- se a corrida acontecer
+      mesmo assim (janela entre o SELECT e o INSERT), o PERDEDOR cai na mesma resposta
+      amigavel de "ja existe" (respostaCadastro) em vez de estourar uma excecao pro
+      usuario ou pior, criar a 2a conta.
+   Testes novos: UsuarioDaoH2Test ganhou 2 casos provando que o BANCO rejeita duplicata
+   de login/email mesmo sem a checagem em Java. CadastroUsuarioServletTest (NOVO -- 1o
+   teste de servlet do projeto, 0 dos 51 tinham teste antes) dispara 2 threads DE
+   VERDADE simultaneas com o mesmo login (sincronizadas por CyclicBarrier) e confirma:
+   nenhuma excecao escapa pro caller, e so 1 conta existe no banco no final -- rodou e
+   pegou a corrida de fato (log mostra 1 ConstraintViolationException absorvida).
+[MODELAGEM-01] [FEITO 2026-07-03] Usuario.email estava length=100 no Java (@Column) mas
+   varchar(50) no schema real -- mismatch de modelagem achado durante o RACE-01. Fix:
+   alinhada a anotacao Java pro numero que ja esta em producao (length=50), em vez de
+   ALTER TABLE no banco (evita risco de schema em coluna que pode ja ter dado real).
+   Achado relacionado, NAO corrigido (fora de escopo, so anotado): nenhum campo tem
+   validacao de tamanho antes do insert -- um e-mail entre 51-100 chars ainda cairia
+   como excecao nao-tratada (MySQL 8 strict rejeita, nao trunca) no CadastroUsuarioServlet
+   em vez de uma mensagem amigavel. Raro na pratica, mas existe.
+   TOTAL DE TESTES: LIC 89 reais (86 + 3 do RACE-01).
+
+--- TIER 1: TESTES DE SERVLET (2026-07-03) ---
+Pedido do usuario apos o RACE-01 -- os 51 servlets do LIC tinham ZERO teste ate o
+CadastroUsuarioServletTest (RACE-01). Escopo desta rodada: os ~10 servlets onde a
+varredura B.9 ja tinha achado e corrigido IDOR de verdade -- maior valor por esforco,
+protege exatamente os bugs que ja foram fechados contra regressao. Os outros ~40
+servlets (infra de auth core -- LogInServlet/LogOutServlet/PermissaoUsuarioServlet/etc,
+mais os mecanicos tipo InserirForma/DeletarObjServlet/RetornaX) ficam pendentes p/
+uma proxima rodada (ver K.9).
+Servlets cobertos (1 arquivo de teste cada, Mockito p/ request/response/session +
+DAOs reais contra H2): EntrarColaboracaoServletTest (bypass de admin/retencao +
+bloqueio de quem nao participa), EntrarStorytellingServletTest (sem bypass de admin
+aqui, e os 2 caminhos de redirect por status), EntrarDetalheServletTest (lider
+calculado no servidor, nao mais confiado do parametro do cliente), AddDescricaoServletTest
+(403 pra quem nao e lider), SalvarTextoServletTest (autor sempre da sessao, nao do
+parametro), CadastroIdeiaServletTest (validacao server-side de titulo/descricao,
+nao so no JS), EntrarCanvaBaseServletTest (via EntrarCanvaAtividadeServlet real --
+a base e abstrata; cobre a blindagem SRV-NPE-01), AbrirPersonaTest/
+AbrirPointOfViewTest (dono do export vs. bypass de admin), EditarTextoServletTest
+(o achado da SEGUNDA passada da varredura, SRV-IDOR-06).
+TOTAL: LIC 89 -> 135 (46 testes novos de servlet).
+PENDENCIA (nao urgente, so registrada): migrar Criteria/Restrictions (deprecado desde
+Hibernate 5.2, removido na 6.0) p/ CriteriaBuilder (que o GenericDAO ja usa) nos 10 DAOs
+acima. Adiado de proposito: sem beneficio ate a Tier 3 (upgrade p/ Hibernate 6+, ja
+adiada por outro motivo), e risco medio de bug silencioso (comportamento tem que ficar
+identico em cada Restrictions.eq/like/and/or/Order traduzido a mao).
+
+--- TIER 2: TESTES DE SERVLET — INFRA DE AUTH CORE (2026-07-05) ---
+Continuacao pedida pelo usuario. 8 servlets (maior consequencia se quebrar, nenhum bug
+documentado mas nunca testado): LogInServletTest, LogOutServletTest,
+PermissaoUsuarioServletTest, ResetPasswordServletTest, AnonimizaUsuarioServletTest,
+AlteraUsuarioServletTest, EnviaDadosPessoaisServletTest, ValidarIdeiaServletTest.
+[FEITO] Achado no caminho: EnviaDadosPessoaisServlet era o UNICO do grupo sem guard
+   POST-only (SEC-18) -- um GET tambem disparava o envio de e-mail com dados pessoais,
+   abrindo CSRF via GET (ex.: <img src="EnviaDadosPessoaisServlet"> numa pagina de
+   terceiros, com a vitima logada). A tela ja usa form method="POST", entao bloquear o
+   GET nao muda o uso normal. Fix aplicado.
+TOTAL: LIC 135 -> 170 (35 testes novos).
+
+--- TIER 3: TESTES DE SERVLET — MECANICOS/CRUD (2026-07-05/06) ---
+23 servlets restantes (dos 51 -- os outros 8 sao subclasses triviais de 2 linhas de
+EntrarCanvaBaseServlet, ja coberta via EntrarCanvaAtividadeServlet no Tier 1; testar cada
+uma individualmente nao agregaria cobertura real). Escritos 3 pelo Claude diretamente
+(DeletarObjServletTest, EntrarIdeiaServletTest, FecharGrupoServletTest -- os mais ligados
+aos achados do K.8) e os outros 20 via 3 agentes em paralelo seguindo o mesmo padrao
+estabelecido (Mockito p/ request/response/session, DAOs reais contra H2), cada grupo
+verificado com mvn test antes de reportar pronto: AutoSalvarStoryServletTest,
+InserirFormaTest, InserirTextoTest, RetornaAudioTest, RetornaElementosTest,
+RetornaMensagensServletTest, SalvarAudioServletTest, EntrarCaixaServletTest,
+EntrarCanvaServletTest, EnviarCanvaServletTest, ExportCanvaServletTest,
+DeleteCanvaServletTest, DeletarCanvaexportServletTest, VisaoGeralCanvaServletTest,
+EnviarColaboracaoServletTest, ExportaStoryServletTest, FinalizarColaboracaoServletTest,
+GerenciarIdeiaServletTest, DeletarExportedFileServletTest, UploadArquivoServletTest.
+2 achados de producao nesta rodada, ver B.11 (EntrarCanvaServlet sem guard de login,
+DeleteCanvaServlet com allow-list fraca no anti open-redirect).
+TOTAL: LIC 170 -> 272 (102 testes novos: 13 do Claude + 89 dos 3 agentes).
+Suite completa rodada apos os 3 agentes em paralelo terminarem (risco conhecido: H2
+compartilhado entre classes de teste, ver TEST-04/StorytellingDAOTest) -- 272/272 verde,
+sem colisao entre o trabalho paralelo.
+Depois, os 7 fixes do K.8 (ver K.8) ganharam +6 testes de concorrencia nos arquivos ja
+existentes deste Tier (AlteraUsuarioServletTest, EntrarIdeiaServletTest,
+FinalizarColaboracaoServletTest, ExportCanvaServletTest -- threads reais + CyclicBarrier,
+mesmo padrao do RACE-01) -> LIC 278 TOTAL, TODOS OS 51 SERVLETS COM COBERTURA.
+
+--- B.9 SERVLETS — VARREDURA DE AUTORIZACAO / IDOR (2026-07-02, branch dao-classes-robustez) ---
+Mesmo metodo do "prompt magico" (ver C, secao de metodologia), adaptado p/ servlets:
+p/ cada um, mapear (1) qual URL o aciona, (2) o que valida/processa, (3) p/ onde
+redireciona em sucesso/erro, (4) quais atributos de sessao le/escreve. Os 51 arquivos
+de edu.unisc.lic.servlet foram lidos por completo (2 rodadas: varredura inicial + uma
+segunda passada focada, que ainda achou 1 caso a mais). Rastreando o item (4) contra o
+padrao ja estabelecido em outros ~15 servlets do mesmo projeto (SEC-23, CANM-09,
+RKM-01/02, RETENCAO-ACESSO — login + IdeiaUsuarioDAO.listarParametro antes de liberar
+acesso), apareceram 9 pontos onde esse padrao foi pulado:
+
+[SRV-IDOR-01] 🔴 EntrarColaboracaoServlet: calculava o vinculo do usuario com a ideia
+   (`iu`) so pra decidir o valor de "lider" na sessao — NUNCA usava isso pra barrar
+   acesso. Qualquer usuario logado, trocando ideiaId na URL, entrava na colaboracao
+   ativa de QUALQUER outra pessoa: lia a conversa e conseguia escrever nela (os
+   servlets downstream — EnviarColaboracaoServlet, AddDescricaoServlet,
+   RetornaMensagensServlet — confiam no ideiaId da sessao sem checar de novo). Mesmo
+   padrao do bug ja corrigido no EntrarCanvaServlet (CAN-ACESSO-V2), so que nao
+   tinha sido visto ainda. Fix: login exigido + acesso barrado se `iu == null` E o
+   usuario nao for admin (admin mantem acesso irrestrito — gerenciamento-ideia.jsp
+   usa esta mesma tela, com retencao=true, pra ver a colaboracao de qualquer ideia).
+[SRV-IDOR-02] 🔴 EntrarStorytellingServlet: pior que o anterior — NAO CHECAVA LOGIN
+   NENHUM, e a busca do Storytelling filtrava so por ideiaId (usuario=new Usuario(),
+   vazio = "qualquer um"). Qualquer usuario AUTENTICADO acessava — e editava, se
+   status "DE" (em desenvolvimento) — o Storytelling de qualquer outra ideia. Fix:
+   login exigido + checagem de participacao via IdeiaUsuarioDAO antes de liberar
+   (sem bypass de admin aqui — "Abrir quadro" ja foi removido da Retencao antes,
+   UX-STORYTELLING-QUADRO, entao nao ha caminho de admin legitimo por este servlet).
+[SRV-IDOR-03] 🟠 EntrarDetalheServlet: sem checagem de login, sem checagem de
+   participacao, e o pior detalhe — confiava DIRETO num parametro `lider` vindo do
+   FORMULARIO DO CLIENTE pra decidir se mostra acoes de lider (ex.: "Fechar Grupo")
+   em detalhes-ideia.jsp. Impacto pratico limitado (FecharGrupoServlet reverifica
+   lideranca antes de agir de verdade), mas era um design perigoso. Fix: login
+   exigido; "lider" deixou de vir de parametro — agora e calculado no servidor via
+   IdeiaUsuarioDAO a partir do vinculo real do usuario logado com a ideia.
+[SRV-IDOR-04] 🟠 AddDescricaoServlet: ZERO checagem de autenticacao. A restricao
+   "so o lider adiciona a descricao" so existia na UI (colaboracao.jsp escondia o
+   botao pra quem nao era lider); o servlet aceitava de qualquer um. Fix: login +
+   checagem de lideranca (IdeiaUsuarioDAO, flLider='S') antes de gravar.
+[SRV-IDOR-05] 🟠 SalvarTextoServlet: tinha login e o autor ja era corretamente o
+   usuario da sessao (nao falsificavel), mas NAO checava participacao nem lideranca
+   — qualquer autenticado gravava "colaboracao" na historia oficial de QUALQUER
+   ideia (nao so a sua, nem so como lider). Fix: exige lideranca (mesma checagem).
+[SRV-IDOR-06] 🟠 EditarTextoServlet: mesma lacuna do SalvarTextoServlet — sem login,
+   sem checagem de lider. E a porta de entrada do botao "Editar Texto" (lider-only
+   na UI), que alimenta o SalvarTextoServlet acima. So achado na SEGUNDA passada da
+   varredura (grep de `request.getParameter("ideiaId")` em todos os servlets, pra
+   confirmar que nenhum outro ponto de entrada ficou de fora). Fix: login + lideranca
+   exigidos, fechando o fluxo completo (antes so o save final estava protegido).
+[SRV-500-01] 🟡 CadastroIdeiaServlet: sem checagem de login — um POST direto sem
+   sessao dava NPE no unboxing de codigoUsuario e a ideia ficava sem usuario (FK
+   nullable=false no schema), virando erro 500 cru em vez de redirecionar pro login.
+   Fix: login exigido no inicio do metodo.
+[SRV-NPE-01] 🟡 EntrarCanvaBaseServlet (afeta as 9 subclasses EntrarCanva*Servlet —
+   MNT-01, todas herdam desta classe): faltava null-check depois de
+   ideiaDAO.buscar(sessionIdeiaId). Hoje inatingivel na pratica (nao existe "excluir
+   ideia" ainda), mas blinda pro caso de essa feature existir no futuro. Fix: 1
+   null-check na classe base, corrige as 9 telas de secao do Canvas de uma vez.
+[SRV-IDOR-07] 🟡 AbrirPersona / AbrirPointOfView: exigiam login, mas nao checavam
+   DONO do PDF exportado — qualquer usuario logado baixava o PDF de Persona/POV de
+   OUTRO usuario so adivinhando/iterando o codigo (vazamento de dados, menor
+   sensibilidade que colaboracao ativa mas ainda real). Fix: exige participacao na
+   ideia dona do export (ou ser admin) antes de servir o PDF — mesmo padrao usado
+   no resto do projeto.
+VERIFICACAO: apos os 9 fixes, foram gerados 2 greps de auditoria —
+`request.getParameter("ideiaId")` (8 arquivos) e `request.getParameter("codigo")`
+(4 arquivos) — confirmando que TODO ponto de entrada que aceita um id de ideia via
+parametro (nao via sessao ja validada) tem alguma checagem de login/participacao/
+lideranca. Build (mvn clean compile + test-compile) verde apos cada rodada.
+Servlets ja bem protegidos e conferidos sem achados: todo o grupo de Login/Admin (8
+arquivos — LogInServlet, LogOutServlet, CadastroUsuarioServlet, AlteraUsuarioServlet,
+AnonimizaUsuarioServlet, EnviaDadosPessoaisServlet, ResetPasswordServlet,
+PermissaoUsuarioServlet), FecharGrupoServlet, FinalizarColaboracaoServlet,
+GerenciarIdeiaServlet, EntrarIdeiaServlet, ValidarIdeiaServlet,
+DeletarExportedFileServlet, DeletarCanvaexportServlet, AutoSalvarStoryServlet,
+DeletarObjServlet, EnviarCanvaServlet, DeleteCanvaServlet, EntrarCaixaServlet.
+
+--- B.10 JS PROPRIO — VARREDURA DE COBERTURA (2026-07-03) ---
+Varredura de cobertura em src/main/webapp: mapeados quais arquivos (JSP/JS/CSS fora dos root
+.jsp) nunca tinham sido abertos por nenhuma varredura anterior. Cobertos agora: header/footer.jsp,
+header/canva-footer.jsp, erros/404.jsp, erros/500.jsp, css/canva.css, css/storytelling.css,
+js/csrf.js, js/canva.js, js/controle.js, js/index.js, js/master.js, js/MenuSuperior/geraPDF.js,
+js/MenuSuperior/geraPDFCanva.js, WEB-INF/web.xml, META-INF/context.xml, sass/style.sass. XSS
+achado ver [FOOTER-XSS] (A.1); codigo morto ver F; achado abaixo:
+[JS-AJAX-ERR] 🟡 5 chamadas $.ajax sem callback error: (silenciam falha de rede/sessao expirada/
+   403 -- o clique nao faz nada, sem feedback pro usuario). js/controle.js: adicionaForma()
+   (POST InserirForma), resize do #btnModificar (POST AutoSalvarStoryServlet), insercao de texto
+   do #b3 (POST InserirTexto). js/master.js: deleteFile() e deleteCanvaExport() (POST
+   DeletarExportedFileServlet / DeletarCanvaexportServlet). Fix: error: function(){ alert(...) },
+   replicando o padrao ja usado em salvarProgresso() (mesmo arquivo) e em geraPDF.js/
+   geraPDFCanva.js. web.xml/context.xml/csrf.js/canva.js/geraPDF.js/geraPDFCanva.js/404.jsp/
+   500.jsp conferidos sem achados (headers de seguranca, CSRF, cookies e error-pages ja OK).
+
+--- B.11 ACHADOS DURANTE A ESCRITA DOS TESTES TIER 2/3 (2026-07-06) ---
+Escrever teste obriga a ler o servlet de verdade (nao so o nome) -- 2 achados que nenhuma
+varredura anterior (B.9 incluida) tinha pego, so apareceram tentando exercitar o codigo:
+[FEITO] EntrarCanvaServlet (ponto de entrada principal do Canvas, carrega os 9 blocos)
+   nao tinha NENHUMA checagem de login -- fazia (long) session.getAttribute("codigoUsuario")
+   direto, sem checar null. Uma sessao sem esse atributo (usuario deslogado acessando
+   direto) dava NPE no unboxing em vez de redirecionar, diferente de TODOS os outros
+   servlets "Entrar*" do sistema. Fix: mesmo guard usado nos irmaos (ex.: EntrarCaixaServlet).
+[FEITO] DeleteCanvaServlet (CAN-04, guard anti open-redirect do parametro 'context') usava
+   `context.startsWith("EntrarCanva")` -- um valor forjado tipo "EntrarCanvaXxxInexistente"
+   passava na checagem (nao e um destino externo, entao nao era open-redirect de verdade)
+   mas so quebrava em runtime com 404 em vez de ser rejeitado de cara. Fix: lista fechada
+   (Set de String) dos 10 destinos "EntrarCanva*" realmente validos.
+Ambos cobertos por teste novo (ver G/TIER 3).
 
 
 
@@ -848,6 +1201,15 @@ navegacao (botao Voltar) — achados/pedidos testando o sistema rodando de verda
    contextual lider/nao-lider); storytelling-finalizado.jsp, canvas-finalizado.jsp,
    finalize.jsp do Toolkit (ja tinham "Ver minhas ideias"); redirect.jsp, success.jsp,
    error.jsp do Toolkit (ja tinham escape proprio); wait.jsp (so um <c:redirect>, sem UI).
+[STR-15] 🟡 (2026-07-03, achado pelo usuario testando) storytelling.jsp: o botao "inserir
+   arquivo" (#b1_1, upload de imagem) disparava salvarProgresso() a CADA clique -- overlay
+   bloqueante + alert "Salvo com sucesso!" MESMO SEM nenhum arquivo escolhido, sem relacao
+   nenhuma com o upload em si (o form de upload e normal, submete sozinho pro
+   UploadArquivoServlet). Nao precisava: toda mudanca no quadro ja persiste sozinha na hora que
+   acontece (InserirForma/InserirTexto ao criar, AutoSalvarStoryServlet no dragend/resize/edicao
+   de texto -- mesmo raciocinio ja aplicado antes em controleAdd.js pro STM-22/STR-11, so nao
+   tinha chegado nesse botao). Fix: removido o handler; upload continua igual, so sem o
+   save-do-quadro-inteiro fantasma.
 
 
 
@@ -861,6 +1223,16 @@ D. PERFORMANCE / OTIMIZACAO
 [CANM-07] ExportCanvaServlet: query duplicada -> consulta unica.
 [CAN-10] ExportCanvaServlet: le o body antes de validar (evita ERR_CONNECTION_RESET por maxSwallow
    Size). [tambem em B.4]
+[PERF-02] 🟠 (2026-07-03) N+1 corrigido em AutoSalvarStoryServlet (mapeado antes em K.7): pra cada
+   elemento do quadro de Storytelling, o autosave fazia 1 buscar() + 1 editar() -- CADA UM abrindo/
+   fechando sua PROPRIA Session/conexao (sem connection pool configurado -> 1 Session = 1 conexao
+   JDBC nova via DriverManager). P/ N elementos: 2N conexoes por clique em salvar. Fix: 2 metodos
+   novos no ElementosStorytellingDAO -- buscarPorCodigos(List<Long>) (1 SELECT com Restrictions.in,
+   nao 1 por elemento) e salvarLote(List<...>) (1 Session/Transaction so, N updates dentro, 1
+   commit). De 2N conexoes por autosave pra 2, independente do tamanho do quadro. Mesmo padrao
+   aplicado no SalvarAudioServlet (excluirTodos(...), impacto real baixo hoje pois so remove no
+   maximo 1 audio anterior, mas mesma classe de bug). 4 testes novos em
+   ElementosStorytellingDAOTest cobrindo os 3 metodos em lote (LIC 81 testes reais agora, ver G).
 
 
 
@@ -919,6 +1291,10 @@ E. INFRA / BUILD / ENCODING / REFATORACAO
    pagina): extraida EntrarCanvaBaseServlet (abstrata) com a logica comum; cada um virou subclasse de
    ~14 linhas (getTipoCanva + getPaginaDestino). ~880 linhas -> ~200. Nomes/mapeamentos/forms INTACTOS
    (zero mudanca de comportamento). O EntrarCanvaServlet do mapa NAO foi mexido (e diferente).
+[ENC-04] (2026-07-03) css/canva.css — 4 comentarios com mojibake (bytes gravados em encoding
+   errado em algum commit antigo; ex. "CONFIGUR??ES GERAIS" em vez de "CONFIGURACOES GERAIS").
+   So afetava comentario (zero impacto visual/funcional); corrigido p/ ASCII puro (sem acento) pra
+   nao arriscar reintroduzir o mesmo problema de encoding no arquivo.
 
 
 
@@ -941,11 +1317,35 @@ F. LIMPEZA / CODIGO MORTO (~50 MB removidos)
    paginas; 3 System.out de debug do EnvioEmail; UsuarioDAO.java.bak. (Os System.out "Erro ao fechar a
    operacao" nos catch dos DAOs foram MANTIDOS — log de erro, nao dado pessoal.)
 [STM-08] controleMouse.js: funcoes orfas inofensivas (codigo morto).
+[JS-DEADCODE] (2026-07-03) js/index.js (100% comentado; a unica referencia, login.jsp:406, ja
+   era um <script> comentado -- nunca executava) e sass/style.sass (template de CodePen/Bourbon,
+   0 referencia em qualquer JSP, nao compila p/ lugar nenhum) apagados. Achados na mesma varredura
+   de cobertura do B.10.
+[LIBS-AUDIT] (2026-07-03) Mapeamento das libs front do LIC (pedido do usuario, "libs modernizar
+   /upar versao"). Achados 4 itens de limpeza gratuita (zero risco, aplicados na hora) + 3 itens
+   de upgrade de verdade (registrados como pendencia, ver K.4):
+   [VUE-MORTO] 🔴 login.jsp E index-perfil.jsp carregavam Vue.js 2 via CDN
+     (cdn.jsdelivr.net/npm/vue@2) e NUNCA o usavam -- 0 ocorrencia de `new Vue`/v-model/v-if/v-for/
+     v-bind/v-on/{{...}} nos 2 arquivos. Peso morto (download extra) na tela mais visitada do
+     sistema (login). Removido dos 2.
+   [HTML2CANVAS-MORTO] js/Bibliotecas/html2canvas.min.js (60 KB) so tinha 1 <script> residual em
+     header/headerCookiesCV.jsp -- a funcao html2canvas() nunca e chamada em lugar nenhum desde que
+     o export do Canvas virou desenho nativo (CAN-NATIVO, 2026-06-23, ver geraPDFCanva.js). As 2
+     mencoes que sobraram (js/Bibliotecas/jspdf.js, geraPDFCanva.js) sao so um comentario e um
+     plugin OPCIONAL do proprio jsPDF nunca invocado (addHTML, que so ativa se html2canvas existir
+     globalmente). Arquivo + <script> apagados.
+   [FA-VERSAO] index-perfil.jsp, login.jsp, erros/404.jsp, erros/500.jsp carregavam Font Awesome
+     4.3.0 E 4.7.0 juntos (2 stylesheets pro mesmo icon set, o 4.3.0 sempre redundante). Removido o
+     4.3.0 dos 4; fica so 4.7.0 (ja usado em mais 17 lugares no projeto).
+   [JQUERY-VERSAO] login.jsp e index-perfil.jsp carregavam jQuery 2.1.3 de um CDN diferente
+     (cdnjs) do resto do projeto, que usa 3.2.1 (code.jquery.com ou local) em TODOS os outros ~20
+     arquivos. Trocado pros 2 pros mesmos 3.2.1/code.jquery.com, eliminando a divergencia de versao
+     na pagina de login.
 
 
 
 ################################################################################
-G. TESTES AUTOMATIZADOS (0 -> 42)
+G. TESTES AUTOMATIZADOS (0 -> 309)
 ################################################################################
 Situacao previa: o LIC tinha 10 arquivos de teste mas eram scratch @Ignore'd dependentes de banco
 (24 testes, TODOS skipped); o Toolkit nao tinha NADA.
@@ -965,7 +1365,43 @@ Situacao previa: o LIC tinha 10 arquivos de teste mas eram scratch @Ignore'd dep
    p/ a fase de versoes): no JDK 21 o Hibernate 5.2 nao gera proxies (ClassLoader.defineClass via
    reflection bloqueado pelos modulos) -> surefire argLine "--add-opens java.base/java.lang=ALL-UNNAMED
    ... java.lang.invoke" (producao no Tomcat tb precisa = D-2).
-   TOTAL: LIC 14 reais (+24 @Ignore legados de DAO), Toolkit 28.
+   TOTAL (ate 2026-07-02): LIC 14 reais (+23 @Ignore legados de DAO — a contagem certa e 23, nao
+   24; o "24" do topo desta secao vinha de um teste ja removido antes), Toolkit 28.
+[TEST-04] (2026-07-03) Zerados os 23 @Ignore do LIC — reativados/reescritos com H2 e asserts reais,
+   ou absorvidos (arquivo apagado) pelo H2Test da mesma entidade quando ja existia um. NENHUM
+   teste do LIC fica mais @Ignore. Cobertura NOVA que nao existia nem como scratch:
+   - AssinaturaCaixaTest: HMAC do SEC-23 (cookie ideiaId assinado entre LIC/Toolkit) — logica pura,
+     sem banco. Determinismo, formato hex de 64 chars, entradas diferentes -> saidas diferentes.
+   - CsrfFilterTest / PostOnlyFilterTest (Mockito, dependencia nova so de teste): os 2 filtros de
+     seguranca que rodam em TODA rota (web.xml /*) nunca tinham teste. Cobrem os 2 lados do
+     double-submit cookie (CSRF) e os 15 paths POST-only (SEC-25).
+   - UsuarioTest: hash bcrypt (SEC-22) e AnonimizaDadosPessoais (LGPD) — so eram tocados de raspao
+     pelo round-trip do UsuarioDaoH2Test, nunca teve teste direto.
+   - CanvaDAOTest / CanvaexportDAOTest: NAO tinham nenhum arquivo de teste (nem @Ignore) — o
+     modulo Canvas (9 blocos) ficava sem rede de seguranca nenhuma.
+   - IdeiaDaoH2Test/UsuarioDaoH2Test ganharam excluir/editar/listarParametro (faltavam).
+   hibernate.cfg.xml de teste ganhou mapping de Canva/Canvaexport/Storytelling/ElementosStorytelling/
+   ExportFile (faltavam 5 das 10 entidades usadas pelos DAOs). 3 bugs de AMBIENTE DE TESTE achados e
+   corrigidos no processo (nenhum e bug de producao):
+   - pom.xml tinha um comentario XML com "--" dentro (invalido) quebrando o parse do POM inteiro.
+   - javax.servlet.http.Cookie do javaee-web-api:7.0 nao empacota o LocalStrings.properties que a
+     propria classe carrega no <clinit> -> "new Cookie(...)" fora de um Tomcat real (nos testes do
+     CsrfFilter, que cria Cookie de verdade) explodia com MissingResourceException. Fix: dependencia
+     de teste javax.servlet-api:4.0.1 (tem o properties completo) declarada ANTES do javaee-web-api.
+   - hibernate.globally_quoted_identifiers=true (ja existia, p/ colunas reservadas tipo "text")
+     tambem colocava aspas no columnDefinition="longtext" das 4 entidades que tem esse tipo
+     (Canvaexport/ElementosStorytelling/ExportFile/Storytelling) -> H2 lia "longtext" (com aspas)
+     como tipo desconhecido. Fix: hibernate.globally_quoted_identifiers_skip_column_definitions=true.
+   TOTAL ATUALIZADO: LIC 77 reais (0 @Ignore), Toolkit 28 -> 105 no total dos 2 projetos. (+4
+   testes do PERF-02 em 2026-07-03 -- ver D -> LIC 81. +3 testes do RACE-01 no mesmo dia --
+   ver B.8/K.8 -> LIC 89. +46 testes de servlet no mesmo dia (Tier 1, 10 servlets com IDOR
+   ja corrigido -- ver G/TIER 1 acima) -> LIC 135. Inclui o 1o teste de servlet do
+   projeto, CadastroUsuarioServletTest, com concorrencia real via threads/CyclicBarrier --
+   os 51 servlets estavam com 0 teste ate entao. +35 testes do Tier 2 (auth core, ver
+   G/TIER 2) -> LIC 170. +102 testes do Tier 3 (23 servlets mecanicos/CRUD, ver G/TIER 3,
+   2026-07-05/06) -> LIC 272, TODOS os 51 servlets com cobertura. +6 testes de
+   concorrencia provando os fixes do K.8 (ver K.8) -> LIC 278. +1 teste do fix #5/#8 do
+   Grupo C (ver K.8) -> LIC 279 TOTAL, 307 nos 2 projetos.)
 
 
 
@@ -1154,6 +1590,14 @@ COMPOSE: base prod-safe (db+app, depends_on healthy, restart:always) + .dev.yml 
   Resetar o banco do zero: docker compose down -v (apaga o volume).
 IMPLEMENTADO e VALIDADO 2026-07-01: build verde; LIC 200 + Toolkit 200; login admin/admin; acentos
   e datas corretos. .env.example versionado (.env no .gitignore); segredos injetados via env do compose.
+[TEST-GATE] (2026-07-03) app/Dockerfile tinha `mvn clean package -DskipTests` nos 2 projetos -> os
+  105 testes (ver G/TEST-04) NAO rodavam no build da imagem; um teste quebrado subia pra producao do
+  mesmo jeito, sem log nenhum avisando. Removido o -DskipTests dos 2 `mvn package` do stage de build:
+  agora `docker compose up --build` RODA os testes antes de montar a imagem — se algum quebrar, o
+  build para ali (RUN do Dockerfile falha), o log do maven aparece no terminal com o teste que
+  quebrou, e a imagem nova nao e gerada (o container antigo continua no ar). Confirmado que o
+  Toolkit (28 testes) tambem esta 100% verde antes de tirar o skip, pra nao quebrar o build por um
+  motivo nao-relacionado.
 
 
 
@@ -1179,15 +1623,18 @@ K. PENDENCIAS
    foi feita; e a UNICA divida de seguranca que sobra de fato). O fluxo atual gera senha temporaria
    e envia por e-mail (sem token/expiracao); qualquer um que saiba o e-mail pode resetar a conta.
 
---- K.2 [CAN-EDIT] ENDURECER A EDICAO DO CANVAS ---
-   O canvas NAO tem trava de edicao por lider no CODIGO: os forms de editar so somem em modo retencao
-   (isRetencao), e o EnviarCanvaServlet/DeleteCanvaServlet so checam login + ideiaId na sessao (sem
-   checar lider nem participante). "So o lider edita" funciona HOJE so porque so o lider tem LINK ate
-   o canvas (lista-canvas e o botao novo do minha-ideia [CAN-ACESSO] sao leader-only). Se um dia o
-   acesso abrir p/ membros, eles CONSEGUIRAO editar. Fix futuro (opcao B): trava real de lider nos
-   forms do canvas + no EnviarCanva/DeleteCanva, e so entao liberar o botao p/ todos em leitura.
-   Relacionado: EntrarStorytellingServlet/EntrarCanvaServlet NAO checam participante (tolerados de
-   proposito p/ a Retencao em leitura — so o EntrarCaixa tem o check do SEC-23).
+--- K.2 [CAN-EDIT] EDICAO DO CANVAS -- [FECHADO 2026-07-06: DECISAO DE PRODUTO, NAO E BUG] ---
+   Nota antiga (2026-07-02) dizia que "so o lider edita" HOJE funcionava so porque so o lider
+   tinha LINK ate o canvas, e sugeria uma trava de lider como "fix futuro". Usuario esclareceu:
+   NAO quer trava de lider -- TODOS os participantes devem poder colaborar no Canvas, lider ou
+   nao. Reconferido em 2026-07-06: e exatamente o que ja acontece hoje, ponta a ponta --
+   minha-ideia.jsp mostra o botao de entrar no Canvas pra QUALQUER participante ([CAN-ACESSO],
+   sem checar flLider), EntrarCanvaServlet exige so PARTICIPACAO no servidor ([CAN-PARTICIPANTE],
+   nao lideranca), e EnviarCanvaServlet/DeleteCanvaServlet nunca checaram lider em lugar nenhum.
+   Nao ha mudanca de codigo necessaria -- fechado como comportamento correto e desejado, nao
+   pendencia. Relacionado: EntrarStorytellingServlet/EntrarCanvaServlet NAO checam participante
+   pra fins de Retencao em leitura (tolerado de proposito -- so o EntrarCaixa tem o check do
+   SEC-23), isso continua igual, nao fazia parte do que foi reavaliado aqui.
 
 --- K.3 UPGRADES DE VERSAO — TIER 1 + TIER 2 APLICADOS em 2026-06-29 (so falta o Tier 3) ---
 A "parede" javax->jakarta governa tudo: tudo antes dela e tranquilo; cruzar e reescrita em cascata.
@@ -1217,10 +1664,59 @@ A "parede" javax->jakarta governa tudo: tudo antes dela e tranquilo; cruzar e re
      (resolve tambem o max_allowed_packet — ver I). Alternativa: regenerar on-demand.
    - LIC: cada metodo de DAO abre/fecha Session; varios `new XxxDAO()` por request (varias Sessions).
      Reuso de Session / OpenSessionInView / camada de servico (o Toolkit ja e 1 sessao por transacao).
-   - Reativar os 24 testes @Ignore do LIC (DAO com H2; a base TEST-03 ja existe).
+   - [FEITO 2026-07-03] Reativar os 23 testes @Ignore do LIC -> ver G/TEST-04 (77 testes reais,
+     0 @Ignore restante). CanvaDAO/CanvaexportDAO/CsrfFilter/PostOnlyFilter/Usuario/AssinaturaCaixa
+     tambem ganharam teste novo (nao tinham nenhum antes).
    - HTML semantico (<main>/<section>/<button> nativos; o role="main" do SEMANTIC-01 ja da o landmark).
-   - Libs front antigas: html2canvas 0.5.0-beta3 (origem dos bugs de export), jsPDF, Materialize
-     0.100.2, jQuery, FontAwesome.
+   - Libs front antigas (mapeamento completo 2026-07-03, pedido do usuario -- ver G/LIBS-AUDIT p/ a
+     parte ja aplicada: Vue morto, html2canvas morto, versao de jQuery/FontAwesome unificada):
+     [KONVA] 1.6.5 (2017) -> atual (9.x). Usado so em controle.js + controleAdd.js (drag/resize/
+       texto/audio do Storytelling). Ganho: boa parte dos workarounds documentados no codigo
+       (STM-09/11/19/21 -- toDataURL assincrono nao confiavel, layer.getStage() nao confiavel,
+       posicionamento manual) sao bugs/limitacoes JA CORRIGIDOS em versoes recentes -- upar
+       removeria a necessidade deles, alem de ganho de performance (render/hit-detection). Custo:
+       API central estavel entre versoes (nao e reescrita), mas precisa de QA MANUAL completo do
+       modulo Storytelling depois (arrastar, redimensionar, editar texto, gravar audio, exportar
+       PDF) -- e a parte mais interativa do sistema, nenhum teste automatizado cobre a interacao
+       Konva em si. Enquanto isso, tambem trocar o carregamento via document.write() (controle.js)
+       por <script defer> normal.
+     [JSPDF] 1.0.272 (2014) -> atual (2.x/3.x). Usado em geraPDF.js (Storytelling) e
+       geraPDFCanva.js (Canvas). Ganho: essa versao antiga foi a causa-raiz documentada de 3 bugs
+       ja corrigidos via workaround (TK-16/TK-17/CAN-16 -- rotacao de pagina errada, pageSize.
+       getWidth ausente como funcao). Upar pode eliminar os workarounds (o fallback `pdf.internal.
+       pageSize.getWidth ? ... : ...` em geraPDF.js e exatamente pra cobrir as 2 APIs). Custo:
+       contido em 2 arquivos, mas exportacao de PDF e entrega central dos 2 modulos -- testar
+       manualmente os 2 exports depois de upar, nao so confiar que compila.
+     [MATERIALIZE] Divergencia de versao MAIOR encontrada (nao so "antiga"): CSS local 0.100.1,
+       CSS via CDN 0.100.2 em ~11 paginas, JS via CDN 1.0.0 (rewrite com API diferente da 0.100.x)
+       em login.jsp/index-perfil.jsp/headerCookiesCV.jsp e outras. login.jsp especificamente mistura
+       CSS 0.100.1 com JS 1.0.0 -- risco real de modal/select/sidenav se comportar errado em
+       silencio. Maior raio de impacto dos 3 (Materialize e usado em praticamente toda tela dos 2
+       projetos) -- decisao de produto: consolidar tudo em 0.100.x (menor esforco, projeto menos
+       ativo) ou migrar tudo pra 1.0.x (mais esforco, API quebra em varios componentes, mas mais
+       atual). Nao fazer "de passagem" -- exige QA visual de cada tela que usa modal/select/
+       sidenav/tabs depois.
+     [BAIXA PRIORIDADE] Quill 1.3.2 (atual e 2.x, mas sem bug documentado por causa da versao —
+       nao e urgente).
+     [TOOLKIT-NAO-MAPEADO] (2026-07-03) O mapeamento de libs acima (e o LIBS-AUDIT da secao G)
+       cobriu SO o LIC -- o Toolkit tem sua PROPRIA arvore de libs em WebContent/resources/,
+       nunca auditada. Espiada rapida (nao e o mesmo nivel de detalhe do LIC, so reconhecimento):
+       - html2canvas: AO CONTRARIO do LIC (onde estava morto), no Toolkit ESTA em uso ATIVO
+         (custom.js:92, html2canvas(section,{...}) -- fluxo de export de Persona/POV/empatia,
+         historico TK-09/TK-16). NAO apagar aqui.
+       - jsPDF do Toolkit e uma build BEM mais nova que a do LIC (usa Promise/generators/
+         Symbol.iterator, tipico de bundle ES2015+) -- os 2 projetos usam versoes DIFERENTES de
+         jsPDF hoje.
+       - Materialize do Toolkit e v0.99.0 (local) -- MAIS uma versao diferente das 3 ja
+         encontradas no LIC (0.100.1/0.100.2/1.0.0). Contando os 2 projetos, sao ate 4 versoes
+         de Materialize coexistindo no sistema.
+       - Libs exclusivas do Toolkit nunca olhadas: corejs-typeahead (autocomplete), enjoyhint +
+         custom.tour.js (tour guiado), masonry.pkgd.min.js (layout), materialize-tags (plugin de
+         tags do Materialize). Font Awesome do Toolkit ja e 4.7.0 (bate com o LIC, sem
+         divergencia aqui).
+       Pendente: repetir pro Toolkit o mesmo tratamento dado ao LIC (mapear uso real de cada uma,
+       achar codigo morto, decidir upgrade x manter) antes de considerar o levantamento de libs
+       do sistema como completo.
    - Sanitizacao server-side do rich-text (Quill) -> lib jsoup/OWASP (o XSS dos campos de descricao,
      que nao da p/ so escapar).
    - MIGRAR P/ POSTGRES (avaliado, esforco MEDIO): trocar driver/dialect/URL nos 2; GOTCHA principal =
@@ -1228,7 +1724,11 @@ A "parede" javax->jakarta governa tudo: tudo antes dela e tranquilo; cruzar e re
      case-sensitivity de identificadores. Alternativa de menor atrito: ficar no MySQL e so subir p/ 8.
 
 --- K.5 PEQUENAS / DECISAO (propositalmente nao mexidas) ---
-   [INFRA-03] EnviaEmail sempre retorna true (nao checa o status do envio do SendGrid).
+   [INFRA-03] [CORRIGIDO, item obsoleto] "EnviaEmail sempre retorna true" -- ja NAO e mais
+     verdade, o codigo atual checa o status code do SendGrid corretamente (corrigido em
+     sessao anterior a esta nota). Achado relacionado, esse sim real e corrigido em
+     2026-07-03: os CALLERS (ResetPasswordServlet, EnviaDadosPessoaisServlet) nao
+     capturavam a IOException do metodo -- ver B.8/RET-14-EMAIL.
    [INFRA-09] formatarData(null) mostra a data de HOJE (mudaria comportamento em todas as telas).
    [RET-06] JSP/JSTL dentro de JavaScript (gerenciamento-ideia.jsp) — fragil, alto risco mexer.
    [RET-08] lista-ideia-gerenciamento.jsp sem paginacao (limitacao, nao bug).
@@ -1239,6 +1739,11 @@ A "parede" javax->jakarta governa tudo: tudo antes dela e tranquilo; cruzar e re
      um dia).
    - new Long(0) deprecado nos controllers do Toolkit (funcional); "lic_bd." hardcoded nas native
      queries (config) — nao sao bugs.
+   [SESSION-FIXATION] (2026-07-02, achado numa auto-avaliacao pedida pelo usuario, nunca escrito
+     aqui ate agora) LogInServlet nao regenera o ID de sessao apos autenticar com sucesso — o
+     mesmo JSESSIONID de antes do login continua valendo depois. E o unico gap de seguranca
+     genuino que restou sem tratar depois da varredura de servlets (B.9). Usuario decidiu
+     EXPLICITAMENTE nao mexer ("nao precisa dessa de regeneracao"). Nao reabrir sem pedido novo.
 
 --- K.6 UI/UX A REVISITAR ---
    [POV-DESCOBERTA] (2026-07-01) descoberta da criacao de POV (ultimo item da varredura de UX do
@@ -1259,6 +1764,337 @@ A "parede" javax->jakarta governa tudo: tudo antes dela e tranquilo; cruzar e re
      tem contorno via codigo. O sistema roda em HTTP puro em producao hoje -> o microfone continua
      bloqueado la mesmo com a API corrigida. ADIADO a pedido do usuario (fica p/ quando houver
      HTTPS em producao). Sem isso, testar so funciona local (localhost) ou apos configurar TLS.
+
+--- K.7 PERFORMANCE — N+1 [FEITO 2026-07-03, ver D/PERF-02] ---
+   Mapeado e corrigido no mesmo dia. Varredura: os 51 servlets tem so 6 loops (`for`) no total --
+   N+1 NAO era um problema generalizado, so 2 pontos reais (AutoSalvarStoryServlet e
+   SalvarAudioServlet, ambos no fluxo do Storytelling). Detalhe completo do achado + fix em
+   D/PERF-02. Verificado tambem: nenhum JSP chama DAO diretamente (0 ocorrencias de
+   `DAO().buscar`/`listarParametro` em .jsp) -- o risco de N+1 fica restrito ao Java, nao ao view.
+
+--- K.8 PROMPT MAGICO — VARREDURA DE CONCORRENCIA / MODELAGEM DE BANCO [RODADO E
+    CORRIGIDO 2026-07-06] ---
+   Motivo: o N+1 (K.7) e o RACE-01 (B.8) tem em comum o mesmo defeito estrutural -- os 2
+   primeiros "prompts magicos" (DAO/domain em B.8, servlet/IDOR em B.9) foram desenhados
+   olhando (1) excecao mal tratada, (2) query que pode voltar null, (3) campo obrigatorio
+   sem validacao. Nenhum dos 3 critérios cobre concorrencia/atomicidade -- foi por isso
+   que RACE-01 passou batido na varredura original, e so apareceu numa reflexao manual
+   pedida pelo usuario. Este 4o prompt fecha esse angulo especificamente.
+   PROMPT-BASE (reutilizavel, ver tambem memoria feedback-ux-review-prompt.md):
+     "Leia os DAOs e os servlets que fazem escrita (POST/salvar/editar/excluir) e
+      mapeie: (1) toda sequencia 'verifica se X existe -> depois insere/atualiza X' --
+      ela tem uma trava de verdade no BANCO (UNIQUE/constraint), ou so a checagem em
+      Java (2 passos, corrida possivel)? (2) toda operacao que faz 2+ escritas
+      relacionadas em DAOs/Sessions DIFERENTES -- se a 2a escrita falhar (excecao, rede),
+      o estado fica inconsistente (a 1a ja foi commitada e nao tem como desfazer)? (3)
+      toda coluna que o NEGOCIO trata como unica (login, email, um par ideia+usuario que
+      nao devia repetir) -- confirme lendo o schema (db/init/estrutura-lic_bd.sql) se
+      existe UNIQUE de verdade, nao so o que o Java assume. (4) toda acao disparada por
+      um clique de formulario/botao -- o que acontece se o MESMO POST chegar 2x (duplo
+      clique, retry de rede, F5 depois de enviar)? Reporte cada achado como: onde esta,
+      o cenario exato que dispara o bug, e se ja existe (ou nao) uma trava no banco."
+
+   RESULTADO DA VARREDURA: 10 achados confirmados (codigo + schema, ~10 DAOs + 51
+   servlets lidos). 7 CORRIGIDOS em 2026-07-06, 3 grupos avaliados por custo/beneficio:
+
+   [FEITO] #1 FecharGrupoServlet -- a transferencia de lideranca (fechar grupo, rebaixar
+     lider antigo, promover novo, gravar log) rodava em ate 4 transacoes SEPARADAS; uma
+     falha exatamente entre rebaixar e promover deixava a ideia SEM NENHUM lider. Fix:
+     IdeiaUsuarioDAO.fecharGrupoAtomico(ideia, vinculosParaAtualizar, logInicial) -- novo
+     metodo que abre 1 unica Session/Transaction e faz update(ideia) + update(cada
+     vinculo) + save(log), tudo commitando junto ou nada (rollback). O servlet agora so
+     DECIDE em Java (a partir de leituras) o que vai mudar, e persiste tudo no final.
+     Mesmo padrao ja usado no PERF-02 (ElementosStorytellingDAO.salvarLote/excluirTodos).
+   [FEITO] #7 SalvarAudioServlet -- apagar o audio antigo e salvar o novo eram 2
+     transacoes separadas (excluirTodos + salvar); falha no meio perdia o audio de vez
+     (nem o antigo nem o novo sobravam). Fix: ElementosStorytellingDAO.substituirAudio
+     (antigos, novo) -- 1 unica transacao, delete(s)+save juntos.
+   [FEITO] #2 EntrarIdeiaServlet -- "ja vinculado?" e um check-then-insert em Java sem
+     trava no banco pro par (ideia,usuario); 2 cliques quase-simultaneos em "Entrar"
+     podiam duplicar o vinculo. Fix (3 camadas, mesmo padrao do RACE-01): UNIQUE
+     (usuario_codigo, ideia_codigo) em IdeiaUsuario (@Table(uniqueConstraints=...) +
+     schema SQL uk_ideiausuario_par, substitui o indice nao-unico idx_iu_usuario_ideia)
+     + catch de ConstraintViolationException no servlet (trata a corrida como "ja
+     vinculado", mesmo redirect). Provado com teste de concorrencia real (2 threads).
+   [FEITO] #3 FinalizarColaboracaoServlet -- criaStorytelling() fazia o mesmo
+     check-then-insert pra Storytelling (regra de negocio: 1 por ideia, so o @OneToOne
+     Java "sugeria" isso sem constraint real). Fix: UNIQUE(ideia_codigo) em Storytelling
+     (@JoinColumn(unique=true) + schema uk_storytelling_ideia) + catch no servlet (trata
+     a corrida como "storytelling ja existe", segue o fluxo normal). Testado com
+     concorrencia real.
+   [FEITO] #4 ExportCanvaServlet -- mesmo padrao pro Canvaexport (1 export por ideia).
+     Fix: UNIQUE(ideia_codigo) em Canvaexport (uk_canvaexport_ideia) + catch que trata a
+     corrida recarregando a linha que o "vencedor" acabou de inserir e fazendo UPDATE
+     nela (o "perdedor" nao perde o proprio conteudo, so evita duplicar a linha).
+     Testado com concorrencia real.
+   [FEITO] #6 AlteraUsuarioServlet -- mesma corrida de e-mail duplicado do RACE-01
+     original (a UNIQUE uk_usuario_email ja existe desde entao), mas SEM o catch que o
+     CadastroUsuarioServlet ja tinha ganhado -- o perdedor da corrida recebia excecao
+     crua em vez da mensagem amigavel. Fix + DETALHE IMPORTANTE achado durante o teste de
+     concorrencia: um editar() (UPDATE, o flush so acontece no commit()) propaga a
+     ConstraintViolationException ENVOLVIDA numa PersistenceException, enquanto um
+     salvar() (INSERT imediato por causa do identity generator, como nos outros 3
+     achados acima) propaga ela CRUA -- catch (ConstraintViolationException) sozinho nao
+     pegava a do editar(). Fix robusto: helper isConstraintViolation(Throwable) que
+     percorre a cadeia de causas em vez de checar so a classe do topo. Provado com teste
+     de concorrencia real (2 usuarios trocando pro mesmo e-mail simultaneamente).
+   [ACEITO, sem mudanca] #10 ResetPasswordServlet -- senha trocada no banco ANTES do
+     e-mail; ja e risco aceito e documentado no proprio codigo (fila para virar link com
+     token de expiracao). Nao e achado novo, confirmado que continua sendo o mesmo
+     trade-off consciente.
+
+   Grupo C -- reavaliado e parcialmente corrigido em 2026-07-06 (usuario pediu pra
+   aplicar o que valesse a pena):
+   [FEITO] #5 CadastroIdeiaServlet: Ideia e IdeiaUsuario(lider) eram 2 escritas em DAOs
+     separados sem transacao unica -- falha na 2a deixava uma Ideia orfa (sem lider
+     vinculado). Fix (Opcao A, mesmo padrao atomico do #1/#7): IdeiaDAO.criarComLider
+     (ideia, vinculoLider) -- 1 unica Session/Transaction, save(ideia) + save(vinculo).
+     Duplo-POST (2 ideias identicas) NAO foi mexido de proposito -- sem "identidade
+     natural" pra deduplicate (titulo/descricao podem legitimamente repetir) e hoje nao
+     existe "excluir ideia" no sistema pra sequer limpar uma duplicata manualmente; um
+     token de idempotencia so valeria a pena junto com essa feature.
+   [FEITO] #8 AddDescricaoServlet: duplo-POST reaplicava o mesmo texto 2x na descricao
+     oficial da ideia. Fix: "ad" (flSalvado) e setado SO por este servlet e nunca lido em
+     nenhum outro lugar -- vira marcador de idempotencia de graca. Se a colaboracao ja
+     esta "ad" quando o servlet roda de novo, devolve a descricao ja calculada em vez de
+     acrescentar o trecho outra vez. Testado (2 POSTs seguidos, texto aparece 1x so).
+   [NAO FEITO -- reavaliado e ainda desproporcional] #9
+     InserirForma/InserirTexto/EnviarCanvaServlet/UploadArquivoServlet/
+     EnviarColaboracaoServlet/SalvarTextoServlet: cada POST insere incondicionalmente
+     uma linha nova; duplo-clique cria um post-it/forma/linha de historico duplicada
+     (gravidade baixa -- e visivel na hora, o proprio usuario percebe e apaga). Ao
+     investigar a opcao mais barata (desabilitar botao no clique via JS) de perto: NAO
+     e um fix uniforme de ~1 linha por arquivo como pareceu a principio -- os 6
+     servlets sao acionados por padroes de UI DIFERENTES (alguns sao clique-em-ferramenta
+     no canvas de Storytelling que dispara AJAX, nao um form/botao de submit tradicional;
+     InserirForma/InserirTexto ficam em js/controle.js compartilhado com varias JSPs
+     diferentes). Fazer certo exigiria mapear cada interacao individualmente -- custo
+     realista bem mais alto do que os "~10min" inicialmente estimados, pra um ganho que
+     continua sendo so cosmetico (o usuario ve e apaga a linha duplicada na hora).
+     Mantido como [ACEITO] -- nao corrigido.
+   [ACEITO, sem mudanca] #10 ResetPasswordServlet -- ver acima, risco ja aceito e
+     documentado no proprio codigo.
+   Nao fazer sozinho meia-boca: todo achado acima foi confirmado lendo o schema E o
+   fluxo completo antes de ser reportado (nenhum e hipotese nao verificada).
+
+   TESTES: cada um dos 4 achados corrigidos com constraint nova (#2/#3/#4) e o de
+   transacao atomica que dava pra provar em teste (#6) ganhou um teste de concorrencia
+   real (threads + CyclicBarrier + CountDownLatch, mesmo padrao do RACE-01) provando que
+   a corrida nao duplica/nao quebra mais. #1 e #7 (Opcao A, atomicidade) sao cobertos
+   pelos testes funcionais existentes (o metodo atomico e so um jeito diferente de
+   persistir o mesmo resultado observavel). #5 (Opcao A) idem. #8 ganhou teste
+   dedicado (2 POSTs seguidos, confirma que o trecho nao aparece duplicado na resposta).
+   LIC 278 -> 279 (o teste do #8; #5 nao precisou de teste novo).
+
+--- K.9 TESTES DE SERVLET — TIER 2/3 [FEITO 2026-07-06] ---
+   Tier 1 (10 servlets com IDOR ja corrigido, ver G/TIER 1) ja estava feito. Tier 2
+   (8 servlets de auth core: LogInServlet, LogOutServlet, PermissaoUsuarioServlet,
+   ResetPasswordServlet, AnonimizaUsuarioServlet, AlteraUsuarioServlet,
+   EnviaDadosPessoaisServlet, ValidarIdeiaServlet) e Tier 3 (23 servlets
+   mecanicos/CRUD restantes) agora tambem estao feitos -- ver G/TIER 2 e G/TIER 3 pro
+   detalhe. Os 51 servlets do LIC tem cobertura de teste (direta ou via a classe-base
+   nos 8 subclasses triviais de EntrarCanvaBaseServlet, que so trocam uma string de
+   configuracao e nao agregam cobertura real testando cada uma individualmente).
+   2 achados novos durante essa rodada (nao eram do K.8, ver B.11):
+   [FEITO] EntrarCanvaServlet nao tinha NENHUMA checagem de login -- dava NPE no
+     unboxing de codigoUsuario em vez de redirecionar (unico dos "EntrarCanva*" sem essa
+     trava). Fix: mesmo guard usado nos outros servlets do modulo.
+   [FEITO] DeleteCanvaServlet validava o parametro 'context' (anti open-redirect, CAN-04)
+     so com startsWith("EntrarCanva") -- um valor como "EntrarCanvaXxxInexistente" (que
+     nao existe) passava na checagem e so quebrava em runtime (404). Nao era explorado
+     como open-redirect de verdade, mas trocado por uma lista fechada dos 10 destinos
+     validos, fecha o buraco por completo.
+
+--- K.10 VARREDURA DOS ARQUIVOS QUE FICARAM DE FORA (2026-07-06) ---
+   Depois do K.8/K.9, sobravam sem varredura: 7 entidades de dominio (Canva,
+   ColaboracaoIdeia, ElementosStorytelling, ExportFile, GenericDomain, Ideia,
+   LogColaboracao), as 2 classes-base (GenericDAO, GenericDomain), e 26 das 40 JSPs do
+   LIC. Aplicado o prompt de DAO/domain + o de concorrencia/modelagem nas entidades, e o
+   prompt de UX (padroes UX-01/UX-VOLTAR-V2 ja estabelecidos) nas 26 JSPs.
+
+   ENTIDADES/CLASSES-BASE: nenhum achado novo. Todo @Column conferido contra o schema
+   real -- sem mismatch tipo o MODELAGEM-01. O unico quase-achado (ExportFile.fileName
+   nunca preenchido em nenhum lugar do codigo LIC) ja esta coberto pelo fallback do
+   AbrirPDF.abrir() (bug historico RET-14-PDF, ja resolvido antes desta sessao).
+
+   JSPs (26 lidas por completo): 21 ja estavam corretas (os 9 canva-*-principais/canais/
+   etc.jsp sao identicos entre si e ja tinham os 2 padroes; lista-ideia.jsp, minha-ideia.jsp,
+   storytelling.jsp, storytelling-show.jsp, canva-mapa.jsp, canvas-finalizado.jsp,
+   storytelling-finalizado.jsp, editar-texto.jsp, cadastro-ideia.jsp, headers, index.jsp,
+   wait.jsp -- sem gap). 5 achados reais, TODOS CORRIGIDOS:
+   [FEITO] canva-visao-geral.jsp:50-342 -- achado mais serio desta rodada: a pagina
+     INTEIRA (os 9 blocos do Canvas) ficava dentro de `c:if isRetencao eq false`, SEM
+     fallback nenhum. Um admin acessando essa tela em modo Retencao (link "Visão Geral"
+     no header compartilhado do Canvas, sem checar o modo) via a pagina COMPLETAMENTE EM
+     BRANCO. Confirmado que o conteudo gated e 100% leitura (nenhum form/botao de edicao
+     dentro do bloco, so o botao Exportar, que fica FORA dele) -- as 9 canva-*.jsp irmas
+     so escondem o FORM de adicionar post-it nesse modo, nunca a listagem. Fix: removido
+     o gate por completo (mostra sempre), removidas as 2 variaveis `c:set isRetencao`
+     que ficaram sem uso depois disso.
+   [FEITO] colaboracao.jsp:75-122 -- a mensagem de "sem colaboracoes" ficava LITERALMENTE
+     dentro da tag `<table>` (nao um `<tr>`, so texto solto -- HTML invalido), sem icone.
+     Fix: padrao UX-01 completo (tabela so renderiza com `not empty colaboracoes`, mensagem
+     vazia vira um `<div>` centralizado com icone `forum` fora de qualquer tabela).
+   [FEITO] detalhes-ideia.jsp:70-72 -- ja tinha o guard de vazio (`UX-01` no comentario),
+     mas sem icone, texto solto num `<p>`. Fix: icone `group` + div centralizado padrao.
+   [FEITO] detalhes-ideia.jsp:44,47 -- botao "Voltar" inline no meio da pagina (link comum,
+     nao o icone flutuante), inconsistente com colaboracao.jsp (mesmo fluxo, ja com o
+     padrao certo). Fix: icone flutuante UX-VOLTAR-V2 padrao (mesma logica condicional
+     lider/nao-lider de destino), botao inline antigo removido (redundante).
+   [FEITO] gerenciamento-ideia.jsp (funcoes JS pov()/persona()) -- mensagem de "sem
+     arquivos" era um texto seco ("Não há arquivos exportados.") sem call-to-action,
+     inconsistente com as funcoes irmas storytelling()/canva() (que tem CTA com link pra
+     onde exportar). Fix: mesmo padrao de CTA, apontando pra lista-caixa-de-ferramentas.jsp
+     (unico destino do lado do LIC pra Persona/PoV, que sao gerados no Toolkit).
+   Nenhuma mudanca de Java neste K.10 -- so JSP. Sem impacto em teste (mvn test nao
+   cobre JSP), suite continua 279 verde.
+
+   RONDA 2 (mesmo dia, usuario perguntou se a varredura tinha coberto tudo -- resposta
+   honesta: nao, a 1a passada so aplicou o prompt de UX/padroes visuais nessas 26 JSPs,
+   nao os lentes de XSS nem de tratamento de erro em AJAX que ja tinham sido usados em
+   outras partes do sistema, ex.: A.1/[FOOTER-XSS] e B.10/[JS-AJAX-ERR]). Reaplicados
+   nas mesmas 26 JSPs + conferido tambem js/controle.js (nao fazia parte das 26, mas
+   compartilha codigo com storytelling-show.jsp). 3 achados novos, TODOS CORRIGIDOS:
+   [FEITO] index.jsp:101 -- `${sessionScope.nomeUsuario}` impresso cru no menu de
+     navegacao (mesma classe de vulnerabilidade do [FOOTER-XSS] ja corrigido em
+     footer.jsp/canva-footer.jsp, mas esta ocorrencia especifica tinha ficado de fora).
+     Fix: `<c:out value="${sessionScope.nomeUsuario}"/>`.
+   [FEITO] gerenciamento-ideia.jsp:569 (funcao pov()) -- `${pov.fileName}` impresso cru,
+     inconsistente com o proprio irmao poucas linhas abaixo (persona(), linha 614, que ja
+     usa `<c:out>` pro mesmo campo). Fix: mesmo `<c:out>`.
+   [FEITO] minha-ideia.jsp:120,130 -- `value="${nome}"` (nome do usuario da sessao) cru
+     dentro de atributo HTML em 2 forms (`EntrarCaixaServlet`/`EntrarCanvaServlet`) --
+     um nome com aspas duplas quebraria o atributo. Fix: `value="<c:out value='${nome}'/>"`,
+     mesmo padrao ja usado em validar-ideia.jsp (SEC-05).
+   [FEITO] storytelling-show.jsp:135-170 e js/controle.js:72-127 (usado por
+     storytelling.jsp) -- `$.get("RetornaElementos", ...)` (e `$.get("RetornaAudio", ...)`
+     em controle.js) sem NENHUM tratamento de erro -- se a requisicao falhar, o quadro
+     carrega vazio, sem nenhum aviso, em 2 lugares que a varredura B.10 (que ja tinha
+     corrigido 5 outras chamadas AJAX sem error handler no mesmo controle.js) tinha
+     deixado passar. Fix: `.fail(function(){ alert(...) })` encadeado, mesmo padrao das
+     outras 5 chamadas do mesmo arquivo.
+   Verificado: nenhuma mudanca de Java, mvn test nao roda (JSP/JS puro), suite continua
+   279 verde.
+
+   RONDA 3 (mesmo dia) -- reconferencia fresh e independente dos 10 DAOs ja modificados
+   nesta sessao (CanvaDAO, CanvaexportDAO, ColaboracaoIdeiaDAO, ElementosStorytellingDAO,
+   ExportFileDAO, IdeiaDAO, IdeiaUsuarioDAO, LogColaboracaoDAO, StorytellingDAO,
+   UsuarioDAO) + GenericDAO, contra os criterios (1) excecao mal tratada e (2) query que
+   pode voltar null sem guard no chamador -- a ronda anterior tinha confiado no trabalho
+   ja feito neles (B.8/K.8) em vez de reconferir do zero. 9 dos 10 estao limpos (todo
+   metodo que pode retornar null -- ultimaColab, buscarDescricaoFinal -- ja tem guard em
+   TODOS os callers, Java e JSP, confirmado um por um via grep). 1 achado real, CORRIGIDO:
+   [FEITO] RetornaMensagensServlet.java:48 -- `ideiaDAO.buscar((Long) ideiaIdObj)` pode
+     retornar null (ideiaId na sessao apontando p/ uma ideia que nao existe mais -- hoje
+     inatingivel, ja que nao ha "excluir ideia", mas o mesmo raciocinio de blindagem ja
+     aplicado em outros servlets, ex.: EntrarCanvaBaseServlet). Sem guard, o `ideia` null
+     seguia direto pra `colaboracaoIdeia.setIdeia(ideia)` e estourava NPE dentro de
+     ColaboracaoIdeiaDAO.listarParametro (`ci.getIdeia().getCodigo()`) a cada poll de 2s
+     em vez do fallback "não" que o resto do mesmo servlet ja usa pra outras entradas
+     invalidas. Fix: guard null logo apos o buscar(), mesmo fallback "não". Teste novo
+     (ideiaIdApontaParaIdeiaInexistente_retornaNaoSemQuebrar) prova o caminho.
+   LIC 279 -> 280. Suite completa rodada de novo: 280/280 verde.
+
+   RONDA 4 (mesmo dia, pedido do usuario: "pode procurar pelos headers", "acessibilidade
+   pode arrumar") -- headers de seguranca + varredura de acessibilidade real (nao so os
+   avisos de SonarLint sobre <input hidden> sem label, que sao falso-positivo -- campo
+   oculto nao entra na arvore de acessibilidade, nao precisa de label).
+
+   HEADERS: ja existia X-Content-Type-Options/X-Frame-Options (SEC-01, filtro nativo do
+   Tomcat) e SameSite=Lax no cookie (SEC-02, context.xml). NAO existia: Referrer-Policy
+   (o filtro nativo do Tomcat nao cobre esse header) nem Content-Security-Policy (nao
+   existe nenhum). [FEITO] SecurityHeadersFilter novo (SEC-26) -- Referrer-Policy:
+   strict-origin-when-cross-origin em toda rota, mesmo padrao dos outros filtros
+   (CsrfFilter/PostOnlyFilter). [NAO FEITO, documentado] CSP: mapeados os dominios
+   externos reais em uso (cdnjs.cloudflare.com, code.jquery.com, fonts.googleapis.com,
+   maxcdn.bootstrapcdn.com -- os demais "dominios" encontrados em buscas sao comentarios/
+   licencas dentro de libs vendorizadas, nao chamadas de rede reais). Uma CSP dessas
+   precisaria de 'unsafe-inline' pra script-src E style-src (o app usa <script>/<style>
+   inline em quase toda pagina) -- reduz bastante o ganho real, e testar errado quebra
+   fonte/icone/script EM SILENCIO, exigindo QA visual manual de cada tela. Decisao:
+   nao aplicar "de passagem" numa varredura automatizada, ainda mais as vesperas de um
+   teste manual completo (blast radius alto, dificil de verificar sem navegador).
+
+   ACESSIBILIDADE (achados reais, ignorando os hidden-input falso-positivos):
+   [FEITO] index-perfil.jsp -- achado NAO so de acessibilidade, bug funcional real:
+     id="show-user-form" estava DUPLICADO (2 links "Voltar ao perfil" em forms
+     diferentes) -- $('#show-user-form').click(...) so vincula no 1o match do DOM,
+     entao o link dentro do form de Anonimizar NUNCA fazia nada ao clicar. Fix: virou
+     classe compartilhada (.show-user-form), 1 listener cobre os 2. id="senhaAtual"
+     duplicado tambem (2o form) renomeado p/ senhaAtualAnonimiza (HTML invalido antes,
+     "funcionava por acidente").
+   [FEITO] 9 canva-*.jsp (canais/atividades/estrutura-de-custos/segmento/relacionamento/
+     recursos/receita/parcerias/proposta-de-valor, todos identicos nesse trecho): (1)
+     <label for="text"> apontava pra um id que nao existe (o textarea real e
+     id="descricao") -- associacao completamente quebrada; (2) <label for="color"> idem,
+     apontava pra nada (as cores sao <div data-color>, sem id) -- removido o for invalido;
+     (3) botoes de editar/excluir post-it (lapis/lixeira) so tinham icone, ZERO nome
+     acessivel (nem aria-label nem title nem tooltip visual) -- adicionado aria-label +
+     data-tooltip consistente com o resto do app.
+   [FEITO] storytelling.jsp -- <input type="file"> sem label nenhum; 4 <label> (Cor x2,
+     Fonte, Tamanho) sem atributo for nenhum, so posicionados do lado do select/input por
+     CSS (nenhuma associacao programatica) -- todos ganharam for= apontando pro id certo.
+   [FEITO] Todos os botoes "Voltar" (28 ocorrencias, 26 arquivos) e o FAB de validar-ideia.jsp
+     (6 icones) dependiam SO do tooltip visual do Materialize (data-tooltip, que so
+     aparece no hover/focus e NUNCA e lido por leitor de tela) -- varredura automatizada
+     confirmou que TODO data-tooltip do LIC agora tem aria-label espelhando o mesmo texto
+     (conferido com regex apos o fix: zero ocorrencias restantes sem aria-label).
+   [FEITO] colaboracao.jsp -- botao "Adicionar a Descricao" (habilitado e desabilitado)
+     sem nome acessivel nenhum -- aria-label adicionado nos 2 estados.
+   Nenhuma mudanca visual esperada em nenhum destes fixes (so atributos novos/corrigidos,
+   nenhum texto/estilo visivel muda) -- seguro de aplicar sem QA visual dedicado.
+
+   LIC 280 -> 281 (SecurityHeadersFilterTest). Suite completa: 281/281 verde.
+
+   RONDA 5 (mesmo dia, achados REAIS do usuario testando manualmente pos-rebuild -- nao
+   veio de varredura automatizada, veio de uso de verdade):
+   [FEITO] colaboracao.jsp -- REGRESSAO da propria RONDA 1 deste K.10 (o fix do
+     colaboracao.jsp:75-122 acima). Ao tirar a `<table id="tabelaColab">` do DOM via
+     `c:if` quando `colaboracoes` comeca vazia, quebrou o AJAX ao vivo: tanto o handler
+     de "Enviar colaboracao" quanto o polling de `RetornaMensagensServlet` (a cada 2s)
+     fazem `tr.html(texto).appendTo("#tabelaColab")` -- se o elemento nao existe no DOM
+     (ideia nova, 0 colaboracoes ainda), o `appendTo` falha CALADO (sem erro no console),
+     e a colaboracao enviada so aparecia apos F5. Reproduzido exatamente como o usuario
+     descreveu: acontecia com o LIDER (1o a colaborar numa ideia recem-fechada, tabela
+     ainda nao existia no DOM) e NAO com o colaborador testado depois (tabela ja existia
+     por ja ter >=1 colaboracao quando a pagina carregou). Fix: tabela e div de vazio
+     ficam SEMPRE no DOM (nunca mais removidas por `c:if`), visibilidade controlada por
+     CSS inline via ternario EL (`${empty colaboracoes ? '' : 'display:none;'}` no div,
+     invertido na tabela); nova funcao JS `revelarTabelaColaboracoes()` (esconde o div,
+     mostra a tabela) chamada logo apos os 2 `appendTo` que antes falhavam em silencio.
+     LICAO IMPORTANTE (documentada tambem em memoria pra futuras sessoes): o padrao
+     UX-01 ("remove elemento do DOM via `c:if` quando lista vazia") NAO E SEGURO em
+     paginas com AJAX/JS ao vivo que alvejam esse elemento por id sem reload de pagina
+     -- antes de aplicar UX-01 numa pagina nova, checar se ha `.appendTo`/`.html`/etc
+     mirando o mesmo id fora do carregamento inicial.
+   [FEITO] index-perfil.jsp -- footer aparecia "quase no meio da tela" na aba Anonimizar
+     Dados (form curto: 1 input desabilitado + 1 senha + checkbox + botao, bem menor que
+     o form de Editar Perfil, que e o padrao). Causa: `.form` (css/style.css) nao tem
+     altura minima, e nem body/html tinham layout de coluna -- o footer so seguia o fluxo
+     normal do documento, entao "subia" junto quando o conteudo acima encolhia. Fix:
+     regra flexbox escopada SO no `<style>` proprio desta pagina (nao mexe no
+     css/style.css compartilhado, pra nao afetar outras telas com `.form`, ex.:
+     login.jsp): `body { display:flex; flex-direction:column; min-height:100vh; }`,
+     `.form { flex:1 0 auto; }`, `footer { flex-shrink:0; }`. `margin:0 auto` do `.form`
+     continua centralizando no eixo cruzado do flex column (comportamento padrao do CSS).
+     Mudanca visual real -- pendente de confirmacao do usuario apos o proximo rebuild
+     (sem acesso a navegador pra validar aqui).
+   [ESCLARECIDO, sem mudanca de codigo] canva-visao-geral.jsp -- usuario apontou (correto)
+     que a instrucao de teste passada antes ("Gerenciamento -> entrar na ideia -> Visao
+     Geral") estava ERRADA: o Gerenciamento so mostra o PDF exportado, nunca uma visao
+     Canvas ao vivo; "Visao Geral" so existe como link de navegacao dentro do proprio
+     modulo Canvas (header compartilhado das paginas canva-*.jsp), inatingivel a partir
+     do Gerenciamento. Confirmado por grep (`retencao=` e `EntrarCanvaServlet.*retencao`,
+     zero ocorrencias em todo o webapp) que hoje NENHUM link do sistema passa
+     `retencao=true` pro `EntrarCanvaServlet` -- ou seja, `isRetencao` no modulo Canvas
+     e SEMPRE false na pratica atual. O fix da RONDA 1 (remover o gate `c:if isRetencao
+     eq false` que deixava a pagina em branco) continua correto e inofensivo (defende um
+     caminho que hoje nao existe, mesmo raciocinio de blindagem usado em outros lugares
+     desta sessao, ex.: RONDA 3/RetornaMensagensServlet), mas NAO HA COMO testar via UI
+     atual -- item sem acao pendente, so essa correcao de entendimento.
+   Nenhuma mudanca de Java nesta ronda -- so JSP/CSS. Suite continua 281/281 (mvn test
+   nao cobre JSP/CSS). Fixes feitos DEPOIS do ultimo rebuild do Docker desta sessao --
+   precisam de novo rebuild/redeploy pra aparecer no ambiente que o usuario esta testando.
 
 
 

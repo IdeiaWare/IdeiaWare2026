@@ -1,20 +1,17 @@
 package edu.unisc.lic.dao;
 
 import edu.unisc.lic.domain.Ideia;
+import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 import edu.unisc.lic.util.HibernateUtil;
 import java.util.List;
 import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 
 public class IdeiaDAO extends GenericDAO<Ideia> {
-    
-    private Session sessao;
-    private Transaction transacao;
 
     /**
      * Retenção do Conhecimento (lista-ideia-gerenciamento) usa listar(): sobrescrito
@@ -40,12 +37,9 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
      * @return
      */
     public List<Ideia> listarParametro(Ideia ideia) {
-        this.sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        this.transacao = sessao.beginTransaction();
-        List<Ideia> resultado = null;
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-
             Criteria filtro = sessao.createCriteria(Ideia.class);
 
             if (ideia.getStatus() != null) {
@@ -63,22 +57,11 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
             // em cima. O size()-check em lista-ideia-gerenciamento nao e afetado.
             filtro.addOrder(Order.desc("codigo"));
 
-            resultado = filtro.list();
-            
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
+            return filtro.list();
+
         } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
+            sessao.close();
         }
-        return resultado;
     }
 
     /**
@@ -106,6 +89,33 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
                     .list();
         } catch (RuntimeException e) {
             throw e;
+        } finally {
+            sessao.close();
+        }
+    }
+
+    /**
+     * K.8 #5 (2026-07-06): salva a Ideia e o vinculo de lideranca (IdeiaUsuario) do autor
+     * NUMA UNICA Session/Transaction. Antes, CadastroIdeiaServlet fazia ideiaDAO.salvar(ideia)
+     * e depois IdeiaUsuarioDAO.salvar(vinculo) em 2 transacoes separadas -- uma falha entre
+     * as duas deixava a Ideia ja commitada mas SEM nenhum lider vinculado (orfa).
+     */
+    public void criarComLider(Ideia ideia, IdeiaUsuario vinculoLider) {
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
+        Transaction transacao = null;
+
+        try {
+            transacao = sessao.beginTransaction();
+            sessao.save(ideia);
+            vinculoLider.setIdeia(ideia);
+            sessao.save(vinculoLider);
+            transacao.commit();
+
+        } catch (RuntimeException erro) {
+            if (transacao != null) {
+                transacao.rollback();
+            }
+            throw erro;
         } finally {
             sessao.close();
         }

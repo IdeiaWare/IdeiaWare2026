@@ -24,7 +24,7 @@
                no canto superior esquerdo (fixed), fora do fluxo da pagina. storytelling
                usa cabecalho proprio (headerCookies_2.jsp) sem link pra
                lista-storytelling.jsp -- so pra index.jsp. --%>
-          <a href="lista-storytelling.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+          <a href="lista-storytelling.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
 
           <h5 class="center grey-text text-darken-3" style="padding-top: 10px; padding-bottom: 5px">Ferramentas</h5>
 
@@ -46,7 +46,7 @@
                      o campo csrfToken do form e barrava com 403. Query string funciona
                      pois nao depende de parsing do body -- so do content-type. --%>
                 <form id="enviarImagem" method="POST" action="UploadArquivoServlet?csrfToken=${csrfToken}" enctype="multipart/form-data">
-                  </br><input type="file" id="arquivo" name="UploadImg" value="Carregar Imagem" /></br>
+                  </br><label for="arquivo">Carregar Imagem</label><input type="file" id="arquivo" name="UploadImg" /></br>
                   </br><input class="btn indigo accent-2" id="b1_1" type="submit" value="inserir arquivo" />
                 </form>
                 <output id="nomeArquivo"></output>
@@ -56,7 +56,7 @@
               <div class="collapsible-header"><i class="material-icons">format_paint</i>Adicionar Forma</div>
               <div class="collapsible-body">	
 
-                <label>Cor</label>
+                <label for="corForma">Cor</label>
                 <select class="browser-default" id="corForma">
                   <option value="yellow">Amarelo</option>
                   <option value="blue">Azul</option>
@@ -97,7 +97,7 @@
 
 
                 <%-- STR-05: fontes e tamanhos corrigidos — values agora correspondem ao texto exibido --%>
-                <label>Fonte</label>
+                <label for="fontFamily">Fonte</label>
                 <select class="browser-default" id="fontFamily">
                   <option value="Times New Roman" selected>Times New Roman</option>
                   <option value="Arial">Arial</option>
@@ -110,7 +110,7 @@
                   <option value="Courier New">Courier New</option>
                 </select>
 
-                <label>Tamanho</label>
+                <label for="fontSize">Tamanho</label>
                 <select class="browser-default" id="fontSize">
                   <option value="12">12</option>
                   <option value="14">14</option>
@@ -126,7 +126,7 @@
                   <option value="72">72</option>
                 </select>
 
-                <label>Cor</label>
+                <label for="corTexto">Cor</label>
                 <input type="color" id="corTexto"></br></br>
 
                 <button id="b3" >INSERIR</button>

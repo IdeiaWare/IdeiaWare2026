@@ -6,8 +6,10 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
 
 
 import edu.unisc.lic.classes.Data;
@@ -18,15 +20,20 @@ import edu.unisc.lic.classes.Data;
  */
 @SuppressWarnings("serial")
 @Entity
+// K.8 #2 (2026-07-06): unique(usuario_codigo, ideia_codigo) trava no BANCO que o mesmo
+// usuario seja inserido 2x como participante da mesma ideia. Antes, EntrarIdeiaServlet
+// fazia "verifica se ja existe -> insere" em 2 passos sem trava real: clique duplo em
+// "Entrar" (ou um retry de rede) podia passar os 2 pela checagem e inserir 2 vinculos.
+@Table(uniqueConstraints = @UniqueConstraint(name = "uk_ideiausuario_par", columnNames = {"usuario_codigo", "ideia_codigo"}))
 public class IdeiaUsuario extends GenericDomain {
 
     // Chaves estrangeiras
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "usuario_codigo", nullable = false)
     private Usuario usuario;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "ideia_codigo", nullable = false)
     private Ideia ideia;
 
     @Column(length = 1)

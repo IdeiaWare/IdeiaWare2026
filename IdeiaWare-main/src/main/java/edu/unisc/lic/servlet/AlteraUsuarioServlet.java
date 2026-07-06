@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.hibernate.exception.ConstraintViolationException;
 
 /**
  *
@@ -121,7 +122,25 @@ public class AlteraUsuarioServlet extends HttpServlet {
             }
             
             if (Alterar){
-                usuarioDAO.editar(usuario);
+                try {
+                    usuarioDAO.editar(usuario);
+                } catch (RuntimeException ex) {
+                    // K.8 #6: mesma corrida do RACE-01 (checagem de e-mail duplicado em
+                    // Java, 2 passos) -- a UNIQUE do banco (uk_usuario_email) ja protege
+                    // os dados, mas sem este catch o perdedor da corrida recebia uma
+                    // excecao crua em vez da mesma mensagem amigavel de e-mail duplicado.
+                    // NAO da pra confiar so no tipo ConstraintViolationException: um
+                    // editar() (UPDATE, flush adiado pro commit) propaga a violacao
+                    // envolvida numa PersistenceException, enquanto um salvar() (INSERT
+                    // imediato por causa do identity generator) propaga ela crua -- por
+                    // isso percorre a cadeia de causas em vez de checar so a classe topo.
+                    if (!isConstraintViolation(ex)) {
+                        throw ex;
+                    }
+                    request.setAttribute("respostaEmailCadastrado", true);
+                    request.getRequestDispatcher("index-perfil.jsp").forward(request, response);
+                    return;
+                }
                 // UX: confirma o sucesso na propria tela de perfil (antes ia para
                 // wait.jsp -> index.jsp e o usuario nao recebia nenhum retorno).
                 request.setAttribute("respostaSucesso", true);
@@ -158,6 +177,22 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
 protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
+    }
+
+    /**
+     * K.8 #6: percorre a cadeia de causas procurando ConstraintViolationException --
+     * dependendo do caminho (INSERT com identity generator vs UPDATE com flush adiado
+     * pro commit), o Hibernate propaga essa excecao crua OU envolvida numa
+     * PersistenceException/HibernateException, entao checar so a classe do topo nao basta.
+     */
+    private static boolean isConstraintViolation(Throwable t) {
+        while (t != null) {
+            if (t instanceof ConstraintViolationException) {
+                return true;
+            }
+            t = t.getCause();
+        }
+        return false;
     }
 
     /**

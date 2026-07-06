@@ -22,7 +22,14 @@ public class Usuario extends GenericDomain implements Serializable{
     @Column(length = 64, nullable = false)
     private String nome;
 
-    @Column(length = 32, nullable = false)
+    // RACE-01: unique=true trava no BANCO (nao so em Java) que dois usuarios tenham o
+    // mesmo login. Antes, CadastroUsuarioServlet fazia "verifica se existe -> insere" em
+    // 2 passos sem nenhuma trava real: 2 cadastros simultaneos com o mesmo login passavam
+    // os 2 pela verificacao e os 2 inseriam -> 2 contas com o mesmo login -> LogInServlet
+    // exige lista.size()==1 pra deixar logar, entao as 2 contas ficavam trancadas pra
+    // sempre (sem erro visivel, so "login e/ou senha invalido"), so recuperavel com
+    // intervencao manual no banco.
+    @Column(length = 32, nullable = false, unique = true)
     private String usuario;
 
     @Column(length = 128, nullable = false)
@@ -30,8 +37,14 @@ public class Usuario extends GenericDomain implements Serializable{
 
     @Column(length = 3, nullable = false)
     private String permissao;
-    
-    @Column(length = 100, nullable = true)
+
+    // RACE-01: mesma razao do campo usuario acima -- CadastroUsuarioServlet tambem
+    // checava email duplicado em Java sem trava no banco.
+    // MODELAGEM-01 (2026-07-03): estava length=100 aqui, mas o banco real (estrutura-
+    // lic_bd.sql) sempre foi varchar(50) -- alinhado pro numero que ja esta em producao
+    // (mudar a anotacao Java, NAO o banco, evita ALTER TABLE numa coluna que pode ja ter
+    // dados reais).
+    @Column(length = 50, nullable = true, unique = true)
     private String email;
     
     @Column(length = 1, nullable = true)

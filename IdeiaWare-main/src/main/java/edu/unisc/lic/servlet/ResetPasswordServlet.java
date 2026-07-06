@@ -57,7 +57,23 @@ public class ResetPasswordServlet extends HttpServlet {
                              "IMPORTANTE: Por motivos de segurança, recomendamos que você altere essa senha temporária assim que fizer o login.\n\n"+
                              "Se você não solicitou essa alteração, por favor, entre em contato imediatamente com o administrador.";
 
-                EnvioEmail.EnviaEmail(usuario.getEmail(), "Redefinição de senha - IdeiaWare", textoEmail);
+                // RET-14: a senha JA foi trocada no banco (linha acima) antes do envio do
+                // e-mail. Sem este try/catch, uma IOException de rede no SendGrid (nao so
+                // um status de erro, que ja era tratado abaixo) subia sem tratamento ->
+                // pagina de erro generica E o usuario ficava trancado fora da conta, sem
+                // saber a senha nova. Mesma resposta anti-enumeracao (SEC-19) nos dois casos.
+                boolean enviado;
+                try {
+                    enviado = EnvioEmail.EnviaEmail(usuario.getEmail(), "Redefinição de senha - IdeiaWare", textoEmail);
+                } catch (IOException ex) {
+                    enviado = false;
+                }
+                if (!enviado) {
+                    // SEC-19: a resposta ao usuario NAO muda (anti-enumeracao) mesmo se o
+                    // envio falhar -- so registra no log do servidor, ja que a senha ja foi
+                    // trocada no banco e o usuario ficaria sem saber a senha nova.
+                    System.err.println("ResetPasswordServlet: falha ao enviar e-mail de redefinicao para usuario codigo=" + usuario.getCodigo());
+                }
             }
 
             // SEC-19 (anti-enumeracao): a resposta e SEMPRE a mesma, exista ou nao o

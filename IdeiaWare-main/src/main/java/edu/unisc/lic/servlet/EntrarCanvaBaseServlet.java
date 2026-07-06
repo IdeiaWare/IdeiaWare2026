@@ -42,6 +42,13 @@ public abstract class EntrarCanvaBaseServlet extends HttpServlet {
 
         IdeiaDAO ideiaDAO = new IdeiaDAO();
         Ideia ideia = ideiaDAO.buscar((Long) session.getAttribute("ideiaId"));
+        // BLINDAGEM: ideiaId na sessao pode apontar p/ uma ideia que nao existe mais
+        // (hoje inatingivel, ja que nao ha "excluir ideia", mas evita NPE silencioso
+        // se essa feature existir no futuro).
+        if (ideia == null) {
+            response.sendRedirect(request.getContextPath() + "/lista-canvas.jsp");
+            return;
+        }
 
         CanvaDAO canvaDAO = new CanvaDAO();
         Canva canva = new Canva();

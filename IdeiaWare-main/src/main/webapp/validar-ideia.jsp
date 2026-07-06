@@ -82,6 +82,9 @@
     <title>IdeiaWare - Validar Ideias</title>
   </head>
   <body class="center-align light-blue darken-1 knowledge">
+    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
+         saida de volta pra tela inicial da colaboracao. --%>
+    <a href="index-colaboracao.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper light-blue darken-2 knowledge">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
@@ -106,7 +109,7 @@
                   <jsp:setProperty name="tesX" property="status" value="PE"/>
                   <c:choose>
                       <c:when test="${tesDao.listarParametro(tesX).size() eq 0}" >
-                      <li class="tooltipped disabled" data-position="left" data-delay="50" data-tooltip="Sem ideias no momento"><a class="btn-flat disabled" disabled="true"><i class="material-icons">done</i>Validar Ideias</a></li>
+                      <li class="tooltipped disabled" data-position="left" data-delay="50" data-tooltip="Sem ideias no momento" aria-label="Sem ideias no momento"><a class="btn-flat disabled" disabled="true"><i class="material-icons">done</i>Validar Ideias</a></li>
                       </c:when>
                       <c:otherwise>
                       <li><a href="validar-ideia.jsp"><i class="material-icons">done</i>Validar Ideias</a></li>
@@ -124,12 +127,12 @@
         <i class="large material-icons">menu</i>
       </a>
       <ul>
-        <li><a class="btn-floating tooltipped teal lighten-1" href="cadastro-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Cadastrar nova ideia"><i class="material-icons">add</i></a></li>
-        <li><a class="btn-floating tooltipped teal lighten-1" href="minha-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Minhas ideias"><i class="material-icons">account_box</i></a></li>
-        <li><a class="btn-floating tooltipped  teal lighten-1" href="lista-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Outras ideias"><i class="material-icons">web_asset</i></a></li>
+        <li><a class="btn-floating tooltipped teal lighten-1" href="cadastro-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Cadastrar nova ideia" aria-label="Cadastrar nova ideia"><i class="material-icons">add</i></a></li>
+        <li><a class="btn-floating tooltipped teal lighten-1" href="minha-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Minhas ideias" aria-label="Minhas ideias"><i class="material-icons">account_box</i></a></li>
+        <li><a class="btn-floating tooltipped  teal lighten-1" href="lista-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Outras ideias" aria-label="Outras ideias"><i class="material-icons">web_asset</i></a></li>
           <c:if  test="${permicao eq 'adm'}" >
-          <li><a class="btn-floating tooltipped teal lighten-2" href="validar-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Validar ideias"><i class="material-icons">done</i></a></li>
-          <li><a class="btn-floating tooltipped teal lighten-2" href="lista-ideia-gerenciamento.jsp" data-position="left" data-delay="50" data-tooltip="Gerenciar ideias"><i class="material-icons">assessment</i></a></li>
+          <li><a class="btn-floating tooltipped teal lighten-2" href="validar-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Validar ideias" aria-label="Validar ideias"><i class="material-icons">done</i></a></li>
+          <li><a class="btn-floating tooltipped teal lighten-2" href="lista-ideia-gerenciamento.jsp" data-position="left" data-delay="50" data-tooltip="Gerenciar ideias" aria-label="Gerenciar ideias"><i class="material-icons">assessment</i></a></li>
           </c:if>
       </ul>
     </div>
@@ -146,8 +149,20 @@
           <jsp:useBean id="ideia2" class="edu.unisc.lic.domain.Ideia" />
           <jsp:setProperty name="ideia2" property="status" value="PE"/>
           <jsp:useBean id="data" class="edu.unisc.lic.classes.Data" />
+          <c:set var="ideiasPendentes" value="${ideiaDAO.listarParametro(ideia2)}" />
+
+          <%-- UX-01: estado vazio com mensagem contextual -- a lista (ul.collapsible)
+               so pode renderizar quando ha ideias pendentes; um <ul> vazio ainda e
+               estilizado pelo Materialize e aparecia como uma linha fininha residual. --%>
+          <c:if test="${empty ideiasPendentes}">
+            <div class="center-align grey-text" style="padding: 40px 20px;">
+              <i class="material-icons" style="font-size: 3rem; display:block;">done_all</i>
+              Não há ideias pendentes de validação no momento.
+            </div>
+          </c:if>
+
+          <c:if test="${not empty ideiasPendentes}">
           <ul class="collapsible" data-collapsible="accordion">
-            <c:set var="ideiasPendentes" value="${ideiaDAO.listarParametro(ideia2)}" />
             <c:forEach var="ideia" items="${ideiasPendentes}" varStatus="id">
                 <li>
                   <div class="collapsible-header">
@@ -177,12 +192,6 @@
                 </li>
             </c:forEach>
           </ul>
-          <%-- UX-01: estado vazio com mensagem contextual. --%>
-          <c:if test="${empty ideiasPendentes}">
-            <div class="center-align grey-text" style="padding: 40px 20px;">
-              <i class="material-icons" style="font-size: 3rem; display:block;">done_all</i>
-              Não há ideias pendentes de validação no momento.
-            </div>
           </c:if>
         </div>
       </div>

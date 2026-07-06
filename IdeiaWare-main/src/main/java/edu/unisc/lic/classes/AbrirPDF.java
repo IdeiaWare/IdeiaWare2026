@@ -40,8 +40,15 @@ public class AbrirPDF {
 			return;
 		}
 
+		// RET-14: titulo pode vir null (ExportFile.fileName nunca e preenchido hoje em
+		// nenhum dos 2 projetos -> todo PDF baixava como "null.pdf") ou conter aspas/
+		// quebra de linha (nunca sanitizado antes de ir pro header). Fallback + limpeza
+		// aqui, sem depender do caller corrigir os dados.
+		String nomeArquivo = (titulo == null || titulo.trim().isEmpty()) ? "documento" : titulo.trim();
+		nomeArquivo = nomeArquivo.replaceAll("[\\r\\n\"]", "");
+
 		response.setContentType("application/pdf");
-		response.setHeader("Content-disposition", "inline; filename=\"" + titulo + ".pdf\"");
+		response.setHeader("Content-disposition", "inline; filename=\"" + nomeArquivo + ".pdf\"");
 		response.setContentLength(pdf.length);
 
 		try (OutputStream out = response.getOutputStream()) {

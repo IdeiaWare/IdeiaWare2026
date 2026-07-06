@@ -58,16 +58,17 @@ public class SalvarAudioServlet extends HttpServlet {
         filtro.setStorytelling(st);
 
         List<ElementosStorytelling> estList = new ElementosStorytellingDAO().listarParametro(filtro);
-        for (ElementosStorytelling e : estList) {
-            new ElementosStorytellingDAO().excluir(e);
-        }
 
-        // Salva novo áudio
+        // Novo áudio
         ElementosStorytelling est = new ElementosStorytelling();
         est.setStorytelling(st);
         est.setCaminho(fileData);
         est.setTipo("AUD");
-        new ElementosStorytellingDAO().salvar(est);
+
+        // K.8 #7: apaga o(s) audio(s) antigo(s) e salva o novo NUMA SO transacao (antes
+        // eram excluirTodos() + salvar() em transacoes separadas -- uma falha no meio
+        // perdia o audio de vez, sem o antigo nem o novo sobrarem).
+        new ElementosStorytellingDAO().substituirAudio(estList, est);
     }
 
     @Override

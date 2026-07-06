@@ -99,6 +99,9 @@
     <title>IdeiaWare - Gerenciamento de Ideias</title>
   </head>
   <body class="center-align ">
+    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
+         saida de volta pra tela inicial (index.jsp). --%>
+    <a href="index.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper light-blue darken-2 knowledge z-depth-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
@@ -134,6 +137,18 @@
           <%--<jsp:setProperty name="ideiaUsuario" property="usuario" value="${usuarioClasse}" />--%>
 
           <h1>Gerenciamento de Ideias</h1>
+          <c:set var="todasIdeias" value="${todasIdeiasScriptlet}" />
+
+          <%-- UX-01: estado vazio com mensagem contextual -- busca e tabela so
+               aparecem quando ha ideias cadastradas. --%>
+          <c:if test="${empty todasIdeias}">
+            <div class="center-align grey-text" style="padding: 40px 20px;">
+              <i class="material-icons" style="font-size: 3rem; display:block;">assignment</i>
+              Nenhuma ideia cadastrada no sistema ainda.
+            </div>
+          </c:if>
+
+          <c:if test="${not empty todasIdeias}">
           <%-- Busca client-side: filtra as linhas da tabela pelo texto digitado. --%>
           <div class="input-field" style="margin:0 0 6px;">
             <input id="filtro-gerenciamento" type="text" placeholder="Buscar ideia (título, descrição, status...)" aria-label="Buscar ideia">
@@ -148,7 +163,7 @@
               <col style="width: 10%;" />
             </colgroup>
             <thead>
-              <tr class="highlight" style="font-weight: bold "> 
+              <tr class="highlight" style="font-weight: bold ">
                 <td>Usuário</td>
                 <td>Título</td>
                 <td>Descrição da Ideia</td>
@@ -158,11 +173,6 @@
             </thead>
             <tbody>
               <!--inicio do corpo-->
-              <%-- UX-01: estado vazio com mensagem contextual. --%>
-              <c:set var="todasIdeias" value="${todasIdeiasScriptlet}" />
-              <c:if test="${empty todasIdeias}">
-                <tr><td colspan="5" class="center-align grey-text" style="padding: 30px;">Nenhuma ideia cadastrada no sistema ainda.</td></tr>
-              </c:if>
               <c:forEach var="ideia" items="${todasIdeias}" varStatus="id">
                   <tr>
                     <td style="white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;"><c:out value="${ideia.usuario.nome}"/></td>
@@ -170,7 +180,7 @@
                     <td style="word-break: break-word; white-space: normal;"><c:out value="${ideia.descricao}"/></td>
                     <td>
                       <c:choose>
-                          <c:when test="${ideia.status eq 'VA'}">Validada</c:when>   
+                          <c:when test="${ideia.status eq 'VA'}">Validada</c:when>
                           <c:when test="${ideia.status eq 'RE'}">Rejeitada</c:when>
                           <c:when test="${ideia.status eq 'PE'}">Pendente</c:when>
                           <c:when test="${ideia.status eq 'DE'}">Em desenvolvimento</c:when>
@@ -193,6 +203,7 @@
           <script>
             (function(){var i=document.getElementById('filtro-gerenciamento');if(!i)return;var t=[].slice.call(document.querySelectorAll('#lista-gerenciamento tbody tr'));i.addEventListener('input',function(){var s=i.value.toLowerCase();t.forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(s)>-1?'':'none';});});})();
           </script>
+          </c:if>
         </div>
       </div>
     </div>

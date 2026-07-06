@@ -7,14 +7,17 @@ package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.classes.Data;
 import edu.unisc.lic.dao.IdeiaDAO;
+import edu.unisc.lic.dao.IdeiaUsuarioDAO;
 import edu.unisc.lic.dao.LogColaboracaoDAO;
 import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Ideia;
+import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.LogColaboracao;
 import edu.unisc.lic.domain.Usuario;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -64,6 +67,17 @@ public class SalvarTextoServlet extends HttpServlet {
         Usuario autor = new UsuarioDAO().buscar((Long) codigoUsuario);
         if (ideia == null || autor == null) {
             response.sendRedirect(request.getContextPath() + File.separator + "colaboracao.jsp");
+            return;
+        }
+
+        // AUTORIZACAO: so o LIDER da ideia pode editar o texto oficial -- essa
+        // restricao so existia na UI (colaboracao.jsp escondia o botao "Editar Texto"
+        // pra quem nao era lider); o servlet aceitava de qualquer usuario logado,
+        // mesmo sem vinculo com a ideia informada no parametro.
+        List<IdeiaUsuario> souLider = new IdeiaUsuarioDAO()
+                .listarParametro(new IdeiaUsuario(autor, ideia, "S"));
+        if (souLider == null || souLider.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
             return;
         }
 

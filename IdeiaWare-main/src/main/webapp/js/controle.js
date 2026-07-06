@@ -101,6 +101,8 @@ window.onload = function () {
         });
       }
     });
+  }).fail(function () {
+    alert("Erro ao carregar os elementos salvos do quadro. Recarregue a página.");
   });
 
   $.get("RetornaAudio", function (responseJson) {
@@ -120,6 +122,8 @@ window.onload = function () {
       li.appendChild(hf);
       recordingslist.appendChild(li);
     });
+  }).fail(function () {
+    alert("Erro ao carregar os áudios salvos.");
   });
 
   // -------SALVAR--------
@@ -205,6 +209,9 @@ window.onload = function () {
           });
         };
         imageObj.src = 'imagens/' + dadosCompletos.tipo + '.png';
+      },
+      error: function () {
+        alert("Erro ao adicionar a forma!");
       }
     });
   }
@@ -247,7 +254,10 @@ window.onload = function () {
             type: 'POST',
             url: 'AutoSalvarStoryServlet',
             contentType: 'application/json',
-            data: JSON.stringify([{ tipo: 'outro', codigo: node.attrs.id, x: node.attrs.x, y: node.attrs.y, height: node.attrs.height, width: node.attrs.width }])
+            data: JSON.stringify([{ tipo: 'outro', codigo: node.attrs.id, x: node.attrs.x, y: node.attrs.y, height: node.attrs.height, width: node.attrs.width }]),
+            error: function () {
+              alert("Erro ao salvar o novo tamanho!");
+            }
           });
           return;
         }
@@ -260,10 +270,13 @@ window.onload = function () {
     salvarProgresso();
   });
 
-  // Salva antes de fazer upload de imagem
-  $('#b1_1').on('click', function () {
-    salvarProgresso();
-  });
+  // STR-15: removido o salvarProgresso() daqui (rodava a CADA clique em "inserir
+  // arquivo", mesmo SEM nenhum arquivo escolhido -- overlay bloqueante + alert
+  // "Salvo com sucesso!" toda vez, sem relacao com o upload em si). Nao precisa:
+  // toda mudanca no quadro ja persiste sozinha na hora que acontece (InserirForma/
+  // InserirTexto ao criar, AutoSalvarStoryServlet no dragend e no resize -- mesmo
+  // raciocinio do STM-22/STR-11 em controleAdd.js). O upload em si (form normal,
+  // #b1_1 e type="submit") continua funcionando igual.
 
   // -------FORMAS (botões)--------
   // STR-14: removido handler morto #b2_00 (id não existe no JSP)
@@ -316,6 +329,9 @@ window.onload = function () {
           tamanho:         size,
           cor:             color
         });
+      },
+      error: function () {
+        alert("Erro ao adicionar o texto!");
       }
     });
   });

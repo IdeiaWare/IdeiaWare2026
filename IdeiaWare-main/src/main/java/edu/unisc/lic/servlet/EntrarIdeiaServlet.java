@@ -75,7 +75,14 @@ public class EntrarIdeiaServlet extends HttpServlet {
 
         IdeiaUsuario ideiaUsuario = new IdeiaUsuario(usuario, ideia, "N");
         ideiaUsuario.setDtInscricao();
-        ideiaUsuarioDAO.salvar(ideiaUsuario);
+        try {
+            ideiaUsuarioDAO.salvar(ideiaUsuario);
+        } catch (org.hibernate.exception.ConstraintViolationException ex) {
+            // K.8 #2: 2 cliques quase-simultaneos em "Entrar" passam os 2 pela checagem
+            // "jaVinculado" acima antes de qualquer um commitar -- a UNIQUE do banco
+            // (uk_ideiausuario_par) barra o 2o insert. O resultado pro usuario e o mesmo
+            // de ja estar vinculado: segue normalmente pra minha-ideia.jsp.
+        }
 
         response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
     }

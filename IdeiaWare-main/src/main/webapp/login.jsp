@@ -21,7 +21,6 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
         <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900'>
         <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Montserrat:400,700'>
-        <link rel='stylesheet prefetch' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css'>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
@@ -29,7 +28,6 @@
         <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" href="css/style.css">
         <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
-        <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     </head>
     <style>
@@ -231,7 +229,11 @@
                 <input name="usuario" type="text" placeholder="usuário" aria-label="usuário" pattern=".{4,32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres"/>
                 <!--// LucasFreitag 2024-->
                 <!--<input name="senha" type="password" placeholder="senha" aria-label="senha" pattern=".{8,32}" required title="O campo senha deve conter entre 8 e 32 caracteres"/>-->
-                <input name="senha" type="password" placeholder="senha" aria-label="senha"/>
+                <%-- UX: "olhinho" pra revelar a senha digitada. --%>
+                <div style="position:relative;">
+                    <input name="senha" id="login-senha" type="password" placeholder="senha" aria-label="senha"/>
+                    <button type="button" id="toggle-login-senha" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('login-senha','toggle-login-senha')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
+                </div>
                 <p class="forgot-password"><a href="#" id="forgot-password-link">Esqueceu a senha?</a></p>
 
                 <button class="blue accent-1" type="submit">login</button>
@@ -248,10 +250,16 @@
                 <label for="senha" class="perfil-label">Senha</label>
                 <!-- SENHA-#: o pattern antigo só aceitava os especiais @$!%*?& e rejeitava
                      senhas com '#' (e outros). Agora aceita qualquer caractere especial. -->
-                <input name="senha" id="senha" type="password" placeholder="senha" aria-label="senha" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,32}$" required title="O campo senha deve conter entre 8 e 32 caracteres. E os 5 requisitos abaixo." maxlength="32" oninput="checkPasswordStrength()"/>
+                <div style="position:relative;">
+                    <input name="senha" id="senha" type="password" placeholder="senha" aria-label="senha" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,32}$" required title="O campo senha deve conter entre 8 e 32 caracteres. E os 5 requisitos abaixo." maxlength="32" oninput="checkPasswordStrength()"/>
+                    <button type="button" id="toggle-reg-senha" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('senha','toggle-reg-senha')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
+                </div>
 
                 <label for="reg-senha2" class="perfil-label">Confirmar senha</label>
-                <input id="reg-senha2" name="senha2" type="password" placeholder="digite a senha novamente" aria-label="digite a senha novamente" pattern=".{4,32}" required title="O campo repetir senha deve conter entre 4 e 32 caracteres" />
+                <div style="position:relative;">
+                    <input id="reg-senha2" name="senha2" type="password" placeholder="digite a senha novamente" aria-label="digite a senha novamente" pattern=".{4,32}" required title="O campo repetir senha deve conter entre 4 e 32 caracteres" />
+                    <button type="button" id="toggle-reg-senha2" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('reg-senha2','toggle-reg-senha2')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
+                </div>
 
                 <%-- UX: forca da senha depois de Senha+Confirmar (antes ficava encaixada
                      entre os dois campos, cortando o fluxo de preenchimento). --%>
@@ -325,6 +333,19 @@
                 var elems = document.querySelectorAll('.modal');
                 var instances = M.Modal.init(elems);
             });
+
+            // UX: "olhinho" pra revelar/ocultar a senha digitada (login e cadastro).
+            function toggleSenhaVisibility(inputId, buttonId) {
+                var input = document.getElementById(inputId);
+                var icon = document.getElementById(buttonId).querySelector('i');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.textContent = 'visibility';
+                } else {
+                    input.type = 'password';
+                    icon.textContent = 'visibility_off';
+                }
+            }
 
             function checkPasswordStrength() {
                 const password = document.getElementById('senha').value;
@@ -402,8 +423,7 @@
             }
         </script>
 
-        <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
-        <!--<script src="js/index.js"></script>-->
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script>
             $(document).ready(function () {
                 $('#show-register-form').click(function (e) {

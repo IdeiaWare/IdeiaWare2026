@@ -125,6 +125,13 @@ public class FinalizarColaboracaoServlet extends HttpServlet {
             return;
         }
         Usuario u = new UsuarioDAO().buscar(i.getUsuario().getCodigo());
-        stDAO.salvar(new Storytelling(u, i, Data.horaAtual(), "DE"));
+        try {
+            stDAO.salvar(new Storytelling(u, i, Data.horaAtual(), "DE"));
+        } catch (org.hibernate.exception.ConstraintViolationException ex) {
+            // K.8 #3: 2 submits quase-simultaneos de "Finalizar Colaboracao" passam os 2
+            // pela checagem "existentes" acima antes de qualquer um commitar -- a UNIQUE
+            // do banco (uk_storytelling_ideia) barra o 2o insert. O resultado pro usuario
+            // e o mesmo de o storytelling ja existir: a ideia segue seu fluxo normal.
+        }
     }
 }

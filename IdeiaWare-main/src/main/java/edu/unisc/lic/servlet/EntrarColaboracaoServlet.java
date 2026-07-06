@@ -41,6 +41,15 @@ public class EntrarColaboracaoServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
+        // AUTORIZACAO: exige login. Antes o servlet nao checava sessao nenhuma --
+        // um acesso sem login dava NPE no unboxing de codigoUsuario (Long -> long).
+        HttpSession session = request.getSession(true);
+        Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
+        if (codigoUsuarioObj == null) {
+            response.sendRedirect(request.getContextPath() + File.separator + "login.jsp");
+            return;
+        }
+
         // RET-14: valida parametro/ideia antes de usar (evita 500/NPE). Tambem
         // removido o System.out.println de debug.
         String ideiaIdParam = request.getParameter("ideiaId");
@@ -58,13 +67,13 @@ public class EntrarColaboracaoServlet extends HttpServlet {
         }
 
         UsuarioDAO uDAO = new UsuarioDAO();
-        Usuario u = uDAO.buscar((long) request.getSession().getAttribute("codigoUsuario"));
-        
+        Usuario u = uDAO.buscar((Long) codigoUsuarioObj);
+
         IdeiaUsuarioDAO iuDAO = new IdeiaUsuarioDAO();
         IdeiaUsuario iu = new IdeiaUsuario();
         iu.setIdeia(ideia);
         iu.setUsuario(u);
-        
+
         // COL-08: protege o .get(0) quando o usuário ainda não tem vínculo com a
         // ideia (lista vazia), em vez de estourar IndexOutOfBounds.
         List<IdeiaUsuario> lista = iuDAO.listarParametro(iu);
@@ -73,9 +82,18 @@ public class EntrarColaboracaoServlet extends HttpServlet {
         } else {
         	iu = null;
         }
-        
-        
-        HttpSession session = request.getSession(true);
+
+        // AUTORIZACAO (IDOR): antes o servlet calculava "iu" so pra saber o flLider,
+        // mas NUNCA barrava o acesso com isso -- qualquer usuario logado trocando
+        // ideiaId na URL entrava na colaboracao ativa de QUALQUER outra pessoa (e
+        // conseguia ler/escrever, ja que EnviarColaboracaoServlet/AddDescricaoServlet/
+        // RetornaMensagensServlet confiam no ideiaId da sessao sem checar de novo).
+        // Admin mantem acesso irrestrito -- gerenciamento-ideia.jsp usa esta mesma
+        // tela (retencao=true) pra visualizar a colaboracao de qualquer ideia.
+        if (u == null || (iu == null && !"adm".equals(u.getPermissao()))) {
+            response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
+            return;
+        }
 
         String retencao = request.getParameter("retencao");
         if (retencao == null || retencao.isEmpty()) {

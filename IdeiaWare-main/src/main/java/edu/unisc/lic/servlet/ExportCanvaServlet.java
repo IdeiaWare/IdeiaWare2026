@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 import javax.servlet.ServletException;
+import org.hibernate.exception.ConstraintViolationException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -84,7 +85,21 @@ public class ExportCanvaServlet extends HttpServlet {
             } else {
                 canva.setFile(fileData);
                 canva.setDate();
-                canvaDAO.salvar(canva);
+                try {
+                    canvaDAO.salvar(canva);
+                } catch (ConstraintViolationException ex) {
+                    // K.8 #4: outro export quase-simultaneo ja inseriu a linha entre a
+                    // checagem "existentes" acima e este insert -- a UNIQUE do banco
+                    // (uk_canvaexport_ideia) barra o 2o insert. Trata como update em cima
+                    // da linha que a corrida acabou de criar.
+                    List<Canvaexport> agora = canvaDAO.listarParametro(canva);
+                    if (agora != null && !agora.isEmpty()) {
+                        Canvaexport existente = agora.get(0);
+                        existente.setFile(fileData);
+                        existente.setDate();
+                        canvaDAO.editar(existente);
+                    }
+                }
             }
             ideia.setStatus(StatusIdeia.FINALIZADO);
             new IdeiaDAO().editar(ideia);

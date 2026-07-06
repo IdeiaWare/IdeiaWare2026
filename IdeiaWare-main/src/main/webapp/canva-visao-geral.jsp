@@ -11,7 +11,7 @@
 	</head>
 	<body class="center-align">
 		<%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/canva-mapa.jsp. --%>
-		<a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+		<a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
 		<%-- expõe o fluxo (retenção x finalização normal) para o geraPDFCanva.js
 		     decidir o redirect pós-export sem corte seco. --%>
 		<script>window.isRetencaoCanva = ('${sessionScope.isRetencao}' === 'true');</script>
@@ -19,7 +19,6 @@
 			<!-- VARIAVEIS -->
 	    	<jsp:useBean id="ideiaDAO" class="edu.unisc.lic.dao.IdeiaDAO" />
 		    <jsp:useBean id="canva" class="edu.unisc.lic.domain.Canva" />
-		    <c:set var="isRetencao" value="${sessionScope.isRetencao}" />
 		    
 		    <!-- MENU DE NAVEGAÇÃO -->
 	    	<div class="row center-align navCanva">
@@ -43,12 +42,14 @@
 			<div id="overlay">
 				<div class="loader"></div>
 			</div>
-			<c:set var="isRetencao" value="${sessionScope.isRetencao}" />
-			
+
 			<!-- INICIO DA DIV DE EXPORTAÇÃO / LISTAGEM DE POST-ITS -->
+			<%-- TEST-04 (2026-07-06): esta pagina e so leitura (nenhum form/botao de
+			     edicao aqui, so o Exportar acima, fora deste bloco) -- gate-la inteira
+			     por isRetencao deixava a pagina em BRANCO no modo retencao, diferente
+			     das 9 canva-*.jsp irmas (que so escondem o FORM de adicionar post-it,
+			     nunca a listagem). Removido o gate: mostra sempre. --%>
 			<div id="myPDF">
-				<c:if test="${isRetencao eq false}" >
-				
 				<!-- INICIO SEGMENTO DE CLIENTES -->
 				    <c:set var="numPost" value="0" />
 					<div class="row">
@@ -338,8 +339,7 @@
 							</c:choose>
 						</div>
 					</div>
-					<!-- FIM ESTRUTURA DE CUSTOS -->				
-			    </c:if>
+					<!-- FIM ESTRUTURA DE CUSTOS -->
 		    </div>
 		    <!-- FIM DA DIV DE EXPORTAÇÃO -->
 	    </div>

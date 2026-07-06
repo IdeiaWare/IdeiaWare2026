@@ -7,10 +7,14 @@ package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.dao.ColaboracaoIdeiaDAO;
 import edu.unisc.lic.dao.IdeiaDAO;
+import edu.unisc.lic.dao.IdeiaUsuarioDAO;
 import edu.unisc.lic.dao.LogColaboracaoDAO;
+import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.ColaboracaoIdeia;
 import edu.unisc.lic.domain.Ideia;
+import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.LogColaboracao;
+import edu.unisc.lic.domain.Usuario;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +45,14 @@ public class EditarTextoServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
+        // AUTORIZACAO: exige login. Antes o servlet nao checava sessao nenhuma.
+        HttpSession session = request.getSession(true);
+        Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
+        if (codigoUsuarioObj == null) {
+            response.sendRedirect(request.getContextPath() + File.separator + "login.jsp");
+            return;
+        }
+
         // RET-14: valida parametro/ideia antes de usar (evita 500/NPE).
         String ideiaIdParam = request.getParameter("ideiaId");
         Ideia ideia = null;
@@ -56,7 +68,18 @@ public class EditarTextoServlet extends HttpServlet {
             return;
         }
 
-        HttpSession session = request.getSession(true);
+        // AUTORIZACAO: so o LIDER da ideia pode editar o texto oficial -- mesma
+        // restricao que ja existia so na UI (colaboracao.jsp escondia o botao
+        // "Editar Texto" pra quem nao era lider) e que o SalvarTextoServlet (o save
+        // final) ja passou a exigir. Fechando aqui tambem evita que um nao-lider
+        // sequer abra o editor pre-carregado com a descricao oficial da ideia.
+        Usuario usuarioLogado = new UsuarioDAO().buscar((Long) codigoUsuarioObj);
+        List<IdeiaUsuario> souLider = new IdeiaUsuarioDAO()
+                .listarParametro(new IdeiaUsuario(usuarioLogado, ideia, "S"));
+        if (souLider == null || souLider.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
+            return;
+        }
 
         session.setAttribute("ideiaId", ideia.getCodigo());
         session.setAttribute("ideiaTitulo", ideia.getTitulo());

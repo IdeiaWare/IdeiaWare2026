@@ -22,16 +22,28 @@
         <property name="cache.provider_class">org.hibernate.cache.internal.NoCacheProvider</property>
         <!-- evita problema com colunas de nome reservado (text/user) -->
         <property name="hibernate.globally_quoted_identifiers">true</property>
+        <!-- TEST-04: sem isto, o globally_quoted_identifiers acima tambem coloca aspas no
+             columnDefinition="longtext" (Canvaexport/ElementosStorytelling/ExportFile/
+             Storytelling) -> H2 le "longtext" (com aspas) como um TIPO/dominio desconhecido
+             em vez do alias LONGTEXT nativo -> "Unknown data type: longtext". -->
+        <property name="hibernate.globally_quoted_identifiers_skip_column_definitions">true</property>
         <!-- mesma estrategia de producao (exercita o CASE-FIX nos testes H2) -->
         <property name="hibernate.physical_naming_strategy">edu.unisc.lic.util.LowerCaseTableNamingStrategy</property>
         <property name="show_sql">false</property>
         <property name="hbm2ddl.auto">create</property>
 
-        <!-- subconjunto limpo (sem longtext) suficiente p/ os fluxos de DAO testados -->
         <mapping class="edu.unisc.lic.domain.Usuario" />
         <mapping class="edu.unisc.lic.domain.Ideia" />
         <mapping class="edu.unisc.lic.domain.IdeiaUsuario" />
         <mapping class="edu.unisc.lic.domain.ColaboracaoIdeia" />
         <mapping class="edu.unisc.lic.domain.LogColaboracao" />
+        <!-- TEST-04 (2026-07-03): mappings adicionados p/ reativar/cobrir os DAOs que
+             so tinham teste @Ignore ou nenhum teste. H2 em MODE=MySQL aceita longtext
+             (mapeia p/ CLOB). -->
+        <mapping class="edu.unisc.lic.domain.Canva" />
+        <mapping class="edu.unisc.lic.domain.Canvaexport" />
+        <mapping class="edu.unisc.lic.domain.Storytelling" />
+        <mapping class="edu.unisc.lic.domain.ElementosStorytelling" />
+        <mapping class="edu.unisc.lic.domain.ExportFile" />
     </session-factory>
 </hibernate-configuration>

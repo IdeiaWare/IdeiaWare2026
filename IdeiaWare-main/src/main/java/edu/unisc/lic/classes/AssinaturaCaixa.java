@@ -37,7 +37,10 @@ public class AssinaturaCaixa {
             }
             return sb.toString();
         } catch (Exception e) {
-            return null;
+            // Falha ao assinar NAO pode virar um cookie com valor nulo (a Caixa de
+            // Ferramentas aceitaria um ideiaSig quebrado/ausente). Propaga para abortar
+            // a operacao em vez de degradar o controle de seguranca silenciosamente.
+            throw new IllegalStateException("Falha ao gerar assinatura HMAC da Caixa de Ferramentas", e);
         }
     }
 }

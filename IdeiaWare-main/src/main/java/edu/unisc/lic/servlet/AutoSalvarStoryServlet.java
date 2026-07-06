@@ -7,7 +7,10 @@ import edu.unisc.lic.dao.ElementosStorytellingDAO;
 import edu.unisc.lic.domain.ElementosStorytelling;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -31,15 +34,7 @@ public class AutoSalvarStoryServlet extends HttpServlet {
         }
         Long storytellingId = (Long) storyId;
 
-        // Lê o body completo (não apenas a primeira linha)
-        BufferedReader reader = request.getReader();
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line);
-        }
-        String json = sb.toString();
-
+        String json = lerBody(request);
         if (json == null || json.trim().isEmpty()) {
             return;
         }
@@ -47,37 +42,71 @@ public class AutoSalvarStoryServlet extends HttpServlet {
         JsonArray data = new Gson().fromJson(json, JsonArray.class);
         ElementosStorytellingDAO elementosStorytellingDAO = new ElementosStorytellingDAO();
 
+        // PERF-02: antes, cada elemento do quadro disparava 1 buscar() + 1 editar() -- CADA UM
+        // abrindo/fechando sua propria Session/conexao (2N conexoes por autosave, N = elementos
+        // no quadro). Agora: 1 SELECT em lote (buscarPorCodigos) + 1 Session/Transaction so pra
+        // salvar tudo (salvarLote), total de 2 idas ao banco por autosave, nao importa o N.
+        Map<Long, ElementosStorytelling> existentes = buscarExistentes(elementosStorytellingDAO, data);
+
+        List<ElementosStorytelling> paraSalvar = new ArrayList<>();
         for (int i = 0; i < data.size(); i++) {
             JsonObject jsonObject = data.get(i).getAsJsonObject();
-            ElementosStorytelling est = elementosStorytellingDAO.buscar(
-                    jsonObject.get("codigo").getAsLong());
+            ElementosStorytelling est = existentes.get(jsonObject.get("codigo").getAsLong());
 
-            // STR-02: elemento pode ter sido deletado entre o carregamento e o save
-            if (est == null) {
-                continue;
+            if (podeSalvar(est, storytellingId)) {
+                aplicarCampos(est, jsonObject);
+                paraSalvar.add(est);
             }
+        }
 
-            // IDOR: ignora elementos que nao pertencem ao storytelling da sessao.
-            if (est.getStorytelling() == null
-                    || !storytellingId.equals(est.getStorytelling().getCodigo())) {
-                continue;
-            }
+        elementosStorytellingDAO.salvarLote(paraSalvar);
+    }
 
-            if ("texto".equals(jsonObject.get("tipo").getAsString())) {
-                est.setY(jsonObject.get("y").getAsDouble());
-                est.setX(jsonObject.get("x").getAsDouble());
-                est.setInformacaoTexto(jsonObject.get("conteudo").getAsString());
-                est.setTamanhoFonte(jsonObject.get("tamanhoFonte").getAsInt());
-                est.setFonte(jsonObject.get("fonte").getAsString());
-                est.setCorFonte(jsonObject.get("cor").getAsString());
-            } else {
-                est.setAltura(jsonObject.get("height").getAsDouble());
-                est.setLargura(jsonObject.get("width").getAsDouble());
-                est.setY(jsonObject.get("y").getAsDouble());
-                est.setX(jsonObject.get("x").getAsDouble());
-            }
+    private String lerBody(HttpServletRequest request) throws IOException {
+        BufferedReader reader = request.getReader();
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
+        }
+        return sb.toString();
+    }
 
-            elementosStorytellingDAO.editar(est);
+    private Map<Long, ElementosStorytelling> buscarExistentes(
+            ElementosStorytellingDAO dao, JsonArray data) {
+        List<Long> codigos = new ArrayList<>();
+        for (int i = 0; i < data.size(); i++) {
+            codigos.add(data.get(i).getAsJsonObject().get("codigo").getAsLong());
+        }
+
+        Map<Long, ElementosStorytelling> existentes = new HashMap<>();
+        for (ElementosStorytelling est : dao.buscarPorCodigos(codigos)) {
+            existentes.put(est.getCodigo(), est);
+        }
+        return existentes;
+    }
+
+    // STR-02: elemento pode ter sido deletado entre o carregamento e o save.
+    // IDOR: ignora elementos que nao pertencem ao storytelling da sessao.
+    private boolean podeSalvar(ElementosStorytelling est, Long storytellingId) {
+        return est != null
+                && est.getStorytelling() != null
+                && storytellingId.equals(est.getStorytelling().getCodigo());
+    }
+
+    private void aplicarCampos(ElementosStorytelling est, JsonObject jsonObject) {
+        if ("texto".equals(jsonObject.get("tipo").getAsString())) {
+            est.setY(jsonObject.get("y").getAsDouble());
+            est.setX(jsonObject.get("x").getAsDouble());
+            est.setInformacaoTexto(jsonObject.get("conteudo").getAsString());
+            est.setTamanhoFonte(jsonObject.get("tamanhoFonte").getAsInt());
+            est.setFonte(jsonObject.get("fonte").getAsString());
+            est.setCorFonte(jsonObject.get("cor").getAsString());
+        } else {
+            est.setAltura(jsonObject.get("height").getAsDouble());
+            est.setLargura(jsonObject.get("width").getAsDouble());
+            est.setY(jsonObject.get("y").getAsDouble());
+            est.setX(jsonObject.get("x").getAsDouble());
         }
     }
 

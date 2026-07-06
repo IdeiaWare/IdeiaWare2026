@@ -41,6 +41,9 @@
     <title>IdeiaWare - Lista Storytelling</title>
   </head>
   <body class="indigo lighten-5">
+    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
+         saida de volta pra tela inicial (index.jsp). --%>
+    <a href="index.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper indigo lighten-1 z-depth-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">

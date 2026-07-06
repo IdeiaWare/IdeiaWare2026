@@ -81,6 +81,9 @@
     <title>IdeiaWare - Lista Canvas</title>
   </head>
   <body class="blue darken-4">
+    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
+         saida de volta pra tela inicial (index.jsp). --%>
+    <a href="index.jsp" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper blue darken-4 z-depth-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">

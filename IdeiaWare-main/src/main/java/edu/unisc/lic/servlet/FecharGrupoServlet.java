@@ -4,13 +4,13 @@ import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.classes.Data;
 import edu.unisc.lic.dao.IdeiaDAO;
 import edu.unisc.lic.dao.IdeiaUsuarioDAO;
-import edu.unisc.lic.dao.LogColaboracaoDAO;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.LogColaboracao;
 import edu.unisc.lic.domain.Usuario;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -61,12 +61,9 @@ public class FecharGrupoServlet extends HttpServlet {
             return;
         }
 
-        IdeiaDAO ideiaDAO = new IdeiaDAO();
-
         ideia.setStatusGrupo(StatusIdeia.GRUPO_FECHADO);
         ideia.setStatus(StatusIdeia.EM_DESENVOLVIMENTO);
         ideia.setDtInicioDesenv();
-        ideiaDAO.editar(ideia);
 
         IdeiaUsuarioDAO ideiaUsuarioDAO = new IdeiaUsuarioDAO();
         List<IdeiaUsuario> list = ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(null, ideia, "S"));
@@ -75,6 +72,12 @@ public class FecharGrupoServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
             return;
         }
+
+        // K.8 #1: as escritas (ideia, vinculos de lideranca, log) sao decididas aqui em
+        // Java a partir de leituras, mas so sao PERSISTIDAS no final, todas juntas, via
+        // fecharGrupoAtomico -- antes cada editar()/salvar() abria sua propria transacao.
+        List<IdeiaUsuario> vinculosParaAtualizar = new ArrayList<>();
+        Usuario liderFinal = list.get(0).getUsuario();
 
         String radioParam = request.getParameter("radio");
         if (radioParam != null && !radioParam.isEmpty()) {
@@ -86,35 +89,31 @@ public class FecharGrupoServlet extends HttpServlet {
                 return;
             }
             if (list.get(0).getUsuario().getCodigo() != radioId) {
-                list.get(0).setFlLider("N");
-                ideiaUsuarioDAO.editar(list.get(0));
+                IdeiaUsuario liderAntigo = list.get(0);
+                liderAntigo.setFlLider("N");
+                vinculosParaAtualizar.add(liderAntigo);
 
                 List<IdeiaUsuario> todos = ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(null, ideia, null));
                 if (todos != null) {
                     for (IdeiaUsuario iU : todos) {
                         if (iU.getUsuario().getCodigo() == radioId) {
                             iU.setFlLider("S");
-                            ideiaUsuarioDAO.editar(iU);
+                            vinculosParaAtualizar.add(iU);
+                            liderFinal = iU.getUsuario();
                         }
                     }
                 }
             }
         }
 
-        List<IdeiaUsuario> lideres = new IdeiaUsuarioDAO().listarParametro(new IdeiaUsuario(new Usuario(), ideia, "S"));
-        if (lideres == null || lideres.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
-            return;
-        }
-
         String descricaoInicial = ideia.getDescricao() != null ? ideia.getDescricao() : "";
         LogColaboracao logColaboracao = new LogColaboracao(
                 ideia,
-                lideres.get(0).getUsuario(),
+                liderFinal,
                 Data.horaAtual(),
                 descricaoInicial);
 
-        new LogColaboracaoDAO().salvar(logColaboracao);
+        ideiaUsuarioDAO.fecharGrupoAtomico(ideia, vinculosParaAtualizar, logColaboracao);
 
         response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
     }

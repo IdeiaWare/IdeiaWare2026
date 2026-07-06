@@ -1,7 +1,8 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <footer class="center blue darken-4 page-footer">
     <div class="container">
       	<div class="row">
-        	<i class="small material-icons">account_circle</i><h6 class="white-text"> ${nome}</h6>
+        	<i class="small material-icons">account_circle</i><h6 class="white-text"> <c:out value="${nome}"/></h6>
       	</div>
     </div>
    	<div class="footer-copyright">

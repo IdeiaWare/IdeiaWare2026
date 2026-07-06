@@ -61,8 +61,16 @@ public class EnviaDadosPessoaisServlet extends HttpServlet {
                              usuario.getDadosPessoais()+"\n\n" +
                              "Se você não solicitou essas informação, por favor, entre em contato imediatamente com o administrador.";
             
-            Boolean resp = EnvioEmail.EnviaEmail(usuario.getEmail(), "Dados pessoais - IdeiaWare", textoEmail);
-            
+            // RET-14: IOException de rede no SendGrid nao era capturada -> subia sem
+            // tratamento em vez de cair no mesmo fluxo de erro amigavel que ja existia
+            // pra falha de status (linha abaixo).
+            Boolean resp;
+            try {
+                resp = EnvioEmail.EnviaEmail(usuario.getEmail(), "Dados pessoais - IdeiaWare", textoEmail);
+            } catch (IOException ex) {
+                resp = false;
+            }
+
             if (resp)
                 request.setAttribute("EnviouEmail", true);
             else
@@ -84,7 +92,12 @@ public class EnviaDadosPessoaisServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        // SEC-18: POST-only. Antes um GET tambem disparava o envio de e-mail com
+        // dados pessoais -- unico servlet do grupo sem essa trava, o que permitia
+        // disparar o envio via CSRF por GET (ex.: <img src="EnviaDadosPessoaisServlet">
+        // numa pagina de terceiros, enquanto a vitima estivesse logada). A tela
+        // (index-perfil.jsp) ja usa form method="POST", entao isso nao muda o uso normal.
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 
     /**

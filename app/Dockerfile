@@ -2,8 +2,8 @@ FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /src
 COPY IdeiaWare-main/    IdeiaWare-main/
 COPY Toolkit2025-main/  Toolkit2025-main/
-RUN mvn -f IdeiaWare-main/pom.xml   clean package -DskipTests \
- && mvn -f Toolkit2025-main/pom.xml clean package -DskipTests
+RUN mvn -f IdeiaWare-main/pom.xml   clean package \
+ && mvn -f Toolkit2025-main/pom.xml clean package
 
 FROM tomcat:9.0-jdk21-temurin
 RUN rm -rf /usr/local/tomcat/webapps/*

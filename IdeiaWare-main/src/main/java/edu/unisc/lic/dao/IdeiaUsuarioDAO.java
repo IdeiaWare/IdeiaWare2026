@@ -1,12 +1,12 @@
 package edu.unisc.lic.dao;
 import edu.unisc.lic.classes.StatusIdeia;
 
+import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
+import edu.unisc.lic.domain.LogColaboracao;
 import edu.unisc.lic.util.HibernateUtil;
-import java.util.LinkedList;
 import java.util.List;
 import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
@@ -18,9 +18,6 @@ import org.hibernate.criterion.Restrictions;
  */
 public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
 
-    private Session sessao;
-    private Transaction transacao;
-
     /**
      * Esse método busca e retorna
      *
@@ -28,13 +25,9 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
      * @return
      */
     public List<IdeiaUsuario> listarParametro(IdeiaUsuario iu) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
-
-        List<IdeiaUsuario> resultado = null;
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-
             Criteria filtro = sessao.createCriteria(IdeiaUsuario.class);
 
             if (iu.getUsuario().getCodigo() != null) {
@@ -53,180 +46,114 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
             // (membros de um grupo) nao mudam, pois todos tem o mesmo valor de "ideia".
             filtro.addOrder(Order.desc("ideia"));
 
-            resultado = filtro.list();
+            return filtro.list();
 
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
         } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
+            sessao.close();
         }
-
-        return resultado;
     }
 
-    public List<IdeiaUsuario> listarIdeiasLiderStorytelling(IdeiaUsuario iu) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
-
-        List<IdeiaUsuario> resultado = new LinkedList<>();
-
-        try {
-
-            Criteria filtro = sessao.createCriteria(IdeiaUsuario.class);
-
-            filtro.add(Restrictions.eq("usuario", iu.getUsuario()));
-            filtro.add(Restrictions.eq("flLider", "S"));
-            filtro.addOrder(Order.desc("ideia")); // listagem com as ideias mais novas em cima
-
-            List<IdeiaUsuario> resultadoAuxiliar = filtro.list();
-            for (IdeiaUsuario iuAux : resultadoAuxiliar) {
-                if (iuAux.getIdeia().getStatus().equals(StatusIdeia.STORYTELLING)) {
-                    resultado.add(iuAux);
-                }
-            }
-
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
-        } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
-        }
-
-        return resultado;
-    }
-    
     /**
      * Retorna todas as ideias em status ST para o usuário — líderes e participantes.
      * Corrige STR-09: lista-storytelling.jsp só mostrava para líderes.
      */
-    public List<IdeiaUsuario> listarTodasIdeiasStorytelling(IdeiaUsuario iu) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
+    // PERF-01: as 3 listagens abaixo (Storytelling/Caixa/Canva) carregavam TODAS as
+    // ideias do usuario e filtravam por status DEPOIS, em Java (loop + lista auxiliar).
+    // O filtro de status agora vai pra dentro da propria query via createAlias("ideia",
+    // "i") -- uma unica consulta ao banco, sem trazer linhas que vao ser descartadas.
+    // Mesmo padrao ja usado em IdeiaDAO.listarIdeiasDisponiveis (HQL com filtro no banco).
 
-        List<IdeiaUsuario> resultado = new LinkedList<>();
+    public List<IdeiaUsuario> listarTodasIdeiasStorytelling(IdeiaUsuario iu) {
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
             Criteria filtro = sessao.createCriteria(IdeiaUsuario.class);
+            filtro.createAlias("ideia", "i");
             filtro.add(Restrictions.eq("usuario", iu.getUsuario()));
+            filtro.add(Restrictions.eq("i.status", StatusIdeia.STORYTELLING));
             filtro.addOrder(Order.desc("ideia")); // listagem com as ideias mais novas em cima
 
-            List<IdeiaUsuario> aux = filtro.list();
-            for (IdeiaUsuario iuAux : aux) {
-                if (StatusIdeia.STORYTELLING.equals(iuAux.getIdeia().getStatus())) {
-                    resultado.add(iuAux);
-                }
-            }
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
+            return filtro.list();
+
         } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
+            sessao.close();
         }
-        return resultado;
     }
 
     public List<IdeiaUsuario> listarCaixa(IdeiaUsuario iu) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
-
-        List<IdeiaUsuario> resultado = new LinkedList<>();
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-
             Criteria filtro = sessao.createCriteria(IdeiaUsuario.class);
+            filtro.createAlias("ideia", "i");
 
             filtro.add(Restrictions.eq("usuario", iu.getUsuario()));
             // TK-LIST: a Caixa aparece p/ TODOS os participantes da ideia (nao so o lider).
             // Se da p/ entrar pelo "Minhas Ideias", tem que aparecer nesta listagem tambem.
+            filtro.add(Restrictions.eq("i.status", StatusIdeia.CAIXA_FERRAMENTAS));
             filtro.addOrder(Order.desc("ideia")); // listagem com as ideias mais novas em cima
 
-            List<IdeiaUsuario> resultadoAuxiliar = filtro.list();
-            for (IdeiaUsuario iuAux : resultadoAuxiliar) {
-                if (iuAux.getIdeia().getStatus().equals(StatusIdeia.CAIXA_FERRAMENTAS)) {
-                    resultado.add(iuAux);
-                }
-            }
+            return filtro.list();
 
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
         } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
+            sessao.close();
         }
-
-        return resultado;
     }
-    
-    public List<IdeiaUsuario> listarIdeiasCanva(IdeiaUsuario iu) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
 
-        List<IdeiaUsuario> resultado = new LinkedList<>();
+    public List<IdeiaUsuario> listarIdeiasCanva(IdeiaUsuario iu) {
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-
             Criteria filtro = sessao.createCriteria(IdeiaUsuario.class);
+            filtro.createAlias("ideia", "i");
 
             // CAN-PARTICIPANTE: antes so o LIDER (flLider='S') via a ideia na listagem
             // do Canvas. Agora TODOS os participantes veem -- o acesso real e reforcado
             // no EntrarCanvaServlet (que agora exige participacao), nao mais so aqui.
             filtro.add(Restrictions.eq("usuario", iu.getUsuario()));
+            // Status "CV" é definido pelo projeto Toolkit2025 (Caixa de Ferramentas) no
+            // método IdeiaDAOImpl.finalize() quando a ideia sai da caixa. É o status
+            // correto para listar no Canvas — NÃO alterar.
+            filtro.add(Restrictions.eq("i.status", StatusIdeia.CANVAS));
             filtro.addOrder(Order.desc("ideia")); // listagem com as ideias mais novas em cima
 
-            List<IdeiaUsuario> resultadoAuxiliar = filtro.list();
-            for (IdeiaUsuario iuAux : resultadoAuxiliar) {
-                // Status "CV" é definido pelo projeto Toolkit2025 (Caixa de Ferramentas)
-                // no método IdeiaDAOImpl.finalize() quando a ideia sai da caixa.
-                // É o status correto para listar no Canvas — NÃO alterar.
-                if (StatusIdeia.CANVAS.equals(iuAux.getIdeia().getStatus())) {
-                    resultado.add(iuAux);
-                }
-            }
+            return filtro.list();
 
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
         } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
+            sessao.close();
         }
+    }
 
-        return resultado;
+    /**
+     * K.8 #1 (2026-07-06): fecha o grupo, atualiza a lideranca (se houve transferencia) e
+     * grava o log inicial de colaboracao NUMA UNICA Session/Transaction. Antes, FecharGrupoServlet
+     * fazia isso em 2 a 4 transacoes separadas (ideia.editar, ate 2x ideiaUsuario.editar, log.salvar)
+     * -- uma falha exatamente entre rebaixar o lider antigo e promover o novo podia deixar a
+     * ideia SEM NENHUM lider. Agora tudo commita junto ou nada commita (rollback).
+     */
+    public void fecharGrupoAtomico(Ideia ideia, List<IdeiaUsuario> vinculosParaAtualizar, LogColaboracao logInicial) {
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
+        Transaction transacao = null;
+
+        try {
+            transacao = sessao.beginTransaction();
+            sessao.update(ideia);
+            if (vinculosParaAtualizar != null) {
+                for (IdeiaUsuario iu : vinculosParaAtualizar) {
+                    sessao.update(iu);
+                }
+            }
+            sessao.save(logInicial);
+            transacao.commit();
+
+        } catch (RuntimeException erro) {
+            if (transacao != null) {
+                transacao.rollback();
+            }
+            throw erro;
+        } finally {
+            sessao.close();
+        }
     }
 
 }

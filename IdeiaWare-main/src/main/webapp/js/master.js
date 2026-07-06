@@ -42,6 +42,9 @@ function deleteFile(id){
 
             if ($('.modal.open i').length === 0)
                 $('.modal.open #corpo').html("Não há arquivos exportados.");
+          },
+          error: function () {
+            alert("Erro ao deletar o arquivo!");
           }
         });
     }
@@ -64,6 +67,9 @@ function deleteCanvaExport(codigo){
 
             if ($('.modal.open i').length === 0)
                 $('.modal.open #corpo').html("Nenhum Canva foi exportado.");
+          },
+          error: function () {
+            alert("Erro ao deletar o Canva exportado!");
           }
         });
     }

@@ -14,7 +14,7 @@
                     <h1>Outras Ideias</h1>
                     <%-- UX-VOLTAR-V2: icone circular flutuante no canto superior esquerdo (fixed) --
                          ver colaboracao.jsp pro raciocinio completo (nao mexe no header compartilhado). --%>
-                    <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+                    <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
                     <jsp:useBean id="ideiaDAO" class="edu.unisc.lic.dao.IdeiaDAO" />
                     <jsp:useBean id="data"    class="edu.unisc.lic.classes.Data" />
 

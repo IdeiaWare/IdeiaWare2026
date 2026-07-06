@@ -11,6 +11,9 @@ import edu.unisc.lic.domain.Canva;
 import edu.unisc.lic.domain.Ideia;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +25,16 @@ import javax.servlet.http.HttpSession;
  * @author yanrodrigues
  */
 public class DeleteCanvaServlet extends HttpServlet {
+
+    // TEST-04: lista fechada dos destinos validos -- antes bastava comecar com
+    // "EntrarCanva" (ex.: "EntrarCanvaXxx", que nao existe, passava na checagem e so
+    // quebrava em runtime com 404). Nao era um open-redirect explorado, mas uma lista
+    // fechada fecha o buraco por completo em vez de confiar num prefixo de string.
+    private static final Set<String> DESTINOS_VALIDOS = new HashSet<>(Arrays.asList(
+            "EntrarCanvaServlet", "EntrarCanvaAtividadeServlet", "EntrarCanvaCanalServlet",
+            "EntrarCanvaEstruturaServlet", "EntrarCanvaParceriaServlet", "EntrarCanvaPropostaServlet",
+            "EntrarCanvaReceitaServlet", "EntrarCanvaRecursoServlet", "EntrarCanvaRelacionamentoServlet",
+            "EntrarCanvaSegmentoServlet"));
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -69,9 +82,10 @@ public class DeleteCanvaServlet extends HttpServlet {
 
         // CAN-04: 'context' vinha do formulário direto para o sendRedirect,
         // permitindo redirecionamento para sites externos (open redirect).
-        // Só permitimos destinos internos do Canvas (começam com "EntrarCanva").
+        // TEST-04: trocado o prefixo "EntrarCanva" por uma lista fechada dos
+        // servlets de destino realmente validos.
         String context = request.getParameter("context");
-        if (context == null || !context.startsWith("EntrarCanva") || context.contains(":") || context.contains("//")) {
+        if (!DESTINOS_VALIDOS.contains(context)) {
             context = "EntrarCanvaServlet";
         }
         response.sendRedirect(context);

@@ -13,6 +13,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.hibernate.exception.ConstraintViolationException;
 
 /**
  *
@@ -96,7 +97,19 @@ public class CadastroUsuarioServlet extends HttpServlet {
         usuario.setPermissao("col");
         usuario.setEmail(request.getParameter("email")); // LucasFreitag 2024
         usuario.setAnonimizado("N");
-        usuarioDAO.salvar(usuario);
+
+        // RACE-01: as checagens acima (lista/listaE) tem uma janela de corrida -- 2
+        // cadastros simultaneos com o mesmo login/email podem passar os 2 pela checagem.
+        // A trava de verdade agora e a UNIQUE do banco (Usuario.usuario/email); se a
+        // corrida acontecer, o PERDEDOR cai aqui em vez de criar uma 2a conta travada.
+        // Mesma resposta amigavel de "ja existe" que a checagem em Java ja mostrava.
+        try {
+            usuarioDAO.salvar(usuario);
+        } catch (ConstraintViolationException ex) {
+            request.setAttribute("respostaCadastro", true);
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+            return;
+        }
         request.getRequestDispatcher("LogInServlet").forward(request, response);
     }
 

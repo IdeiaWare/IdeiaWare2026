@@ -64,9 +64,18 @@ public class EntrarCanvaServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + File.separator + "lista-canvas.jsp");
             return;
         }
-        
+
+        // TEST-04: faltava checagem de login -- session.getAttribute("codigoUsuario")
+        // nulo dava NPE no unboxing (long), em vez de redirecionar como os demais
+        // servlets do modulo (ex.: EntrarCaixaServlet).
+        Object codigoUsuarioObj = request.getSession().getAttribute("codigoUsuario");
+        if (codigoUsuarioObj == null) {
+            response.sendRedirect(request.getContextPath() + File.separator + "login.jsp");
+            return;
+        }
+
         UsuarioDAO uDAO = new UsuarioDAO();
-        Usuario u = uDAO.buscar((long) request.getSession().getAttribute("codigoUsuario"));
+        Usuario u = uDAO.buscar((Long) codigoUsuarioObj);
         
         IdeiaUsuarioDAO iuDAO = new IdeiaUsuarioDAO();
         IdeiaUsuario iu = new IdeiaUsuario();

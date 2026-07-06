@@ -7,6 +7,17 @@
         <title>IdeiaWare - Detalhes da Ideia</title>
     </head>
     <body class="center-align teal darken-1">
+        <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- substitui
+             o botao inline "Voltar" que ficava no meio da pagina (facil de perder,
+             exigia rolar) pelo icone flutuante padrao. Mesmo destino condicional. --%>
+        <c:choose>
+            <c:when test="${sessionScope.lider eq 'S'}">
+                <a href="minha-ideia.jsp" class="btn-floating btn-large teal darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
+            </c:when>
+            <c:otherwise>
+                <a href="lista-ideia.jsp" class="btn-floating btn-large teal darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
+            </c:otherwise>
+        </c:choose>
         <jsp:useBean id="data" class="edu.unisc.lic.classes.Data" />
         <jsp:useBean id="ideiaUsuarioDAO" class="edu.unisc.lic.dao.IdeiaUsuarioDAO" />
         <jsp:useBean id="ideiaUsuario" class="edu.unisc.lic.domain.IdeiaUsuario" />
@@ -37,17 +48,6 @@
 
                         </div>
                         <div class="row">
-                            <div class="col s3">
-                                <!--                                se é lider, volta para minha-ideia, se é usuário, volta para lista-ideia-->
-                                <c:choose>
-                                <c:when test="${sessionScope.lider eq 'S'}">
-                                    <a href="minha-ideia.jsp" class="btn teal lighten-1">Voltar</a>
-                                </c:when>
-                                <c:otherwise>
-                                    <a href="lista-ideia.jsp" class="btn teal lighten-1">Voltar</a>
-                                </c:otherwise>
-                            </c:choose>
-                            </div>
                             <!--                                se é lider, não aparece-->
                             <c:if test="${sessionScope.lider != 'S'}" >
                                 <c:if test="${(ideiaUsuarioDAO.listarParametro(ideiaUsuario2)).size() eq 0}">
@@ -65,10 +65,14 @@
                     <div>
                         <!--                        aparece somente se está participando da ideia-->
                         <h5>Grupo</h5></p>
-                        <%-- UX-01: estado vazio do grupo de colaboradores --%>
+                        <%-- UX-01: estado vazio do grupo de colaboradores, com icone (padrao
+                             ja usado nas demais listagens do sistema). --%>
                         <c:set var="grupoIdeia" value="${ideiaUsuarioDAO.listarParametro(ideiaUsuario)}" />
                         <c:if test="${empty grupoIdeia}">
-                            <p class="grey-text">Ainda não há colaboradores neste grupo.</p>
+                            <div class="center-align grey-text" style="padding: 40px 20px;">
+                                <i class="material-icons" style="font-size: 3rem; display:block;">group</i>
+                                Ainda não há colaboradores neste grupo.
+                            </div>
                         </c:if>
                         <c:forEach var="usuario" items="${grupoIdeia}" varStatus="id" >
                             <c:choose>

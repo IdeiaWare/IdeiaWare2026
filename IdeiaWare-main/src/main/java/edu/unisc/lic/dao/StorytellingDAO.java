@@ -4,9 +4,7 @@ import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.util.HibernateUtil;
 import java.util.List;
 import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 
 /**
@@ -14,9 +12,6 @@ import org.hibernate.criterion.Restrictions;
  * @author viniciussdsilva
  */
 public class StorytellingDAO extends GenericDAO<Storytelling> {
-
-    private Session sessao;
-    private Transaction transacao;
 
     /**
      * Busca parâmetros do storytelling, e você pode escolher os atributos
@@ -26,10 +21,7 @@ public class StorytellingDAO extends GenericDAO<Storytelling> {
      * @return
      */
     public List<Storytelling> listarParametro(Storytelling st) {
-        this.sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        this.transacao = sessao.beginTransaction();
-
-        List<Storytelling> resultado = null;
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
             Criteria filtro = sessao.createCriteria(Storytelling.class);
@@ -46,22 +38,10 @@ public class StorytellingDAO extends GenericDAO<Storytelling> {
                 filtro.add(Restrictions.eq("status", st.getStatus()));
             }
 
-            resultado = filtro.list();
+            return filtro.list();
 
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
         } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
+            sessao.close();
         }
-
-        return resultado;
     }
 }

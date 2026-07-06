@@ -4,15 +4,10 @@ import edu.unisc.lic.domain.Usuario;
 import edu.unisc.lic.util.HibernateUtil;
 import java.util.List;
 import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 
 public class UsuarioDAO extends GenericDAO<Usuario> {
-
-    private Session sessao;
-    private Transaction transacao;
 
     /**
      * Esse método busca e retorna resultados referentes ao nome, usuario,
@@ -23,14 +18,11 @@ public class UsuarioDAO extends GenericDAO<Usuario> {
      * @return
      */
     public List<Usuario> listarParametro(Usuario usuario, boolean like) {
-        sessao = HibernateUtil.getFabricaDeSessoes().openSession();
-        transacao = sessao.beginTransaction();
-
-        List<Usuario> resultado = null;
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
             Criteria filtro = sessao.createCriteria(Usuario.class);
-            
+
             if (usuario.getUsuario() != null) {
                 if (like) {
                     filtro.add(Restrictions.like("usuario", "%" + usuario.getUsuario() + "%"));
@@ -59,22 +51,10 @@ public class UsuarioDAO extends GenericDAO<Usuario> {
                 filtro.add(Restrictions.eq("anonimizado", usuario.getAnonimizado()));
             }
 
-            resultado = filtro.list();
-            
-        } catch (HibernateException e) {
-            if (this.transacao.isActive()) {
-                this.transacao.rollback();
-            }
-        } finally {
-            try {
-                if (sessao.isOpen()) {
-                    sessao.close();
-                }
-            } catch (HibernateException e) {
-                System.out.println("Erro ao fechar a operação. Mensagem:" + e.getMessage());
-            }
-        }
+            return filtro.list();
 
-        return resultado;
+        } finally {
+            sessao.close();
+        }
     }
 }

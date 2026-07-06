@@ -2,7 +2,6 @@ package edu.unisc.lic.servlet;
 import edu.unisc.lic.classes.StatusIdeia;
 
 import edu.unisc.lic.dao.IdeiaDAO;
-import edu.unisc.lic.dao.IdeiaUsuarioDAO;
 import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
@@ -21,6 +20,16 @@ public class CadastroIdeiaServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+
+        // AUTORIZACAO: exige login. Antes o servlet nao checava sessao nenhuma -- um
+        // POST sem login dava NPE no unboxing de codigoUsuario, e a ideia ficava sem
+        // usuario (FK nullable=false), virando erro 500 cru em vez de redirecionar.
+        HttpSession session = request.getSession(true);
+        Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
+        if (codigoUsuarioObj == null) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
+            return;
+        }
 
         // COL-15: validação server-side — não depende apenas do JavaScript do cliente
         String titulo    = request.getParameter("titulo");
@@ -43,8 +52,7 @@ public class CadastroIdeiaServlet extends HttpServlet {
             return;
         }
 
-        HttpSession session = request.getSession(true);
-        Usuario usuario = new UsuarioDAO().buscar((Long) session.getAttribute("codigoUsuario"));
+        Usuario usuario = new UsuarioDAO().buscar((Long) codigoUsuarioObj);
 
         Ideia ideia = new Ideia();
         ideia.setTitulo(titulo.trim());
@@ -54,12 +62,12 @@ public class CadastroIdeiaServlet extends HttpServlet {
         ideia.setStatus(StatusIdeia.PENDENTE);
         ideia.setStatusGrupo(StatusIdeia.GRUPO_ABERTO);
 
-        IdeiaDAO ideiaDAO = new IdeiaDAO();
-        ideiaDAO.salvar(ideia);
-
         IdeiaUsuario ideiaUsuario = new IdeiaUsuario(usuario, ideia, "S");
         ideiaUsuario.setDtInscricao();
-        new IdeiaUsuarioDAO().salvar(ideiaUsuario);
+
+        // K.8 #5: salva a Ideia e o vinculo de lideranca do autor NUMA SO transacao (antes
+        // eram 2 DAOs/transacoes separadas -- falha na 2a deixava a Ideia orfa, sem lider).
+        new IdeiaDAO().criarComLider(ideia, ideiaUsuario);
 
         response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
     }

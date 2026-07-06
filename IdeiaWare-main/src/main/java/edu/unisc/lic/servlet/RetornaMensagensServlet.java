@@ -47,6 +47,16 @@ public class RetornaMensagensServlet extends HttpServlet {
         IdeiaDAO ideiaDAO = new IdeiaDAO();
         Ideia ideia = ideiaDAO.buscar((Long) ideiaIdObj);
 
+        // BLINDAGEM: ideiaId na sessao pode apontar p/ uma ideia que nao existe mais
+        // (hoje inatingivel, ja que nao ha "excluir ideia", mas evita NPE se essa feature
+        // existir no futuro -- sem isso, colaboracaoIdeia.getIdeia().getCodigo() no DAO
+        // estourava NPE em vez de cair no mesmo fallback "não" usado abaixo).
+        if (ideia == null) {
+            response.setContentType("text/plain");
+            response.getWriter().write("não");
+            return;
+        }
+
         // COLM-04: o polling roda a cada 2s; um valor inválido não deve gerar 500.
         int numMensagens;
         try {

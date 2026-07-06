@@ -98,7 +98,9 @@
         </a>
         <ul id="nav-mobile" class="right hide-on-med-and-down" >
           <!--// LucasFreitag 2024-->
-          <li><a href="index-perfil.jsp">${sessionScope.nomeUsuario}<i style="padding-left: 10px" class="fa fa-user-o" aria-hidden="true"></i></a></li>
+          <%-- XSS: nome do usuario e texto livre de cadastro -- escapado (mesma classe
+               de achado ja corrigida em footer.jsp/canva-footer.jsp, [FOOTER-XSS]). --%>
+          <li><a href="index-perfil.jsp"><c:out value="${sessionScope.nomeUsuario}"/><i style="padding-left: 10px" class="fa fa-user-o" aria-hidden="true"></i></a></li>
           <%-- Gerenciar Usuarios: nao pertence a nenhum modulo (colaborativo, storytelling,
                etc.), entao mora aqui na home em vez de dentro do header de algum modulo. --%>
           <c:if test="${usuario.permissao eq 'adm'}">
