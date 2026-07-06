@@ -1622,6 +1622,12 @@ K. PENDENCIAS
 [#3-resto] reset de senha por LINK com token de expiracao + rate-limit (a anti-enumeracao SEC-19 ja
    foi feita; e a UNICA divida de seguranca que sobra de fato). O fluxo atual gera senha temporaria
    e envia por e-mail (sem token/expiracao); qualquer um que saiba o e-mail pode resetar a conta.
+[RATE-LIMIT] (esclarecido 2026-07-06, pedido do usuario: "o rate limiting ainda nao") NENHUM
+   endpoint do LIC tem limite de tentativas -- nem LogInServlet (brute-force de senha), nem
+   ResetPasswordServlet (spam de e-mail de reset), nem CadastroUsuarioServlet. Item DIFERENTE do
+   [#3-resto] acima (aquele e so o rate-limit ESPECIFICO do fluxo de token de reset, que ainda nem
+   existe) -- este aqui e a falta de protecao GERAL contra tentativas repetidas em qualquer
+   endpoint de auth. Adiado explicitamente pelo usuario, nao e bug, e pendencia conhecida em aberto.
 
 --- K.2 [CAN-EDIT] EDICAO DO CANVAS -- [FECHADO 2026-07-06: DECISAO DE PRODUTO, NAO E BUG] ---
    Nota antiga (2026-07-02) dizia que "so o lider edita" HOJE funcionava so porque so o lider
