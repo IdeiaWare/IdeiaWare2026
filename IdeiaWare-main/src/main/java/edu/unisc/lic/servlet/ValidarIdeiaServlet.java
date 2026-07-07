@@ -74,10 +74,17 @@ public class ValidarIdeiaServlet extends HttpServlet {
 
         ideia.setGestor(usu);
 
-        if ("validar".equals(request.getParameter("validar"))) {
+        String acao = request.getParameter("validar");
+        if ("validar".equals(acao) || "reabrir".equals(acao)) {
+            // M.1 (2026-07-06): "reabrir" destrava uma ideia REJEITADA -- volta pra
+            // VALIDADA (direto pro grupo aberto), mesmo efeito de validar. Antes RE era
+            // terminal. Ao reabrir, limpa o motivo de rejeicao (nao faz mais sentido).
             ideia.setStatus(StatusIdeia.VALIDADA);
             ideia.setDtValidacao();
             ideia.setStatusGrupo(StatusIdeia.GRUPO_ABERTO);
+            if ("reabrir".equals(acao)) {
+                ideia.setMotivoRejeicao(null);
+            }
         } else {
             ideia.setStatus(StatusIdeia.REJEITADA);
             ideia.setStatusGrupo(StatusIdeia.GRUPO_FECHADO);

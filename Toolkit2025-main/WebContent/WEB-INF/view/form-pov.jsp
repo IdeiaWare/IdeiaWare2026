@@ -54,7 +54,9 @@
 							<td class="need-tour">
 								<div class="input-field col s12">
 						          <form:textarea id="need-text" class="materialize-textarea" path="needText" />
-						          <label for="necessity-text">Descrição</label>
+						          <%-- M.12 (2026-07-06): for apontava pra "necessity-text" (id inexistente);
+						               o textarea e id="need-text". Label estava quebrado. --%>
+						          <label for="need-text">Descrição</label>
 						          <div class="need-error"></div>
 						        </div>
 							</td>

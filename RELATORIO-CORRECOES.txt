@@ -1345,7 +1345,7 @@ F. LIMPEZA / CODIGO MORTO (~50 MB removidos)
 
 
 ################################################################################
-G. TESTES AUTOMATIZADOS (0 -> 309)
+G. TESTES AUTOMATIZADOS (0 -> 332: LIC 304 + Toolkit 28; era 309 = LIC 281 + Toolkit 28)
 ################################################################################
 Situacao previa: o LIC tinha 10 arquivos de teste mas eram scratch @Ignore'd dependentes de banco
 (24 testes, TODOS skipped); o Toolkit nao tinha NADA.
@@ -2192,6 +2192,696 @@ L. APENDICE — BECOS DE DEBUG (mantidos detalhados) + CORRECOES AO RELATORIO
    inline no codigo; 42 sem tag, todos justificados (mudancas via sed/python; REMOCOES onde a ausencia
    E o fix; pendencias conhecidas; e tentativas revertidas corretamente fora do codigo).
 
+
+################################################################################
+M. REQUISITOS NOVOS — GRUPO DE TESTES (levantado 2026-07-06)  [SO MAPEAMENTO, NADA CODADO]
+################################################################################
+Lista trazida por um grupo de testes. AINDA NAO IMPLEMENTADO -- este bloco e so o
+mapeamento: onde fica, impacto no codigo, ganho/perda, tradeoff. Ordenado por
+esforco crescente. Itens FUTUROS (sem urgencia) ficam na secao N.
+
+--- CLASSIFICACAO RAPIDA POR ESFORCO ---
+   TRIVIAL (texto/CSS, sem risco):        M.5, M.7, M.9, M.12
+   BAIXO (1-2 arquivos, sem schema):      M.1, M.13, M.14(so verificar)
+   MEDIO (logica/JS, cuidado com regressao): M.6, M.8, M.10
+   ALTO (schema novo + varios arquivos):  M.2, M.3 (andam juntos)
+
+--- M.1 REABRIR IDEIA REJEITADA (admin) ---  [FEITO 2026-07-06 (madrugada)]
+   IMPLEMENTADO: ValidarIdeiaServlet ganhou o ramo "reabrir" (param validar=reabrir) ->
+     status VA + grupo AB + limpa motivoRejeicao. validar-ideia.jsp: nova secao "Ideias
+     rejeitadas" (query status=RE) em collapsible, cada uma com o motivo/data e botao
+     "Reabrir" (verde, confirm). Init explicito do collapsible adicionado (a pagina so
+     inicializava o modal). Teste novo: admin_reabreIdeiaRejeitada_voltaParaValidadaELimpaMotivo.
+   HOJE: ValidarIdeiaServlet seta status RE (rejeitada) + statusGrupo FE + dtRejeicao +
+     motivo. Nao ha nenhum caminho de volta -- RE e terminal. A tela validar-ideia.jsp
+     so lista as PE (pendentes).
+   ONDE MEXER: (1) validar-ideia.jsp -- nova secao/aba "Rejeitadas" (query status=RE, ja
+     existe o padrao listarParametro). (2) ValidarIdeiaServlet -- novo ramo "reabrir" que
+     seta status de volta. (3) StatusIdeia -- sem constante nova (reusa VA ou PE).
+   DECIDIDO (2026-07-06): reabrir volta pra VALIDADA (VA) direto -- ja libera pro grupo
+     aberto/desenvolvimento, sem passar de novo pela fila de validacao. Logo, o ramo
+     "reabrir" seta status=VA + statusGrupo=AB (mesma coisa que o "validar" ja faz) e
+     limpa dtRejeicao/motivoRejeicao (ou mantem motivo como historico -- decidir na hora,
+     mas o status vai pra VA).
+   IMPACTO: baixo. Sem schema (motivoRejeicao ja existe e pode ser limpo ou mantido como
+     historico). Ganho: destrava ideias engavetadas. Perda/risco: quase nenhum -- so
+     garantir que reabrir limpe/ajuste os campos certos (dtRejeicao, statusGrupo).
+   TESTE: 1 teste de servlet (reabrir RE->VA muda status), reusa o padrao do
+     ValidarIdeiaServletTest existente.
+
+--- M.2 APROVACAO DE ENTRADA NO GRUPO PELO LIDER (lista de espera) ---  [FEITO 2026-07-06 (madrugada)]
+   IMPLEMENTADO (Opcao B -- coluna nova, decidido com o usuario):
+   - Dominio IdeiaUsuario: coluna nova flStatusVinculo (P/A/R) + motivoRejeicaoMembro (M.3).
+     Constantes VINCULO_PENDENTE/APROVADO/REJEITADO no StatusIdeia. NULL = vinculo legado =
+     tratado como aprovado em todas as telas/queries.
+   - EntrarIdeiaServlet: "Participar" agora insere com flStatusVinculo=P (lista de espera),
+     nao mais membro direto. CadastroIdeiaServlet: o criador/lider entra com A (aprovado).
+   - 2 servlets novos (@WebServlet, sem web.xml): AprovarMembroServlet (P->A) e
+     RejeitarMembroServlet (P->R + motivo). Ambos so pro LIDER + so vinculo pendente
+     (checado no servidor). Alvo = PK do IdeiaUsuario (param "vinculo").
+   - detalhes-ideia.jsp: o "Grupo" mostra so APROVADOS; nova secao "Solicitacoes de entrada"
+     (so o lider ve) lista os pendentes com Aprovar/Rejeitar; o radio de escolher lider (ao
+     fechar) tambem so lista aprovados. Modal de rejeitar-membro com motivo obrigatorio.
+   - FecharGrupoServlet + IdeiaUsuarioDAO.fecharGrupoAtomico: ao fechar, os vinculos P/R sao
+     REMOVIDOS na mesma transacao -- sobram so os aprovados, entao TODAS as checagens de
+     participacao ja existentes (Canva/Caixa/Storytelling/Colaboracao/Gerenciar/etc.)
+     seguem valendo SEM precisar filtrar por status (abordagem escolhida pra minimizar o
+     blast radius nas ~15 checagens). So membro aprovado pode virar lider.
+   - minha-ideia.jsp: participante pendente ve botao "Pendente" (desabilitado); rejeitado ve
+     "Nao aprovado" + modal com o motivo (M.3). Aprovado/lider seguem o fluxo normal.
+   - Schema estrutura-lic_bd.sql: 2 colunas novas + comentario de migracao pra banco ja
+     existente (ADD COLUMN + UPDATE flStatusVinculo='A' nos vinculos atuais).
+   DECISOES (do usuario): reabrir->VA; lider aprova a qualquer momento (grupo aberto);
+     rejeitado fica registrado com motivo; so membro aprovado vira lider.
+   BUG PEGO NO TESTE (e corrigido): FecharGrupoServlet rebaixava o lider antigo ANTES de
+     confirmar que havia um novo lider valido -- se o radio apontasse pra um pendente
+     (POST forjado), a ideia ficava SEM LIDER. Fix: acha o novo lider (aprovado) primeiro,
+     so troca se achou. Teste fecharGrupo_naoPromovePendenteALider cobre.
+   TESTES novos: AprovarMembroServletTest (4), RejeitarMembroServletTest (3),
+     FecharGrupoServletTest (+2: remove pendentes/rejeitados; nao promove pendente),
+     EntrarIdeiaServletTest (+assert flStatusVinculo=P). Suite 282 -> 296 verde.
+   HOJE: EntrarIdeiaServlet insere o vinculo IdeiaUsuario JA como membro efetivo
+     (flLider="N") na hora do clique em "Participar". Nao existe estado "pendente". O
+     lider so age no "Fechar Grupo" (detalhes-ideia.jsp), onde escolhe QUEM vira lider
+     entre os que ja entraram.
+   PEDIDO: quem clica "Participar" cai numa LISTA DE ESPERA. O lider ve essa lista (visual
+     igual ao colaboracao.jsp: linha por pedido + botao "+"), e o "+" efetiva a pessoa no
+     grupo. So depois de aprovados, aparecem na lista de escolher lider / fechar grupo.
+   ONDE MEXER (varios pontos, por isso e ALTO):
+     (a) MODELAGEM: precisa de um 3o estado do vinculo. Duas opcoes:
+         OPCAO A (reusar flLider): novo valor "P" (pendente) alem de "S"/"N". Barato no
+           schema (coluna ja existe, length=1), mas polui o significado de flLider (deixa
+           de ser so "e lider?" e vira "status do vinculo") -- TODOS os listarParametro
+           que hoje assumem flLider in ("S","N") teriam que passar a filtrar "P" fora
+           (detalhes-ideia grupo, FecharGrupoServlet, minha-ideia, retencao...). Risco de
+           esquecer um ponto e um "pendente" aparecer como membro.
+         OPCAO B (coluna nova flStatusVinculo "P"/"A"/"R" = pendente/aprovado/rejeitado):
+           mais limpa semanticamente, flLider continua so "S"/"N". Custo: 1 ALTER TABLE +
+           anotacao JPA + migracao no estrutura-lic_bd.sql (mesmo padrao das UNIQUE do K.8).
+         RECOMENDADO: Opcao B -- separa "sou lider" de "fui aprovado no grupo", menos
+           chance de regressao silenciosa nas ~8 telas/servlets que leem flLider hoje.
+     (b) EntrarIdeiaServlet: insere com estado PENDENTE em vez de membro direto.
+     (c) detalhes-ideia.jsp: nova secao "Pedidos de entrada" (so pro lider), visual do
+         colaboracao.jsp (linha + botao "+"/aprovar e "x"/rejeitar). O grupo atual passa a
+         mostrar so aprovados.
+     (d) 2 servlets novos: AprovarMembroServlet (P->A) e RejeitarMembroServlet (P->R, com
+         motivo -- ver M.3). Ambos so pro lider (mesma checagem "souLider" do
+         AddDescricaoServlet/FecharGrupoServlet).
+     (e) FecharGrupoServlet: passa a considerar so os APROVADOS ao montar a lista de
+         escolha de lider.
+   DECIDIDO (2026-07-06): (a) o lider aprova a QUALQUER momento enquanto o grupo esta
+     aberto -- ve a lista de espera e aprova/rejeita continuamente; aprovado vira membro na
+     hora (nao acumula so pro fechar). (b) rejeitado FICA registrado como "R" (rejeitado)
+     COM motivo visivel pra pessoa (ver M.3) -- nao apaga o pedido. (c) confirmado: o
+     criador da ideia ja e lider automatico (CadastroIdeiaServlet.criarComLider) e nunca
+     passa por aprovacao. => reforca a OPCAO B da modelagem (coluna flStatusVinculo
+     P/A/R), ja que agora ha 3 estados reais de vinculo (pendente/aprovado/rejeitado)
+     alem do flLider S/N.
+   IMPACTO: ALTO. Schema + ~5 arquivos + 2 servlets novos. Ganho: controle real de quem
+     entra (hoje qualquer um entra sozinho). Perda/risco: e a mudanca mais invasiva do
+     lote -- mexe no coracao do fluxo de grupo, que varias telas leem. Exige teste de
+     concorrencia (2 pessoas pedindo/sendo aprovadas juntas) no mesmo naipe do K.8.
+   TESTE: novos testes de AprovarMembro/RejeitarMembro + ajuste dos testes de
+     EntrarIdeia/FecharGrupo (que hoje assumem entrada direta).
+
+--- M.3 MOTIVO AO REJEITAR MEMBRO DO GRUPO ---  [FEITO 2026-07-06 (madrugada), junto do M.2]
+   IMPLEMENTADO junto do M.2: coluna motivoRejeicaoMembro no IdeiaUsuario; modal de motivo
+   (obrigatorio) em detalhes-ideia.jsp; RejeitarMembroServlet grava o motivo; o rejeitado ve
+   o motivo em minha-ideia.jsp (botao "Nao aprovado" -> modal). Ver detalhe no M.2.
+   PEDIDO: ao NAO aprovar alguem no grupo, o lider informa um motivo (igual rejeitar
+     ideia exige motivo).
+   ONDE MEXER: acoplado ao RejeitarMembroServlet do M.2. Precisa de um campo pra guardar o
+     motivo -- se Opcao B do M.2, uma coluna motivoRejeicaoMembro no IdeiaUsuario (ja que
+     o vinculo vira "R"). Modal de motivo no detalhes-ideia.jsp (reusa o visual do modal de
+     motivo de ideia rejeitada que ja existe em minha-ideia.jsp).
+   IMPACTO: baixo SE feito junto do M.2 (so +1 coluna + 1 modal). Isolado nao faz sentido.
+   TESTE: coberto pelo teste do RejeitarMembroServlet.
+
+--- M.5 TITULO CORTADO NAS LISTAGENS ---  [FEITO 2026-07-06]
+   IMPLEMENTADO: colaboracao.css (.my-ideas .title sem max-width:1px/ellipsis, quebra em
+     ate 2 linhas; .name e .description continuam iguais), lista-ideia-gerenciamento.jsp
+     (td de titulo white-space:normal) e lista-ideia.jsp (div de titulo sem truncate/150px).
+     Mudanca visual -- pendente confirmacao do usuario apos rebuild.
+   HOJE: css/colaboracao.css tem `.my-ideas .title { max-width: 1px }` + `.ellipsis`
+     (overflow hidden + text-overflow ellipsis + nowrap). O `max-width:1px` no <td>, com o
+     table-layout, espreme a coluna e o titulo sai cortado com "..." mesmo tendo no maximo
+     50 chars. Mesma coisa em lista-ideia-gerenciamento.jsp (inline `max-width:1px` no td
+     de titulo) e provavelmente lista-ideia.jsp.
+   PEDIDO: mostrar o titulo COMPLETO (max 50). Descricao pode continuar cortada (o botao
+     "!"/info ja mostra tudo num modal) -- so o titulo precisa caber.
+   ONDE MEXER: colaboracao.css (tirar o ellipsis/max-width so do .title, manter no
+     .description), e os `style` inline de titulo em lista-ideia-gerenciamento.jsp e
+     lista-ideia.jsp. Ajustar os <colgroup> pra dar largura real a coluna de titulo.
+   IMPACTO: trivial, so CSS. Ganho: titulo legivel. Risco: em telas estreitas o titulo de
+     50 chars pode empurrar o layout -- testar responsivo (pode precisar de wrap em 2
+     linhas em vez de nowrap).
+
+--- M.6 COLABORACAO DUPLICADA NO FRONT (as vezes, some com F5) ---  [FEITO 2026-07-06 (madrugada)]
+   IMPLEMENTADO (Opcao B -- resolve duplicata E mensagem perdida): protocolo do polling
+   mudou de CONTAGEM (numMensagens) pra ULTIMO CODIGO visto.
+   - ColaboracaoIdeiaDAO.listarAposCodigo(ci, ultimoCodigo): retorna TODAS as colaboracoes
+     com codigo > ultimoCodigo, em ordem.
+   - RetornaMensagensServlet: le param ultimoCodigo, devolve um ARRAY JSON (nao mais a
+     "ultima" unica). Nunca perde a do meio.
+   - colaboracao.jsp: var ultimoCodigo (init no maior codigo ja renderizado, via JSTL);
+     renderColaboracao(cola) so adiciona se cola.codigo > ultimoCodigo e atualiza a var.
+     Como JS e single-thread, cada handler (envio e polling) checa+atualiza atomicamente ->
+     a mesma colaboracao nunca e adicionada 2x (fim da corrida envio-vs-polling). O envio
+     e o polling agora compartilham o mesmo renderColaboracao.
+   TESTES: RetornaMensagensServletTest reescrito pro novo contrato (array por ultimoCodigo:
+     retorna so as novas em ordem; array vazio quando em dia; invalido vira 0).
+   CAUSA-RAIZ (confirmada lendo colaboracao.jsp + RetornaMensagensServlet): condicao de
+     corrida entre o ENVIO e o POLLING. Ao enviar (chamaAjaxEnviar), o servlet salva a
+     colaboracao e o callback de sucesso faz appendTo + numMensagens++. MAS o setInterval
+     de 2s (RetornaMensagensServlet) roda em paralelo: se o poll dispara na janela entre "o
+     servidor ja salvou (teste=N+1)" e "o cliente ainda nao incrementou numMensagens (=N)",
+     o poll ve numMensagens < teste, retorna ultimaColab (a MESMA que acabou de ser
+     enviada) e faz appendTo dela. Depois o callback do envio appenda a mesma de novo =>
+     aparece DUPLICADA. O F5 conserta porque recarrega a lista inteira do banco (que tem 1
+     so). Alem disso, RetornaMensagensServlet SEMPRE devolve `ultimaColab` (a ultima), nao
+     "a proxima depois de N" -- se 2 chegam entre 2 polls, a do meio se perde ate o F5.
+   ONDE MEXER: colaboracao.jsp (protocolo de sync do JS) e possivelmente
+     RetornaMensagensServlet. Opcoes:
+     OPCAO A (barata, front-only): deduplicar no cliente -- guardar os codigos ja
+       renderizados num Set; antes de appendTo (tanto no envio quanto no poll), checar se o
+       codigo ja esta na tela e pular. Resolve a duplicata visivel sem tocar no servidor.
+     OPCAO B (mais correta): trocar o protocolo -- o poll manda o MAIOR codigo ja visto (nao
+       a contagem), e o servlet retorna TODAS as colaboracoes com codigo > esse (nao so a
+       ultima). Resolve duplicata E a perda de mensagens do meio. Custo: mexe no servlet +
+       DAO (metodo "listar apos codigo X").
+     RECOMENDADO: Opcao B pra matar os 2 bugs de uma vez, com um teste de servlet
+       cobrindo "retorna as N novas, sem repetir a ja vista".
+   IMPACTO: medio. Ganho: lista confiavel em tempo real. Risco: mexer no polling que hoje
+     "funciona na maioria das vezes" -- precisa testar o cenario multiusuario (2 pessoas
+     colaborando juntas) que e onde o bug aparece.
+
+--- M.7 TITULO CORTADO NA TELA colaboracao.jsp + tamanhos de campo ---  [FEITO 2026-07-06]
+   IMPLEMENTADO: colaboracao.jsp -- card-title com display:block + word-break + fonte
+     32px->28px, quebra em vez de estourar. Mudanca visual -- confirmar no rebuild.
+   HOJE: o titulo da ideia vai num <span class="card-title"><b style="font-size:32px"> --
+     fonte grande num card de largura fixa pode cortar/estourar com titulo de 50 chars.
+   ONDE MEXER: colaboracao.jsp (o card-title) -- reduzir fonte ou permitir wrap; conferir
+     tambem os textarea (descricao maxlength=200) e larguras. Relacionado ao M.5 (mesma
+     familia "campos cortados").
+   IMPACTO: trivial, CSS/markup local.
+
+--- M.8 HTML EXPOSTO NO EDITAR-TEXTO + HABILITAR LISTAS (bolinha / 1.2.3.) ---  [ADIADO DE PROPOSITO 2026-07-06]
+   NAO IMPLEMENTADO nesta rodada (o usuario pediu "aplique os pendentes que estao DECIDIDOS").
+   Este item NAO esta totalmente decidido: habilitar HTML de lista no Quill exige exibir HTML
+   (nao escapar) nas telas que mostram a descricao (colaboracao/gerenciamento), o que abre XSS
+   ARMAZENADO se nao houver SANITIZACAO server-side (jsoup/OWASP). Adicionar jsoup e uma
+   decisao de dependencia/seguranca que precisa do OK do usuario. FICA PENDENTE ate essa
+   decisao -- fazer errado (habilitar lista sem sanitizar) e pior que nao fazer. Ver K.4
+   (sanitizacao do rich-text) -- os dois andam juntos. >>> DUVIDA PRO USUARIO: topa adicionar
+   a lib jsoup pra sanitizar o HTML do editor no servidor? Sem isso, nao dá pra habilitar
+   listas com segurança.
+   CAUSA (confirmada em editar-texto.jsp): o Quill esta configurado pra NAO suportar
+     listas -- a opcao de lista no toolbar esta COMENTADA (linha ~99, `[{'list':'ordered'},
+     {'list':'bullet'}]`) E existe uma classe PlainListItem que sobrescreve formatAt pra
+     IGNORAR formatacao de lista. Quando um aluno cola/gera conteudo com <ul><li> (ex.:
+     colou de um Word), o formato nao esta no whitelist -> some/vira texto; no
+     dangerouslyPasteHTML de carga + no quill.root.innerHTML de save, a marcacao pode
+     vazar como texto literal (o "html exposto" que o usuario viu).
+   PEDIDO (2 partes): (1) corrigir o vazamento de HTML; (2) HABILITAR de proposito a
+     criacao de listas com bolinha e numeradas.
+   ONDE MEXER: editar-texto.jsp -- descomentar a opcao de lista no toolbar, REMOVER (ou
+     corrigir) o PlainListItem que hoje bloqueia listas, registrar o formato de lista no
+     whitelist. IMPORTANTE: a descricao e salva como HTML e reexibida em varias telas
+     (colaboracao.jsp descricaoAtual, gerenciamento) -- HOJE via <c:out> (escapa) OU
+     .text() no JS. Se passar a permitir <ul><li>, esses pontos de EXIBICAO precisam
+     renderizar o HTML (nao escapar) MAS de forma segura -- ou seja, entra a necessidade de
+     SANITIZACAO server-side (jsoup/OWASP, ja listada como pendencia no K.4) pra nao abrir
+     XSS. Este item TOCA a divida de sanitizacao do rich-text.
+   IMPACTO: medio-alto (nao pela quantidade de codigo, mas pelo cruzamento com XSS). Ganho:
+     recurso pedido + fim do vazamento. Risco: habilitar HTML de lista sem sanitizar =
+     porta de XSS armazenado. Recomendo tratar M.8 JUNTO com a sanitizacao do K.4, nao
+     isolado.
+   TESTE: dificil de cobrir por unit (e front/Quill) -- exige QA manual (criar lista,
+     salvar, reabrir, ver em todas as telas que exibem a descricao).
+
+--- M.9 EDITOR DE TEXTO MUITO ALTO (botao de salvar escondido la embaixo) ---  [FEITO 2026-07-06]
+   IMPLEMENTADO: editar-texto.jsp -- <style> com #editor .ql-editor { max-height:40vh;
+     overflow-y:auto } -- area de edicao com scroll interno, botoes visiveis sem rolar.
+   HOJE: o #editor (Quill) nao tem altura maxima -- cresce com o conteudo e empurra os
+     botoes Concluir/Cancelar pra muito abaixo (precisa rolar quase uma pagina). Largura
+     esta boa.
+   ONDE MEXER: editar-texto.jsp -- CSS de altura maxima + scroll interno no .ql-editor
+     (ex.: max-height + overflow-y:auto), pra os botoes ficarem visiveis sem rolar tanto.
+   IMPACTO: trivial, so CSS. Risco quase nulo.
+
+--- M.10 EDITAR COLABORACAO (nao apagar, so editar) ---  [FEITO 2026-07-06 (madrugada)]
+   IMPLEMENTADO (decidido: so o AUTOR, so enquanto nao adicionada a descricao):
+   - EditarColaboracaoServlet novo (web.xml): checa no SERVIDOR (1) autor == usuario da
+     sessao e (2) flSalvado != "ad". Atualiza descricaoIdeiaAtual, guarda a anterior em
+     descricaoIdeiaAnterior (coluna que existia sem uso), marca dtModificacao.
+   - colaboracao.jsp: botao de editar (lapis) so aparece pro autor da colaboracao e so se
+     nao-salvada (JSTL e no JS de linha nova, via var meuCodigo/isRetencao). Edicao INLINE
+     (troca o texto por textarea + Salvar/Cancelar), AJAX pro servlet, atualiza o span.
+   TESTES: EditarColaboracaoServletTest (5): autor edita nao-salvada; nao-autor 403;
+     ja-salvada 403; texto vazio 400; sem login 401.
+   HOJE: colaboracao.jsp lista as colaboracoes read-only (so o lider tem o "+" de adicionar
+     a descricao). Nao ha como editar o texto de uma colaboracao ja enviada.
+   PEDIDO: botao de editar por colaboracao (apagar NAO), pra corrigir um erro.
+   ONDE MEXER: colaboracao.jsp (botao editar + modal/inline) + novo EditarColaboracaoServlet
+     (atualiza descricaoIdeiaAtual). O dominio ColaboracaoIdeia ja tem
+     descricaoIdeiaAnterior/dtModificacao (da pra guardar historico).
+   DECIDIDO (2026-07-06): so o AUTOR edita a propria colaboracao, e SO enquanto ela ainda
+     NAO foi adicionada a descricao (flSalvado != "ad"). Uma vez mesclada na descricao
+     oficial, o botao de editar some/desabilita (mesmo padrao do "+" que ja vira disabled
+     quando flSalvado="ad"). Isso evita a inconsistencia de editar um texto que ja foi pra
+     descricao, e nao mexe na idempotencia do K.8 #8. O EditarColaboracaoServlet checa:
+     (1) autor == usuario da sessao; (2) flSalvado != "ad". Ambos barram no servidor, nao
+     so na UI.
+   IMPACTO: medio. Ganho: corrigir erros de digitacao. Risco: interacao com o fluxo
+     flSalvado/AddDescricao (idempotencia do K.8 #8) -- precisa nao quebrar aquela logica.
+   TESTE: teste de servlet do EditarColaboracao (autor edita, nao-autor e barrado, editar
+     ja-salvada respeita a regra escolhida).
+
+--- M.12 ERROS DE PORTUGUES NO TOOLKIT (mapa de empatia + POV) ---  [FEITO 2026-07-06]
+   IMPLEMENTADO: hear.jsp ("Que Canais de mídia são influencias?" -> "Quais canais de
+     mídia a influenciam?"), pain.jsp ("sua"->"suas" maiores frustrações; "Quais riscos
+     teme"->"Quais riscos ela teme"), form-pov.jsp (label for="necessity-text"->
+     "need-text", id inexistente). gain.jsp "O que Ganha a cliente?" MANTIDO (inversao e
+     PT valido + o G maiusculo segue o estilo intencional dos outros titulos). Varredura
+     das 6 telas de empatia + POV feita: sem outros erros alem desses. Toolkit -- precisa
+     rebuild da imagem.
+   ACHADOS ja confirmados lendo os arquivos (varredura completa fica pra hora de
+     implementar, mas ja mapeei os que o grupo citou + alguns a mais):
+     - hear.jsp (O que ela Escuta), ultima linha: "Que Canais de mídia são influencias?"
+       -> "influencias" sem acento (=influências) + frase torta + "Canais" com maiuscula
+       no meio da frase. Sugerido: "Quais canais de mídia a influenciam?"
+     - pain.jsp (Qual a sua Dor), linha 1: "Quais são sua maiores frustrações?" -> "sua"
+       deveria ser "suas" (concorda com frustrações).
+     - pain.jsp, linha 3: "Quais riscos teme enfrentar?" -> provavel falta do sujeito
+       ("Quais riscos ela teme enfrentar?") pra bater com o padrao das outras. (Confirmar.)
+     - gain.jsp: "O que Ganha a cliente?" -> ordem torta ("O que a cliente Ganha?").
+       (Estilistico, opcional.)
+     - form-pov.jsp linha ~57: <label for="necessity-text"> aponta pra id inexistente (o
+       textarea e id="need-text") -- label quebrado (acessibilidade), do mesmo tipo que
+       ja corrigimos nas canva-*.jsp do LIC.
+   ONDE MEXER: as 6 JSPs de empatia (hear/pain/gain/see/say-and-do/think-and-feel) +
+     form-pov.jsp. Texto estatico direto no JSP.
+   IMPACTO: trivial, so texto. Zero risco de logica. NOTA: e Toolkit (nao LIC) -- ao
+     implementar, precisa rebuild da imagem que empacota os 2.
+
+--- M.13 BOTAO DETALHES EM IDEIA FINALIZADA (minha-ideia.jsp) ---  [FEITO 2026-07-06]
+   IMPLEMENTADO: minha-ideia.jsp -- novo ramo c:when status=FN com form pro
+     GerenciarIdeiaServlet (botao "Detalhes"), antes do otherwise. Sem mudanca de servlet
+     (GerenciarIdeiaServlet ja autoriza participante). Botao morto (disabled) so sobra
+     agora pra status PE (pendente), que e o correto.
+   HOJE: em minha-ideia.jsp, ideia com status FN (finalizado) cai no ramo <c:otherwise> e
+     mostra um botao "Entrar" DESABILITADO (morto).
+   PEDIDO: trocar por um botao "Detalhes" que abre a tela de processo (retencao), igual ao
+     que existe no gerenciamento.
+   ONDE MEXER: minha-ideia.jsp -- no ramo do FN, trocar o botao disabled por um <form> pro
+     GerenciarIdeiaServlet (mesmo que a lista de gerenciamento usa). BOA NOTICIA: o
+     GerenciarIdeiaServlet JA autoriza participante (nao so admin) -- o colaborador da
+     ideia finalizada e participante, entao ja entra no gerenciamento-ideia.jsp sem
+     mudanca de servlet. So a JSP muda.
+   IMPACTO: baixo, praticamente so 1 bloco de JSP. Ganho: acesso ao historico da ideia
+     finalizada (hoje botao morto). Risco: minimo.
+
+--- M.14 ADMIN VE TODAS AS IDEIAS NA RETENCAO ---  [CONFIRMADO JA FEITO 2026-07-06]
+   CONFIRMADO com o usuario: o comportamento ja e o desejado -- admin ve TODAS
+   (IdeiaDAO.listar()), usuario normal ve so as que participa. Nenhuma mudanca necessaria.
+   ACHADO: lista-ideia-gerenciamento.jsp (a tela de retencao) JA faz, pro admin,
+     `new IdeiaDAO().listar()` (TODAS as ideias) e, pro nao-admin, so as que participa
+     (linhas ~36-45, comentario RETENCAO-ACESSO). Ou seja, o comportamento pedido JA
+     PARECE estar no codigo atual (foi mexido nesta sessao/commit de hoje).
+   HIPOTESE do porque o grupo viu diferente: testaram ANTES do ultimo rebuild, OU o usuario
+     testado nao tinha permissao "adm" de fato no banco. VER pergunta 5 no chat -- pode ser
+     que nao precise de nenhuma mudanca, so confirmar no ambiente atual.
+   IMPACTO: possivelmente ZERO (so verificar). Se realmente faltar algo, e no
+     IdeiaDAO.listar() ou na condicao de permissao.
+
+--- M.15 UNIFICAR VISUAL DAS LISTAGENS (collapse) ---  [PARCIAL: RETENCAO FEITA 2026-07-06]
+   CONTEXTO: 2 familias de listagem coexistem -- (a) TABELA com botao de acao por linha
+     (minha-ideia, lista-ideia, retencao) e (b) COLLAPSE/acordeao (storytelling, canvas,
+     caixa, validar). Discussao com o usuario: unificar no estilo collapse ganha
+     consistencia, mas as tabelas tem a ACAO na linha (1 clique); virar collapse jogaria a
+     acao pro corpo (2 cliques) -- regressao real de UX pro hub "minha-ideia".
+   DECIDIDO: converter SO a RETENCAO (lista-ideia-gerenciamento) -- e browse-oriented e a
+     acao e uniforme ("Detalhes"), entao o custo do 2o clique e baixo. minha-ideia e
+     lista-ideia FICAM como tabela (acao por linha vale o 1 clique).
+   [FEITO] lista-ideia-gerenciamento.jsp -- <table> -> <ul class="collapsible"> (mesmo
+     padrao das outras 4). Cabecalho: Usuario (dono) + Titulo + Situacao (status sempre
+     visivel, sem bold -- pedido do usuario). Corpo (ao expandir): Usuario, Descricao,
+     Situacao + botao Detalhes (->
+     GerenciarIdeiaServlet, inalterado). Busca client-side mantida (agora filtra os <li>;
+     como o corpo fica no DOM, acha por descricao tambem). Init `$('.collapsible')
+     .collapsible()` adicionado (jQuery ja carregado na pagina). So JSP, sem Java.
+     Mudanca visual -- confirmar no rebuild.
+   PENDENTE (nao feito, decisao futura): se o usuario quiser unificar minha-ideia/
+     lista-ideia tambem SEM perder o 1-clique, o caminho e collapse com o botao de acao no
+     PROPRIO cabecalho (nao no corpo) -- mais trabalho, principalmente em minha-ideia pela
+     logica de acao que varia por status. Fica anotado.
+
+--- M.16 BOTAO "FECHAR" DO MODAL OSCILANDO CINZA/VERDE (gerenciamento-ideia) ---  [FEITO 2026-07-06]
+   ACHADO REAL testando: no gerenciamento-ideia, ao clicar nos boxes do processo
+     (Persona/POV/Canvas/etc.) abre o modalGenerico (unico modal, conteudo trocado por JS);
+     o botao "Fechar" dele as vezes aparecia cinza, as vezes verde, sem padrao.
+   CAUSA: o botao era `modal-close waves-effect waves-green btn-flat grey` -- um botao cinza
+     com RIPPLE verde (waves-green). Bug conhecido do Materialize: em elemento dentro de
+     modal que abre/fecha muito, o `.waves-ripple` as vezes nao e removido e fica tingindo
+     o botao de verde ate a proxima interacao limpar. Como aqui abre/fecha um modal por box,
+     pegava o bug com frequencia.
+   [FEITO, 2 tentativas] gerenciamento-ideia.jsp:441 -- 1a tentativa (2026-07-06) mantinha
+     verde (`btn green waves-effect waves-light`), mas o usuario reportou (2026-07-07) que
+     continuava "estranho" -- o proprio ripple CLARO (waves-light) sobre fundo verde criava
+     o mesmo tipo de artefato visual, so que um "flash" claro em vez de verde. FIX FINAL:
+     removido o ripple por completo (sem waves-effect nenhum), botao virou `btn-flat grey
+     lighten-1` -- exatamente o mesmo padrao ja usado (e comprovadamente sem bug) nos outros
+     2 "Fechar" de minha-ideia.jsp. So JSP.
+   NOTA: canva-mapa.jsp e login.jsp tambem tem waves-green em botoes Fechar, mas ali sao
+     botoes VERDES de proposito (nao cinza) ou modal aberto raramente -- nao apresentam o
+     sintoma "as vezes cinza". Nao mexidos.
+
+--- M.17 ESTILO DOS BOTOES NOVOS FORA DO PADRAO (feedback do usuario) ---  [FEITO 2026-07-06 (madrugada)]
+   O usuario notou que os botoes novos do M.2 estavam fora do padrao do projeto:
+   [FEITO] minha-ideia.jsp -- "Aguardando aprovacao" era um <span class="btn disabled"> com
+     texto longo que quebrava/estourava dentro do botao (o texto vazava pra fora). Trocado
+     pelo padrao de botao desabilitado do projeto (<input class="btn disabled"
+     disabled="true" value="Pendente"/>, mesmo do "Entrar" desabilitado) + texto curto
+     "Pendente" (nao quebra).
+   [FEITO] detalhes-ideia.jsp -- Aprovar/Rejeitar usavam btn-small (cores certas verde/
+     vermelho, mas estilo menor que o resto do app). Trocado pra btn cheio (mesmo padrao do
+     Validar/Rejeitar do validar-ideia.jsp).
+
+--- M.18 BOTOES DESABILITADOS COM SUBLINHADO PONTILHADO ESTRANHO ---  [FEITO 2026-07-07]
+   ACHADO REAL testando: os botoes "Pendente"/"Em análise" (Status/M.2) e "Entrar"
+     desabilitado, em minha-ideia.jsp, apareciam com um tracinho pontilhado embaixo,
+     visualmente estranho, "bugadinho".
+   CAUSA: os `<input class="btn disabled" disabled="true" .../>` NAO tinham `type`
+     definido. O Materialize tem uma regra `input:not([type]):disabled { border-bottom:
+     1px dotted ... }` -- o estilo padrao de CAMPO DE TEXTO desabilitado (nao de botao).
+     Sem `type="button"`, o navegador trata o input como texto, e essa regra generica
+     do Materialize se aplica por cima do `.btn`.
+   [FEITO] minha-ideia.jsp -- `type="button"` adicionado nos 2 inputs (`Em análise` -- M.2,
+     desta sessao -- e `Entrar` desabilitado -- pre-existente, mesma causa). So JSP, so
+     atributo, zero mudanca de comportamento (ja eram nao-clicaveis por `disabled`).
+
+--- NOTAS / DUVIDAS DA MADRUGADA 2026-07-06 (o usuario revisa de manha) ---
+   Coisas que decidi sozinho (defaults razoaveis) ou que precisam do olhar do usuario:
+
+   [DUVIDA-1] Membro REJEITADO nao consegue re-solicitar entrada. Depois de rejeitado (R),
+     o usuario NAO tem botao "Participar" (minha-ideia mostra "Nao aprovado"), e mesmo que
+     forcasse, EntrarIdeiaServlet barra por ja existir vinculo. So volta a poder pedir se o
+     grupo fechar (ai o vinculo R e removido) -- mas ai o grupo ja fechou. Ou seja: rejeicao
+     e "definitiva" enquanto o grupo esta aberto. PERGUNTA: isso e o desejado, ou um rejeitado
+     deveria poder pedir de novo (ex.: lider reconsiderar)? Se sim, o "Participar" de um
+     rejeitado teria que reabrir o vinculo pra P em vez de barrar. Deixei como "rejeicao
+     definitiva" por simplicidade -- mudar e fácil se o usuario preferir.
+
+   [DUVIDA-2] Motivo de rejeicao de membro: o modal exige motivo (onsubmit no client), mas o
+     RejeitarMembroServlet NAO rejeita motivo vazio no servidor (grava vazio se alguem burlar
+     o client). Baixo risco (acao de lider). Se quiser, da pra exigir no servidor tambem
+     (como o ValidarIdeiaServlet faz pra ideia? -- na verdade nem ele exige no servidor).
+     Deixei consistente com o resto (validacao so no client).
+
+   [NOTA-3] Depois que o lider aprova/rejeita um membro, o PROPRIO membro so ve a mudanca de
+     status (Pendente -> Entrar, ou -> Nao aprovado) ao recarregar minha-ideia. Nao ha push/
+     live-update nessa tela (nunca houve). Aceitavel.
+
+   [NOTA-4] FecharGrupoServlet.processRequest ficou com complexidade alta (SonarLint "Brain
+     Method") depois do M.2. Esta TESTADO (6 testes) e funciona; e o mesmo padrao de outros
+     servlets longos do projeto (ex.: AlteraUsuarioServlet). NAO refatorei pra nao arriscar
+     introduzir bug enquanto o usuario dorme -- fica como candidato a refactor (extrair a
+     logica de transferencia de lideranca pra um metodo privado).
+
+   [NOTA-5] Edicao inline de colaboracao (M.10): o textarea criado dinamicamente nao tem
+     <label> associado (acessibilidade). E transitorio (some ao salvar/cancelar). Menor.
+
+################################################################################
+N. REQUISITOS FUTUROS (anotados, SEM urgencia, nao mapeados a fundo)
+################################################################################
+[FUT-01] Convite por e-mail: o lider convida pessoas pro grupo por e-mail (ou link). Depende
+   de infra de e-mail (o SendGrid ja existe pro reset de senha) + provavelmente um token de
+   convite. So faz sentido depois do M.2 (lista de espera/aprovacao) estar pronto.
+[FUT-02] Botao de "Feedback e Sugestoes" na pagina inicial (index.jsp) -- canal do usuario
+   mandar sugestao. Decidir destino (e-mail pro admin? tabela nova? formulario simples?).
+[FUT-03] (ja em K.1) Reset de senha por LINK com token de expiracao + rate-limit -- continua
+   valendo, so cross-referenciando aqui por ser "requisito" tambem.
+
+################################################################################
+O. VARREDURA DE REVISAO (2026-07-07) -- 4 AGENTES, LISTA COMPLETA DE ACHADOS
+################################################################################
+Rodei o "prompt magico" de novo no LIC delegando pra 4 agentes locais (custo dentro do
+PRO, sem custo extra). Na madrugada, 3 dos 4 falharam por limite de sessao do plano;
+relancados apos o reset e os 4 completaram. Total: 21 achados (3 ALTA, 8 MEDIA, 10 BAIXA).
+Os ALTA e a maioria dos MEDIA de codigo escrito NESTA SESSAO (M.1/2/3/6/10) foram
+corrigidos e testados (304 testes verdes). Achados PRE-EXISTENTES de baixa prioridade
+ficam documentados como pendencia (nao mexidos, fora do escopo desta rodada).
+
+--- O.1 ACHADOS DO AGENTE DE DAO/DOMAIN (completo) ---
+[FEITO 2026-07-07] Storytelling.usuario era @OneToOne, mas 1 lider tem N storytellings
+   (1 por ideia). O DB real ja tinha usuario_codigo como KEY (nao UNIQUE), entao funcionava;
+   mas @OneToOne geraria UNIQUE em create-mode e barraria o 2o storytelling do mesmo lider.
+   CORRIGIDO p/ @ManyToOne. Suite 296 verde apos a mudanca.
+[JA DOCUMENTADO, K.1] AssinaturaCaixa: segredo HMAC (CAIXA_HMAC_SECRET) tem fallback fixo no
+   fonte -- se a env nao for setada no deploy, a chave e publica (versionada) e da p/ forjar
+   o cookie ideiaSig (fura o SEC-23). Acao do usuario: garantir a env no deploy dos 2 apps
+   (LIC+Toolkit). (Ja estava em K.1; a varredura reconfirmou como MEDIA.)
+[PENDENTE, BAIXA] Canva.text e VARCHAR(255) (outras descricoes do projeto sao 1500) -- post-it
+   de Canvas com >255 chars trunca (MySQL nao-estrito) ou da 500 (estrito) se o client nao
+   limitar. CANDIDATO A FIX (entity length + schema) -- conferir antes se ha maxlength no
+   client (canva-*.jsp). Nao mexi agora (precisa de schema + rebuild + teste manual do modulo).
+[PENDENTE, BAIXA] ColaboracaoIdeiaDAO.quantidadeMes() nao filtra por mes -- retorna o TOTAL
+   da ideia (nome enganoso). Sem callers em producao hoje (so no teste). Renomear p/
+   quantidadeTotal + usar Projections.rowCount(), OU adicionar range de data, se for religar.
+[PENDENTE, BAIXA] ElementosStorytelling: @Column(precision/scale) em campo double e no-op
+   (so vale p/ DECIMAL). Cosmetico -- remover a anotacao ou trocar p/ BigDecimal.
+[PENDENTE, BAIXA] DAOs listarParametro sao "fail-open": se o codigo da associacao vier null,
+   o filtro nao e aplicado e a query volta a TABELA INTEIRA (em vez de nada). Os callers
+   atuais sempre setam a chave, mas e um contrato fragil; getIdeia()/getUsuario() tambem sao
+   desreferenciados sem guard (NPE se construir com associacao null). Defensivo, baixa prio.
+[PENDENTE, BAIXA] Data.horaAtual() usa o TZ default da JVM vs serverTimezone=UTC do driver.
+   No Docker (JVM=UTC) fica ok; numa JVM em fuso local as datas podem deslocar. Sugestao:
+   fixar -Duser.timezone=UTC. Largamente ja coberto pelo setup Docker atual.
+
+--- O.2 ACHADOS DO AGENTE "CODIGO NOVO DESTA SESSAO" (fresh eyes, M.1/2/3/6/10) ---
+[FEITO 2026-07-07] EntrarColaboracaoServlet.java:93 -- [ALTA] CONTROLE DE ACESSO QUEBRADO:
+   a checagem so testava `iu == null`, nunca o flStatusVinculo. Com o M.2, um vinculo PODE
+   existir com status PENDENTE ou REJEITADO -- ou seja, quem so PEDIU pra entrar (nem foi
+   aprovado ainda), ou foi explicitamente REJEITADO pelo lider, tinha `iu != null` e entrava
+   direto em colaboracao.jsp via POST em EntrarColaboracaoServlet?ideiaId=X, furando a lista
+   de espera INTEIRA (o botao "Participar"/estados "Pendente"/"Nao aprovado" sumiam so na
+   UI). Fix: so libera quando aprovado (flStatusVinculo == null [legado] ou VINCULO_APROVADO).
+   3 testes novos em EntrarColaboracaoServletTest (pendente barrado, rejeitado barrado,
+   aprovado passa).
+[FEITO 2026-07-07] Vazamento do hash bcrypt da senha via JSON -- [ALTA] `new Gson().toJson()`
+   em EnviarColaboracaoServlet/RetornaMensagensServlet/EditarColaboracaoServlet serializa
+   ColaboracaoIdeia, que carrega `.usuario` (com o hash bcrypt em `senha`) -- Gson por
+   reflection inclui TODOS os campos. Ja existia em EnviarColaboracaoServlet; o M.6 AMPLIOU a
+   exposicao (RetornaMensagensServlet agora devolve um ARRAY de colaboracoes por poll de 2s,
+   nao mais so 1 -- cada participante recebe periodicamente o hash de qualquer outro autor).
+   Fix: util/JsonUtil.java novo -- Gson compartilhado (GSON_SEM_SENHA) com
+   ExclusionStrategy que exclui Usuario.senha SO na serializacao (nao toca a entidade/
+   persistencia -- marcar o campo como `transient` no Java quebraria o Hibernate salvar a
+   senha). Trocado `new Gson()` pelo `JsonUtil.GSON_SEM_SENHA` nos 3 pontos. Teste novo
+   JsonUtilTest (3 casos, inclusive um que documenta o Gson padrao vazando pra comparacao).
+[FEITO 2026-07-07] Race entre AprovarMembroServlet e FecharGrupoServlet -- [MEDIA]
+   `vinculosParaRemover` era decidido a partir de uma leitura ANTIGA (fora da transacao de
+   fechar); se um membro fosse aprovado (P->A) e commitasse EXATAMENTE entre essa leitura e
+   o delete, o fecharGrupoAtomico apagava o vinculo mesmo assim (membro recem-aprovado
+   sumia do grupo sem nunca ter sido rejeitado). Fix: IdeiaUsuarioDAO.fecharGrupoAtomico
+   agora RE-BUSCA cada vinculo FRESCO dentro da propria transacao e so apaga se o status
+   ainda for P/R no exato momento -- fecha a corrida. Teste novo (determinístico, sem
+   threads): fecharGrupoAtomico_naoApagaVinculoQueFoiAprovadoDepoisDaLeitura simula a
+   corrida atualizando o status no banco entre o "snapshot antigo" e a chamada.
+[FEITO 2026-07-07] RejeitarMembroServlet.java -- [BAIXA] "motivo obrigatorio" so era
+   validado no client (onsubmit do modal); POST forjado sem motivo gravava
+   motivoRejeicaoMembro vazio. Fix: validacao tambem no servidor (redireciona sem rejeitar
+   se motivo vazio/nulo), mesmo padrao do EditarColaboracaoServlet pra texto vazio. Teste
+   novo motivoVazio_naoRejeitaEMantemPendente.
+[ACEITO, decisao do usuario 2026-07-07] Edicao de colaboracao (M.10) nao se propaga ao vivo
+   pro polling dos outros participantes -- so quem editou ve a mudanca na hora; o resto
+   precisa de F5 (o protocolo do M.6 so retorna colaboracoes NOVAS por codigo, nao as
+   editadas). Usuario decidiu aceitar como limitacao conhecida por agora, nao corrigir
+   (exigiria redesenhar o protocolo pra considerar dtModificacao). Revisitar se incomodar
+   no uso real.
+[PENDENTE, BAIXA] Corrida teorica de AUTO_INCREMENT no polling -- sob certas configuracoes
+   de lock do InnoDB, o codigo pode commitar fora de ordem (ex.: id 6 commita antes do id
+   5); o cliente que ja avancou ultimoCodigo pra 6 nunca mais veria o 5 sem F5 completo.
+   Edge case raro, nao mexido.
+
+--- O.3 ACHADOS DO AGENTE DE SERVLETS (auth/IDOR/CSRF, completo) ---
+[FEITO 2026-07-07] CSRF-via-GET em 3 servlets de escrita -- [ALTA/MEDIA] `doGet` chamava
+   `processRequest` direto (boilerplate NetBeans antigo, GET faz o mesmo que POST), e nao
+   estavam na allowlist do PostOnlyFilter (SEC-25). Um link simples clicado pela vitima
+   logada bastava:
+     - EditarColaboracaoServlet (M.10, novo hoje) -- sobrescreveria a propria colaboracao
+       da vitima com texto do atacante.
+     - CadastroIdeiaServlet (pre-existente) -- criaria uma Ideia arbitraria na conta da
+       vitima.
+     - EntrarIdeiaServlet (pre-existente) -- inscreveria a vitima num grupo arbitrario.
+   Fix: os 3 (+ AprovarMembroServlet/RejeitarMembroServlet, que ja bloqueavam no doGet mas
+   ganharam entrada na lista por defesa em profundidade) adicionados ao
+   PostOnlyFilter.POST_ONLY. Verificado AO VIVO apos rebuild: GET nos 3 -> 405. Teste
+   PostOnlyFilterTest atualizado (o teste antigo usava /EntrarIdeiaServlet como exemplo de
+   path FORA da lista -- trocado pra /GerenciarIdeiaServlet, que e so-leitura de verdade).
+[PENDENTE, BAIXA, mesmo padrao] UploadArquivoServlet, DeletarExportedFileServlet,
+   DeletarCanvaexportServlet -- mesmo padrao (doGet sem bloqueio, fora da allowlist), mas
+   risco baixo: Upload exige corpo multipart (GET nao consegue forjar isso no navegador);
+   os 2 Deletar exigem permissao admin + leem o alvo do corpo da requisicao (GET simples
+   nao popula). Nao mexidos agora -- candidatos a entrar na allowlist por consistencia
+   numa proxima rodada.
+[META, MEDIA] PostOnlyFilter.POST_ONLY e uma allowlist mantida a mao -- todo servlet de
+   escrita novo precisa lembrar de entrar na lista (e nao entrou, em varios pre-existentes
+   e ate em 1 novo de hoje). Sugestao futura: considerar inverter a logica (leitura em
+   allowlist, escrita bloqueada por padrao) ou um teste que falha se um servlet com doPost
+   sem guard no doGet nao estiver na lista.
+[JA DOCUMENTADO, K.1] ResetPasswordServlet -- reset imediato (sem token/link), reconfirmado
+   pela varredura como o gap de seguranca real que resta. Nao e achado novo.
+
+--- O.4 ACHADOS DO AGENTE DE JSPs (UX/XSS/AJAX/acessibilidade, completo) ---
+[FEITO 2026-07-07] colaboracao.jsp -- [MEDIA] aria-label sumiu na consolidacao do M.6: a
+   versao JSTL do botao "Adicionar a Descricao" (colaboracoes ja renderizadas no load
+   inicial) sempre teve aria-label nos 2 estados; a funcao `renderColaboracao()` nova
+   (usada por TODA colaboracao que chega depois, via envio ou polling) montava o mesmo
+   botao SEM aria-label -- ou seja, praticamente todo botao "+" em uso real ficava sem nome
+   acessivel pra leitor de tela. `chamaAjaxAdd` tambem desabilitava o botao sem atualizar o
+   aria-label. Fix: aria-label replicado nos 2 branches de renderColaboracao() + atualizado
+   no disable do chamaAjaxAdd.
+[PENDENTE, MEDIA, mesma causa do O.2] colaboracao.jsp -- polling nao re-renderiza
+   colaboracao editada (achado confirmado por 2 agentes independentes, ver O.2 -- aceito
+   como limitacao por decisao do usuario).
+[PENDENTE, MEDIA] minha-ideia.jsp -- o `ready` do `.modal()` (compartilhado por TODOS os
+   .modal da pagina) assume `trigger` sempre definido (`trigger.data('codigo')`), mas o
+   clique no icone ℹ (info-icon) abre `#modal-detalhe-ideia` via `.modal('open')` SEM
+   passar trigger -> `TypeError: Cannot read properties of undefined` a cada clique.
+   PRE-EXISTENTE (nao foi introduzido hoje), inofensivo hoje (o conteudo do modal ja e
+   preenchido ANTES do open, por outro caminho), mas suja o console e e fragil se o ready
+   compartilhado mudar. Nao mexido -- fix sugerido: `if (trigger) { ... }` em volta do bloco.
+[PENDENTE, BAIXA] minha-ideia.jsp -- o rotulo "Pendente" do botao de vinculo (M.2, aguardando
+   aprovacao do lider) colide com o "Pendente" ja usado na coluna Status (ideia aguardando
+   validacao do admin) -- 2 significados diferentes com a mesma palavra, numa lista com
+   varias linhas pode confundir ao escanear. Sugestao: "Em analise" ou similar.
+[PENDENTE, BAIXA] detalhes-ideia.jsp -- a tabela nova de "Solicitacoes de entrada" (M.2) nao
+   tem <thead>, diferente do padrao do resto do app (que sempre usa thead com td em negrito
+   nas listagens tabulares). So falta de contexto de coluna pra leitor de tela, nao impede
+   uso.
+   Falsos-positivos descartados pelo agente (documentados por transparencia, NAO sao bugs):
+   storytelling-show.jsp AJAX sem .fail() (tem, linha 170); collapsible() chamado 2x em
+   validar-ideia/lista-ideia-gerenciamento (redundante mas inofensivo, o proprio plugin
+   remove os listeners antigos antes de recriar); textarea de edicao inline do M.10 sem
+   label (ja registrado como NOTA-5).
+
+--- O.5 RESUMO GERAL DA VARREDURA (21 achados, 4 agentes) ---
+   CORRIGIDOS E TESTADOS (2026-07-07, suite 282 -> 304): 3 ALTA (bypass de lista de espera,
+   vazamento de hash de senha, CSRF-GET no EditarColaboracaoServlet) + CSRF-GET em 2
+   servlets pre-existentes (CadastroIdeiaServlet, EntrarIdeiaServlet) + Storytelling
+   @OneToOne->@ManyToOne + race Aprovar/FecharGrupo + aria-label do M.6 + motivo obrigatorio
+   server-side no RejeitarMembroServlet. Total: 9 fixes com teste dedicado.
+   ACEITO COMO LIMITACAO (decisao do usuario): edicao de colaboracao nao propaga ao vivo.
+
+   RONDA 2 (mesmo dia, "aplique as correcoes mais simples e que fazem sentido, sem mexer
+   em codigo raramente explorado ou que nao gera algo ruim de verdade") -- mais 6 fixes,
+   todos triviais/baixo risco, sem teste novo dedicado onde o existente ja cobria:
+   [FEITO] Canva.text VARCHAR(255) -- CONFIRMADO MITIGADO, nao e mais pendencia: os 9
+     canva-*.jsp ja limitam o textarea do post-it a maxlength="200", bem abaixo do limite
+     da coluna. Sem risco real, fechado so verificando (nenhum codigo mudou).
+   [FEITO] PostOnlyFilter.java -- UploadArquivoServlet, DeletarExportedFileServlet,
+     DeletarCanvaexportServlet adicionados a allowlist (mesmo padrao CSRF-GET dos outros,
+     risco ja mitigado na pratica, mas fix e trivial -- so a lista). Confirmado AO VIVO
+     apos rebuild: GET nos 3 -> 405. PostOnlyFilterTest atualizado (8 paths novos).
+   [FEITO] ElementosStorytelling.java -- removida a anotacao precision/scale (no-op em
+     campo double, so vale pra DECIMAL) de x/y/altura/largura. Cosmetico, comportamento
+     identico (o schema real ja era DOUBLE simples).
+   [FEITO] minha-ideia.jsp -- modal ready() ganhou guard `if (!trigger) return` -- o clique
+     no icone (i) de detalhe (#modal-detalhe-ideia) chama .modal('open') sem trigger,
+     gerando TypeError a cada clique (inofensivo, so sujava o console). Agora so roda o
+     preenchimento (que depende de trigger) quando ele realmente existe.
+   [FEITO] minha-ideia.jsp -- rotulo do botao desabilitado do M.2 trocado de "Pendente"
+     pra "Em análise" (colidia com o "Pendente" ja usado na coluna Status, 2 significados
+     diferentes com a mesma palavra).
+   [FEITO] detalhes-ideia.jsp -- thead adicionado na tabela "Solicitacoes de entrada" (M.2),
+     mesmo padrao das outras listagens tabulares do projeto (tr font-weight:bold).
+   [FEITO] ColaboracaoIdeiaDAO.quantidadeMes() -- renomeado pra quantidadeTotal (o nome
+     antigo prometia filtrar por mes, mas nunca filtrou -- so por ideia). Trocado
+     `filtro.list().size()` por `Projections.rowCount()` (COUNT no banco, sem carregar
+     as entidades so pra contar). Zero callers em producao (achado da varredura); teste
+     renomeado/ajustado (ColaboracaoIdeiaDAOTest).
+   Suite continua 304/304 (renomear teste nao muda a contagem). Rebuild feito, confirmado
+   ao vivo (LIC 200, Toolkit 302, 3 GETs novos -> 405).
+
+   NAO MEXIDO NESTA RONDA (avaliado e descartado por baixo retorno, conforme pedido do
+   usuario -- "nao precisa implementar coisa em codigos que quase nunca serao explorados
+   ... ou que esse problema nao necessariamente gera algo muito ruim"):
+   [DAOs listarParametro fail-open] tocaria 8+ arquivos por um risco hipotetico -- todos os
+     callers atuais ja sempre setam a chave da associacao, sem exploracao conhecida.
+   [Data.horaAtual() TZ da JVM] so importa fora do Docker (que ja roda em UTC); baixo
+     retorno pro esforco de mexer em toda gravacao de data do sistema.
+   [Meta-achado da allowlist manual do PostOnlyFilter] e uma sugestao arquitetural
+     (inverter a logica whitelist/blacklist, ou testes automatizados de cobertura), nao um
+     bug pontual -- fica como ideia registrada, nao como tarefa.
+   [AssinaturaCaixa HMAC fallback] nao e fix de codigo -- e acao do USUARIO (setar a env
+     no deploy), ja documentado desde o K.1.
+
+################################################################################
+P. FECHAMENTO DA SESSAO (2026-07-07) -- ESCLARECIMENTO DO MERGE + STATUS FINAL
+################################################################################
+
+--- P.1 ESCLARECIMENTO: O MERGE dao-classes-robustez -> main JA ACONTECEU ---
+   Usuario ficou em duvida se o merge tinha sido feito, pois nao aparecia como Pull
+   Request no GitHub. Verificado e confirmado: o merge ACONTECEU e ESTA no GitHub, so
+   nao do jeito que uma PR mergeada apareceria. Motivo:
+   - O merge foi feito localmente via `git merge --ff-only` (fast-forward) + `git push
+     origin main` direto pela linha de comando -- NUNCA passou pelo fluxo de Pull
+     Request do GitHub (nenhuma PR foi aberta pra isso).
+   - Fast-forward NAO cria commit de merge -- o ponteiro da main so anda pra frente ate
+     alcancar o dao-classes-robustez. Por isso so existe 1 commit de merge em todo o
+     historico (`553c38c`, de uma PR real e antiga, "Merge pull request #1").
+   - A branch `dao-classes-robustez` NO GITHUB (o remoto) ficou 2 commits atras, porque
+     so foi empurrado update pra `main`, nunca de volta pra essa branch remota
+     especifica -- confunde quem olha a lista de branches achando que ela nunca foi
+     integrada.
+   CONFIRMADO (2026-07-07): `origin/main` no GitHub tem o commit `aa9c0d1`, o mesmo que
+   `main` e `dao-classes-robustez` locais apontam -- os 3 sao o MESMO commit. Nada foi
+   perdido, nao precisa de stash nem de merge de novo. Se quiser ver isso refletido como
+   PR de verdade no futuro, e so questao de abrir uma PR vazia (branch ja esta igual) ou
+   deletar a branch remota `dao-classes-robustez` (ja esta 100% absorvida na main).
+
+--- P.2 RESUMO CONSOLIDADO: TUDO FEITO DESDE O MERGE (commit aa9c0d1) ATE AGORA ---
+   Trabalho realizado em cima do commit aa9c0d1 (ainda NAO commitado -- 48 arquivos no
+   working tree, ver P.3 pros comandos). Nao repete o detalhe (ja esta nas secoes M/O
+   acima), so a lista pra referencia rapida:
+
+   FEATURES (M.1 a M.17): reabrir ideia rejeitada; lista de espera/aprovacao de membros
+   pelo lider + motivo obrigatorio; fix da colaboracao duplicada (protocolo de polling
+   por codigo); editar colaboracao (so autor, so nao-mesclada); titulo completo em ~9
+   listagens; editor de texto com altura fixa; portugues corrigido no Toolkit (mapa de
+   empatia + POV); botao "Detalhes" em ideia finalizada; retencao virou visual collapse;
+   botao "Fechar" do modal parou de oscilar cinza/verde; botoes do M.2 ajustados ao
+   padrao do projeto. M.8 (habilitar listas no editor) AVALIADO E DESCARTADO -- usuario
+   decidiu que o ganho e pequeno pro trabalho envolvido (sanitizacao + 14 pontos de
+   exibicao), fica documentado e mapeado caso mude de ideia no futuro.
+
+   SEGURANCA (varredura com 4 agentes + fixes, todos testados): bypass da lista de
+   espera (EntrarColaboracaoServlet nao checava status do vinculo, ALTA); vazamento de
+   hash bcrypt da senha via JSON (JsonUtil novo, ALTA); CSRF-via-GET em 3 servlets
+   (EditarColaboracaoServlet/CadastroIdeiaServlet/EntrarIdeiaServlet, ALTA/MEDIA); race
+   entre aprovar membro e fechar grupo (MEDIA); aria-label sumido nos botoes via JS
+   (MEDIA); motivo de rejeicao nao validado no servidor (BAIXA); Storytelling.usuario
+   @OneToOne->@ManyToOne (MEDIA).
+
+   RONDA 2 (limpeza de baixo risco): PostOnlyFilter ampliado (+3 servlets); precision/
+   scale no-op removido; guard no modal ready() de minha-ideia.jsp; rotulo "Pendente"->
+   "Em analise"; thead na tabela de solicitacoes; quantidadeMes->quantidadeTotal com
+   COUNT no banco.
+
+   TESTES: 282 -> 304 verde. Suite completa rodada de novo agora (2026-07-07, fechamento
+   desta sessao) -- 304/304 verde, confirmado limpo antes do commit.
+   DOCKER: containers app+db saudaveis, LIC 200, Toolkit 302, confirmado ao vivo.
+
+--- P.3 O QUE REALMENTE FALTA (nada de codigo -- so decisao/infra) ---
+   Nao ha nenhum item de codigo pendente de revisao imediata. O que resta:
+   [PRIORIDADE] Reset de senha com link/token de expiracao -- unica divida de seguranca
+     real que resta (K.1). Nao mapeado em detalhe ainda, proxima rodada candidata.
+   [DECISAO DO USUARIO] DUVIDA-1 -- membro rejeitado pode ou nao pedir entrada de novo
+     enquanto o grupo esta aberto? Ainda sem resposta.
+   [BAIXA PRIORIDADE, documentado, nao mexer sem pedido] resto do backlog tecnico ja
+     listado nas secoes K/O (DAOs fail-open, TZ da JVM, migracao jakarta/Postgres,
+     upgrade de libs antigas, mapeamento do Toolkit, CSP, rate limiting).
 
 ################################################################################
 Rastreabilidade: a etiqueta no CODIGO e a fonte de verdade; os numeros de linha podem variar

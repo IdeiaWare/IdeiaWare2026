@@ -97,6 +97,9 @@ public class EntrarIdeiaServletTest {
 		List<IdeiaUsuario> vinculos = ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(novoParticipante, ideia, null));
 		org.junit.Assert.assertEquals(1, vinculos.size());
 		org.junit.Assert.assertEquals("N", vinculos.get(0).getFlLider());
+		// M.2 (2026-07-06): "Participar" agora entra na LISTA DE ESPERA (pendente), nao mais
+		// como membro efetivo direto -- o lider aprova depois.
+		org.junit.Assert.assertEquals(StatusIdeia.VINCULO_PENDENTE, vinculos.get(0).getFlStatusVinculo());
 		verify(response).sendRedirect(contains("minha-ideia.jsp"));
 	}
 

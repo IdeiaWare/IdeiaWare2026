@@ -1,6 +1,7 @@
 package edu.unisc.lic.servlet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -14,7 +15,7 @@ import javax.servlet.http.HttpSession;
 
 import org.junit.Test;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 
 import edu.unisc.lic.classes.StatusIdeia;
@@ -26,10 +27,10 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
 /**
- * RetornaMensagensServlet: polling (a cada 2s, ver COLM-05/COLM-04) que
- * devolve a ultima colaboracao quando ha mais mensagens do que o cliente ja
- * tem. Sem ideiaId na sessao ou numMensagens invalido -> corpo "nao", nunca
- * 500.
+ * RetornaMensagensServlet: polling (a cada 2s, ver COLM-05) do colaboracao.jsp.
+ * M.6 (2026-07-06): protocolo mudou de CONTAGEM (numMensagens) pra ULTIMO CODIGO visto --
+ * agora devolve um ARRAY com TODAS as colaboracoes com codigo > ultimoCodigo (nunca perde
+ * a do meio e nao duplica na corrida envio-vs-polling). Sem ideiaId na sessao -> "nao".
  */
 public class RetornaMensagensServletTest {
 
@@ -50,12 +51,18 @@ public class RetornaMensagensServletTest {
 		return ideia;
 	}
 
-	private HttpServletRequest mockRequest(Long ideiaId, String numMensagens) {
+	private ColaboracaoIdeia novaColab(Ideia ideia, Usuario autor, String texto) {
+		ColaboracaoIdeia c = new ColaboracaoIdeia(ideia, autor, new Timestamp(System.currentTimeMillis()), texto);
+		colaboracaoIdeiaDAO.salvar(c);
+		return c;
+	}
+
+	private HttpServletRequest mockRequest(Long ideiaId, String ultimoCodigo) {
 		HttpServletRequest request = mock(HttpServletRequest.class);
 		HttpSession session = mock(HttpSession.class);
 		when(request.getSession()).thenReturn(session);
 		when(session.getAttribute("ideiaId")).thenReturn(ideiaId);
-		when(request.getParameter("numMensagens")).thenReturn(numMensagens);
+		when(request.getParameter("ultimoCodigo")).thenReturn(ultimoCodigo);
 		return request;
 	}
 
@@ -78,9 +85,7 @@ public class RetornaMensagensServletTest {
 
 	@Test
 	public void ideiaIdApontaParaIdeiaInexistente_retornaNaoSemQuebrar() throws Exception {
-		// TEST-04 (2026-07-06): achado na reconferencia dos DAOs -- ideiaDAO.buscar()
-		// pode retornar null, e sem guard isso estourava NPE dentro de
-		// ColaboracaoIdeiaDAO.listarParametro (ci.getIdeia().getCodigo()).
+		// TEST-04 (2026-07-06): ideiaDAO.buscar() pode retornar null -- guard evita NPE.
 		HttpServletRequest request = mockRequest(999999L, "0");
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		StringWriter sw = mockResponseWriter(response);
@@ -91,9 +96,11 @@ public class RetornaMensagensServletTest {
 	}
 
 	@Test
-	public void numMensagensInvalido_retornaNao() throws Exception {
+	public void ultimoCodigoInvalido_tratadoComoZero_retornaTodasEmArray() throws Exception {
+		// M.6: valor invalido nao gera 500 -- vira 0, entao devolve TODAS as colaboracoes.
 		Usuario autor = novoUsuario("Autor");
 		Ideia ideia = novaIdeia(autor);
+		novaColab(ideia, autor, "unica");
 
 		HttpServletRequest request = mockRequest(ideia.getCodigo(), "abc");
 		HttpServletResponse response = mock(HttpServletResponse.class);
@@ -101,43 +108,46 @@ public class RetornaMensagensServletTest {
 
 		new RetornaMensagensServlet().doGet(request, response);
 
-		assertEquals("não", sw.toString());
+		JsonArray arr = JsonParser.parseString(sw.toString()).getAsJsonArray();
+		assertEquals(1, arr.size());
+		assertEquals("unica", arr.get(0).getAsJsonObject().get("descricaoIdeiaAtual").getAsString());
 	}
 
 	@Test
-	public void numMensagensMenorQueTotal_retornaUltimaColaboracaoEmJson() throws Exception {
+	public void ultimoCodigoMenorQueMax_retornaSoAsNovasEmOrdem() throws Exception {
+		// M.6: cliente ja viu c1; deve receber SO c2 e c3 (as com codigo maior), em ordem.
 		Usuario autor = novoUsuario("Autor2");
 		Ideia ideia = novaIdeia(autor);
+		ColaboracaoIdeia c1 = novaColab(ideia, autor, "primeira");
+		novaColab(ideia, autor, "segunda");
+		novaColab(ideia, autor, "terceira");
 
-		ColaboracaoIdeia c1 = new ColaboracaoIdeia(ideia, autor, new Timestamp(System.currentTimeMillis()), "primeira colaboracao");
-		colaboracaoIdeiaDAO.salvar(c1);
-		ColaboracaoIdeia c2 = new ColaboracaoIdeia(ideia, autor, new Timestamp(System.currentTimeMillis() + 5000), "ultima colaboracao");
-		colaboracaoIdeiaDAO.salvar(c2);
-
-		HttpServletRequest request = mockRequest(ideia.getCodigo(), "1");
+		HttpServletRequest request = mockRequest(ideia.getCodigo(), c1.getCodigo().toString());
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		StringWriter sw = mockResponseWriter(response);
 
 		new RetornaMensagensServlet().doGet(request, response);
 
-		JsonObject resposta = JsonParser.parseString(sw.toString()).getAsJsonObject();
-		assertEquals("ultima colaboracao", resposta.get("descricaoIdeiaAtual").getAsString());
+		JsonArray arr = JsonParser.parseString(sw.toString()).getAsJsonArray();
+		assertEquals(2, arr.size());
+		assertEquals("segunda", arr.get(0).getAsJsonObject().get("descricaoIdeiaAtual").getAsString());
+		assertEquals("terceira", arr.get(1).getAsJsonObject().get("descricaoIdeiaAtual").getAsString());
 	}
 
 	@Test
-	public void numMensagensMaiorOuIgualQueTotal_retornaNao() throws Exception {
+	public void ultimoCodigoIgualAoMax_retornaArrayVazio() throws Exception {
+		// M.6: cliente ja esta em dia -> array vazio (nada novo pra renderizar).
 		Usuario autor = novoUsuario("Autor3");
 		Ideia ideia = novaIdeia(autor);
+		ColaboracaoIdeia c1 = novaColab(ideia, autor, "unica");
 
-		ColaboracaoIdeia c1 = new ColaboracaoIdeia(ideia, autor, new Timestamp(System.currentTimeMillis()), "unica colaboracao");
-		colaboracaoIdeiaDAO.salvar(c1);
-
-		HttpServletRequest request = mockRequest(ideia.getCodigo(), "1");
+		HttpServletRequest request = mockRequest(ideia.getCodigo(), c1.getCodigo().toString());
 		HttpServletResponse response = mock(HttpServletResponse.class);
 		StringWriter sw = mockResponseWriter(response);
 
 		new RetornaMensagensServlet().doGet(request, response);
 
-		assertEquals("não", sw.toString());
+		JsonArray arr = JsonParser.parseString(sw.toString()).getAsJsonArray();
+		assertTrue("array deve vir vazio", arr.isEmpty());
 	}
 }

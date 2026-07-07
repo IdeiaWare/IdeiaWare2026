@@ -79,6 +79,21 @@ public class FecharGrupoServlet extends HttpServlet {
         List<IdeiaUsuario> vinculosParaAtualizar = new ArrayList<>();
         Usuario liderFinal = list.get(0).getUsuario();
 
+        // M.2 (2026-07-06): todos os vinculos da ideia. Ao fechar, os PENDENTES/REJEITADOS
+        // (quem nao foi aprovado) sao REMOVIDOS -- sobram so os aprovados, e as checagens de
+        // participacao ja existentes (Canva/Caixa/Storytelling/etc.) seguem valendo sem
+        // filtro de status. So um membro aprovado pode virar lider.
+        List<IdeiaUsuario> todos = ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(null, ideia, null));
+        List<IdeiaUsuario> vinculosParaRemover = new ArrayList<>();
+        if (todos != null) {
+            for (IdeiaUsuario iU : todos) {
+                String st = iU.getFlStatusVinculo();
+                if (StatusIdeia.VINCULO_PENDENTE.equals(st) || StatusIdeia.VINCULO_REJEITADO.equals(st)) {
+                    vinculosParaRemover.add(iU);
+                }
+            }
+        }
+
         String radioParam = request.getParameter("radio");
         if (radioParam != null && !radioParam.isEmpty()) {
             long radioId;
@@ -88,20 +103,29 @@ public class FecharGrupoServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
                 return;
             }
-            if (list.get(0).getUsuario().getCodigo() != radioId) {
-                IdeiaUsuario liderAntigo = list.get(0);
-                liderAntigo.setFlLider("N");
-                vinculosParaAtualizar.add(liderAntigo);
-
-                List<IdeiaUsuario> todos = ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(null, ideia, null));
-                if (todos != null) {
-                    for (IdeiaUsuario iU : todos) {
-                        if (iU.getUsuario().getCodigo() == radioId) {
-                            iU.setFlLider("S");
-                            vinculosParaAtualizar.add(iU);
-                            liderFinal = iU.getUsuario();
-                        }
+            if (list.get(0).getUsuario().getCodigo() != radioId && todos != null) {
+                // M.2 (2026-07-06): acha o novo lider entre os APROVADOS ANTES de mexer em
+                // nada. So promove um membro aprovado (o radio na tela ja so mostra
+                // aprovados; reforca aqui contra POST forjado com id de pendente/rejeitado).
+                // Antes o codigo rebaixava o lider antigo PRIMEIRO e so depois procurava o
+                // novo -- se o radio apontasse pra um invalido, a ideia ficava SEM LIDER.
+                IdeiaUsuario novoLider = null;
+                for (IdeiaUsuario iU : todos) {
+                    String st = iU.getFlStatusVinculo();
+                    boolean aprovado = !StatusIdeia.VINCULO_PENDENTE.equals(st)
+                            && !StatusIdeia.VINCULO_REJEITADO.equals(st);
+                    if (iU.getUsuario().getCodigo() == radioId && aprovado) {
+                        novoLider = iU;
+                        break;
                     }
+                }
+                if (novoLider != null) {
+                    IdeiaUsuario liderAntigo = list.get(0);
+                    liderAntigo.setFlLider("N");
+                    vinculosParaAtualizar.add(liderAntigo);
+                    novoLider.setFlLider("S");
+                    vinculosParaAtualizar.add(novoLider);
+                    liderFinal = novoLider.getUsuario();
                 }
             }
         }
@@ -113,7 +137,7 @@ public class FecharGrupoServlet extends HttpServlet {
                 Data.horaAtual(),
                 descricaoInicial);
 
-        ideiaUsuarioDAO.fecharGrupoAtomico(ideia, vinculosParaAtualizar, logColaboracao);
+        ideiaUsuarioDAO.fecharGrupoAtomico(ideia, vinculosParaAtualizar, vinculosParaRemover, logColaboracao);
 
         response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
     }

@@ -126,10 +126,11 @@
                 <c:set var="iLog" value="${logDAO.buscarDescricaoFinal(log)}" />
                 <li>
                   <div class="collapsible-header">
-                    <span style="width: 20%; text-align: left;" class="truncate"    ><c:out value="${canva.ideia.usuario.nome}"/></span>
-                    <span style="width: 25%; text-align: left;" class="truncate"    ><c:out value="${canva.ideia.titulo}"/></span>
-                    <span style="width: 50%; text-align: left;" class="truncate"    ><c:out value="${canva.ideia.descricao}"/></span>
-                    <i class="material-icons" style="width: 5%; text-align: right; ">add</i>
+                    <%-- M.5 (2026-07-06): cabecalho so com Usuario + Titulo (descricao removida
+                         daqui, ja aparece no corpo ao clicar no +). Titulo (max 50) quebra. --%>
+                    <span style="width: 30%; text-align: left;" class="truncate"><c:out value="${canva.ideia.usuario.nome}"/></span>
+                    <span style="width: 65%; text-align: left; white-space: normal; word-break: break-word;"><c:out value="${canva.ideia.titulo}"/></span>
+                    <i class="material-icons" style="width: 5%; text-align: right;">add</i>
                   </div>
                   <div class="collapsible-body">
                     <div id="parteCima" style="text-align: justify;">

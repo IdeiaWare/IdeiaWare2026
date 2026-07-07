@@ -1,0 +1,93 @@
+package edu.unisc.lic.servlet;
+
+import edu.unisc.lic.classes.StatusIdeia;
+import edu.unisc.lic.dao.IdeiaUsuarioDAO;
+import edu.unisc.lic.domain.Ideia;
+import edu.unisc.lic.domain.IdeiaUsuario;
+import edu.unisc.lic.domain.Usuario;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+/**
+ * M.2 (2026-07-06): o LIDER aprova a entrada de alguem no grupo (vinculo P -> A). So o
+ * lider da ideia pode aprovar, e so vinculos que estao PENDENTES. Ambas as regras sao
+ * checadas no servidor. Depois de aprovado, a pessoa vira membro efetivo (entra na escolha
+ * de lider ao fechar o grupo).
+ */
+@WebServlet(name = "AprovarMembroServlet", urlPatterns = {"/AprovarMembroServlet"})
+public class AprovarMembroServlet extends HttpServlet {
+
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+
+        // AUTORIZACAO: exige login.
+        HttpSession session = request.getSession(false);
+        Object codigoUsuario = session == null ? null : session.getAttribute("codigoUsuario");
+        if (codigoUsuario == null) {
+            response.sendRedirect(request.getContextPath() + File.separator + "login.jsp");
+            return;
+        }
+
+        IdeiaUsuarioDAO ideiaUsuarioDAO = new IdeiaUsuarioDAO();
+
+        // Vinculo alvo (PK do IdeiaUsuario). BLINDAGEM: valor invalido/inexistente volta pra tela.
+        IdeiaUsuario vinculo = null;
+        try {
+            vinculo = ideiaUsuarioDAO.buscar(Long.parseLong(request.getParameter("vinculo")));
+        } catch (NumberFormatException e) {
+            vinculo = null;
+        }
+        if (vinculo == null) {
+            response.sendRedirect(request.getContextPath() + File.separator + "detalhes-ideia.jsp");
+            return;
+        }
+
+        Ideia ideia = vinculo.getIdeia();
+
+        // AUTORIZACAO: so o LIDER da ideia aprova. Sem isso, qualquer logado aprovaria
+        // membros de qualquer ideia chamando o servlet direto.
+        Usuario sessionUser = new Usuario();
+        sessionUser.setCodigo((Long) codigoUsuario);
+        List<IdeiaUsuario> souLider = ideiaUsuarioDAO
+                .listarParametro(new IdeiaUsuario(sessionUser, ideia, "S"));
+        if (souLider == null || souLider.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + File.separator + "detalhes-ideia.jsp");
+            return;
+        }
+
+        // So aprova quem esta PENDENTE (evita "reaprovar" um rejeitado por um POST forjado).
+        if (StatusIdeia.VINCULO_PENDENTE.equals(vinculo.getFlStatusVinculo())) {
+            vinculo.setFlStatusVinculo(StatusIdeia.VINCULO_APROVADO);
+            vinculo.setMotivoRejeicaoMembro(null);
+            ideiaUsuarioDAO.editar(vinculo);
+        }
+
+        response.sendRedirect(request.getContextPath() + File.separator + "detalhes-ideia.jsp");
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // POST-only.
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    @Override
+    public String getServletInfo() {
+        return "M.2: lider aprova a entrada de um membro no grupo (P -> A).";
+    }
+}

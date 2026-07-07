@@ -119,6 +119,66 @@ public class EntrarColaboracaoServletTest {
 	}
 
 	@Test
+	public void participantePendente_naoEntraNaColaboracao() throws Exception {
+		// REVISAO 2026-07-07: achado da varredura -- so checava iu==null, nao o status do
+		// vinculo. Um usuario com vinculo PENDENTE (ainda nao aprovado pelo lider) conseguia
+		// entrar na colaboracao via POST direto, furando a lista de espera do M.2 inteira.
+		Usuario autor = novoUsuario("AutorPend", "usr");
+		Ideia ideia = novaIdeia(autor);
+		Usuario candidato = novoUsuario("CandidatoPend", "usr");
+		IdeiaUsuario vinculo = new IdeiaUsuario(candidato, ideia, "N");
+		vinculo.setFlStatusVinculo(StatusIdeia.VINCULO_PENDENTE);
+		vinculo.setDtInscricao();
+		ideiaUsuarioDAO.salvar(vinculo);
+
+		Map<String, Object> attrs = new HashMap<>();
+		HttpServletRequest request = mockRequest(candidato.getCodigo(), ideia.getCodigo().toString(), attrs);
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new EntrarColaboracaoServlet().doGet(request, response);
+
+		verify(response).sendRedirect(org.mockito.ArgumentMatchers.contains("minha-ideia.jsp"));
+	}
+
+	@Test
+	public void participanteRejeitado_naoEntraNaColaboracao() throws Exception {
+		Usuario autor = novoUsuario("AutorRej", "usr");
+		Ideia ideia = novaIdeia(autor);
+		Usuario candidato = novoUsuario("CandidatoRej", "usr");
+		IdeiaUsuario vinculo = new IdeiaUsuario(candidato, ideia, "N");
+		vinculo.setFlStatusVinculo(StatusIdeia.VINCULO_REJEITADO);
+		vinculo.setDtInscricao();
+		ideiaUsuarioDAO.salvar(vinculo);
+
+		Map<String, Object> attrs = new HashMap<>();
+		HttpServletRequest request = mockRequest(candidato.getCodigo(), ideia.getCodigo().toString(), attrs);
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new EntrarColaboracaoServlet().doGet(request, response);
+
+		verify(response).sendRedirect(org.mockito.ArgumentMatchers.contains("minha-ideia.jsp"));
+	}
+
+	@Test
+	public void participanteAprovado_entraNaColaboracao() throws Exception {
+		Usuario autor = novoUsuario("AutorApr", "usr");
+		Ideia ideia = novaIdeia(autor);
+		Usuario candidato = novoUsuario("CandidatoApr", "usr");
+		IdeiaUsuario vinculo = new IdeiaUsuario(candidato, ideia, "N");
+		vinculo.setFlStatusVinculo(StatusIdeia.VINCULO_APROVADO);
+		vinculo.setDtInscricao();
+		ideiaUsuarioDAO.salvar(vinculo);
+
+		Map<String, Object> attrs = new HashMap<>();
+		HttpServletRequest request = mockRequest(candidato.getCodigo(), ideia.getCodigo().toString(), attrs);
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new EntrarColaboracaoServlet().doGet(request, response);
+
+		verify(response).sendRedirect(org.mockito.ArgumentMatchers.contains("colaboracao.jsp"));
+	}
+
+	@Test
 	public void adminSemVinculo_entraViaRetencao() throws Exception {
 		Usuario autor = novoUsuario("Autor3", "usr");
 		Ideia ideia = novaIdeia(autor);

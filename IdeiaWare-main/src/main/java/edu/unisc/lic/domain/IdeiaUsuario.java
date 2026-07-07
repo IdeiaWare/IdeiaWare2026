@@ -39,6 +39,17 @@ public class IdeiaUsuario extends GenericDomain {
     @Column(length = 1)
     private String flLider;
 
+    // M.2 (2026-07-06): status do vinculo na "lista de espera" do grupo -- P(endente)/
+    // A(provado)/R(ejeitado). Ver StatusIdeia.VINCULO_*. NULL = vinculo legado (criado
+    // antes desta feature) -> tratado como aprovado nas telas. O lider aprova/rejeita
+    // (AprovarMembroServlet/RejeitarMembroServlet) enquanto o grupo esta aberto.
+    @Column(length = 1)
+    private String flStatusVinculo;
+
+    // M.3 (2026-07-06): motivo informado pelo lider ao REJEITAR a entrada de alguem.
+    @Column(length = 200)
+    private String motivoRejeicaoMembro;
+
     @Column
     @Temporal(TemporalType.TIMESTAMP)
     private Date dtInscricao;
@@ -94,6 +105,22 @@ public class IdeiaUsuario extends GenericDomain {
 
     public void setFlLider(String flLider) {
         this.flLider = flLider;
+    }
+
+    public String getFlStatusVinculo() {
+        return flStatusVinculo;
+    }
+
+    public void setFlStatusVinculo(String flStatusVinculo) {
+        this.flStatusVinculo = flStatusVinculo;
+    }
+
+    public String getMotivoRejeicaoMembro() {
+        return motivoRejeicaoMembro;
+    }
+
+    public void setMotivoRejeicaoMembro(String motivoRejeicaoMembro) {
+        this.motivoRejeicaoMembro = motivoRejeicaoMembro;
     }
 
     public Date getDtInscricao() {

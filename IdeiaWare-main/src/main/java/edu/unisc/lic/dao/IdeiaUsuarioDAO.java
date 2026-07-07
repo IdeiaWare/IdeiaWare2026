@@ -131,7 +131,8 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
      * -- uma falha exatamente entre rebaixar o lider antigo e promover o novo podia deixar a
      * ideia SEM NENHUM lider. Agora tudo commita junto ou nada commita (rollback).
      */
-    public void fecharGrupoAtomico(Ideia ideia, List<IdeiaUsuario> vinculosParaAtualizar, LogColaboracao logInicial) {
+    public void fecharGrupoAtomico(Ideia ideia, List<IdeiaUsuario> vinculosParaAtualizar,
+            List<IdeiaUsuario> vinculosParaRemover, LogColaboracao logInicial) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
         Transaction transacao = null;
 
@@ -141,6 +142,31 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
             if (vinculosParaAtualizar != null) {
                 for (IdeiaUsuario iu : vinculosParaAtualizar) {
                     sessao.update(iu);
+                }
+            }
+            // M.2 (2026-07-06): ao fechar o grupo, os vinculos PENDENTES/REJEITADOS (quem
+            // nao foi aprovado) sao removidos na MESMA transacao -- assim sobram so os
+            // aprovados e todas as checagens de participacao ja existentes (Canva/Caixa/
+            // Storytelling/etc.) continuam valendo sem precisar filtrar por status.
+            //
+            // REVISAO 2026-07-07: os objetos em vinculosParaRemover foram lidos numa
+            // Session ANTERIOR (fora desta transacao) -- se AprovarMembroServlet aprovar
+            // (P->A) e commitar EXATAMENTE entre essa leitura antiga e este delete, o
+            // objeto em memoria ainda diz "P", e o codigo antigo apagava o vinculo mesmo
+            // assim (um membro recem-aprovado sumia do grupo sem nunca ter sido rejeitado).
+            // Fix: re-busca cada um FRESCO dentro desta transacao e SO apaga se o status
+            // ainda for P/R no exato momento do commit -- fecha a corrida.
+            if (vinculosParaRemover != null) {
+                for (IdeiaUsuario iuAntigo : vinculosParaRemover) {
+                    IdeiaUsuario iuFresco = sessao.get(IdeiaUsuario.class, iuAntigo.getCodigo());
+                    if (iuFresco != null) {
+                        String statusAtual = iuFresco.getFlStatusVinculo();
+                        boolean aindaNaoAprovado = StatusIdeia.VINCULO_PENDENTE.equals(statusAtual)
+                                || StatusIdeia.VINCULO_REJEITADO.equals(statusAtual);
+                        if (aindaNaoAprovado) {
+                            sessao.delete(iuFresco);
+                        }
+                    }
                 }
             }
             sessao.save(logInicial);

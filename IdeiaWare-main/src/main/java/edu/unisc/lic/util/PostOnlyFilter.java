@@ -33,7 +33,20 @@ public class PostOnlyFilter implements Filter {
             "/SalvarTextoServlet", "/AddDescricaoServlet", "/FecharGrupoServlet",
             "/FinalizarColaboracaoServlet", "/EnviarColaboracaoServlet",
             // Storytelling
-            "/AutoSalvarStoryServlet", "/ExportaStoryServlet", "/SalvarAudioServlet"
+            "/AutoSalvarStoryServlet", "/ExportaStoryServlet", "/SalvarAudioServlet",
+            // REVISAO 2026-07-07 (varredura de servlets): achados novos com o mesmo padrao
+            // "doGet chama processRequest direto" que a lista original deixou de fora --
+            // todos tem form legitimo em POST, o doGet so existia por boilerplate.
+            "/EditarColaboracaoServlet", // M.10, novo hoje -- CSRF-GET sobrescreveria colaboracao alheia
+            "/CadastroIdeiaServlet",     // pre-existente -- CSRF-GET criaria ideia arbitraria na conta da vitima
+            "/EntrarIdeiaServlet",       // pre-existente -- CSRF-GET inscreveria a vitima num grupo arbitrario
+            "/AprovarMembroServlet", "/RejeitarMembroServlet", // M.2, novos hoje -- ja bloqueavam no doGet
+            // (redundante, mas reforca a defesa em profundidade caso o doGet mude no futuro)
+            // REVISAO 2026-07-07 (continuacao): mesmo padrao, risco ja mitigado na pratica
+            // (Upload exige corpo multipart, que GET nao forja; os 2 Deletar exigem admin +
+            // leem o alvo do corpo da requisicao) -- adicionados por consistencia/defesa em
+            // profundidade, nao por exploracao real conhecida.
+            "/UploadArquivoServlet", "/DeletarExportedFileServlet", "/DeletarCanvaexportServlet"
     ));
 
     @Override

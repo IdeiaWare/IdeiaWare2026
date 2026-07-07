@@ -1,6 +1,7 @@
 package edu.unisc.lic.servlet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -49,6 +50,14 @@ public class FecharGrupoServletTest {
 
 	private IdeiaUsuario vincula(Usuario u, Ideia ideia, String flLider) {
 		IdeiaUsuario iu = new IdeiaUsuario(u, ideia, flLider);
+		iu.setDtInscricao();
+		ideiaUsuarioDAO.salvar(iu);
+		return iu;
+	}
+
+	private IdeiaUsuario vincula(Usuario u, Ideia ideia, String flLider, String statusVinculo) {
+		IdeiaUsuario iu = new IdeiaUsuario(u, ideia, flLider);
+		iu.setFlStatusVinculo(statusVinculo);
 		iu.setDtInscricao();
 		ideiaUsuarioDAO.salvar(iu);
 		return iu;
@@ -131,5 +140,52 @@ public class FecharGrupoServletTest {
 
 		List<IdeiaUsuario> vinculoAntigoLider = ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(lider, ideia, null));
 		assertEquals("N", vinculoAntigoLider.get(0).getFlLider());
+	}
+
+	@Test
+	public void fecharGrupo_removeVinculosPendentesERejeitados() throws Exception {
+		// M.2 (2026-07-06): ao fechar, quem nao foi aprovado (P/R) e removido; sobram so os
+		// aprovados (A) -- assim as checagens de participacao ja existentes seguem valendo.
+		Usuario lider = novoUsuario("LiderClean");
+		Ideia ideia = novaIdeia(lider);
+		vincula(lider, ideia, "S", StatusIdeia.VINCULO_APROVADO);
+		Usuario aprovado = novoUsuario("Aprovado");
+		vincula(aprovado, ideia, "N", StatusIdeia.VINCULO_APROVADO);
+		Usuario pendente = novoUsuario("Pendente");
+		vincula(pendente, ideia, "N", StatusIdeia.VINCULO_PENDENTE);
+		Usuario rejeitado = novoUsuario("Rejeitado");
+		vincula(rejeitado, ideia, "N", StatusIdeia.VINCULO_REJEITADO);
+
+		HttpServletRequest request = mockRequest(lider.getCodigo(), ideia.getCodigo().toString(), null);
+		new FecharGrupoServlet().doPost(request, mock(HttpServletResponse.class));
+
+		assertTrue("pendente deve ser removido ao fechar",
+				ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(pendente, ideia, null)).isEmpty());
+		assertTrue("rejeitado deve ser removido ao fechar",
+				ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(rejeitado, ideia, null)).isEmpty());
+		assertEquals("aprovado deve permanecer", 1,
+				ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(aprovado, ideia, null)).size());
+		assertEquals("lider deve permanecer", 1,
+				ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(lider, ideia, null)).size());
+	}
+
+	@Test
+	public void fecharGrupo_naoPromovePendenteALider() throws Exception {
+		// M.2: um POST forjado com o id de um PENDENTE nao pode torna-lo lider (a tela so
+		// mostra aprovados no radio, mas o servidor tambem barra).
+		Usuario lider = novoUsuario("LiderP");
+		Ideia ideia = novaIdeia(lider);
+		vincula(lider, ideia, "S", StatusIdeia.VINCULO_APROVADO);
+		Usuario pendente = novoUsuario("PendenteP");
+		vincula(pendente, ideia, "N", StatusIdeia.VINCULO_PENDENTE);
+
+		HttpServletRequest request = mockRequest(lider.getCodigo(), ideia.getCodigo().toString(), pendente.getCodigo().toString());
+		new FecharGrupoServlet().doPost(request, mock(HttpServletResponse.class));
+
+		// o lider continua sendo o lider; o pendente foi removido (nao virou lider).
+		List<IdeiaUsuario> vinculoLider = ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(lider, ideia, "S"));
+		assertEquals("o lider original deve continuar lider", 1, vinculoLider.size());
+		assertTrue("pendente removido, nunca virou lider",
+				ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(pendente, ideia, null)).isEmpty());
 	}
 }

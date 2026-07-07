@@ -90,7 +90,16 @@ public class EntrarColaboracaoServlet extends HttpServlet {
         // RetornaMensagensServlet confiam no ideiaId da sessao sem checar de novo).
         // Admin mantem acesso irrestrito -- gerenciamento-ideia.jsp usa esta mesma
         // tela (retencao=true) pra visualizar a colaboracao de qualquer ideia.
-        if (u == null || (iu == null && !"adm".equals(u.getPermissao()))) {
+        //
+        // REVISAO 2026-07-07: essa checagem so testava "iu == null", mas com o M.2
+        // (lista de espera) o vinculo PODE existir com flStatusVinculo=PENDENTE ou
+        // REJEITADO -- ou seja, um usuario que so PEDIU pra entrar (ainda nao
+        // aprovado pelo lider), ou que foi explicitamente rejeitado, tinha "iu != null"
+        // e passava direto, furando a lista de espera inteira via POST direto nesta
+        // URL. So aprovado (ou vinculo legado, flStatusVinculo == null) tem acesso.
+        boolean vinculoAprovado = iu != null && (iu.getFlStatusVinculo() == null
+                || edu.unisc.lic.classes.StatusIdeia.VINCULO_APROVADO.equals(iu.getFlStatusVinculo()));
+        if (u == null || (!vinculoAprovado && !"adm".equals(u.getPermissao()))) {
             response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
             return;
         }

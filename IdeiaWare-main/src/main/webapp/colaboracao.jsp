@@ -42,7 +42,9 @@
 
             <div class="card blue-grey darken-1">
               <div class="card-content white-text">
-                <span class="card-title"><b style="font-size: 32px;"><c:out value="${ideiaTitulo}"/></b></span>
+                <%-- M.7 (2026-07-06): titulo (max 50) estava cortando no card com fonte 32px
+                     fixa. Agora quebra em vez de estourar e a fonte cede um pouco. --%>
+                <span class="card-title" style="display:block; word-break: break-word; line-height:1.2;"><b style="font-size: 28px;"><c:out value="${ideiaTitulo}"/></b></span>
                 <%-- COL-03: null-safe — usa descricao da sessão como fallback se log2 não existir --%>
                 <p style="text-align: justify" id="descricaoAtual">
                   <c:choose>
@@ -86,6 +88,11 @@
             Ainda não há colaborações para esta ideia.
           </div>
 
+          <%-- M.6 (2026-07-06): maior codigo ja renderizado no carregamento inicial. Como
+               ${colaboracoes} vem em ordem crescente de codigo, a ultima iteracao do
+               forEach abaixo deixa esta var no maior codigo (0 se vazia). O polling manda
+               esse valor e so renderiza colaboracoes com codigo maior. --%>
+          <c:set var="ultimoCodigoInicial" value="0" />
           <table id="tabelaColab" style="${empty colaboracoes ? 'display:none;' : ''}">
             <%-- COL-12: usa ${colaboracoes} (já em cache) — sem nova query --%>
             <thead>
@@ -98,9 +105,18 @@
               </tr>
             </thead>
             <c:forEach var="cola" items="${colaboracoes}">
-              <tr>
+              <tr data-codigo="${cola.codigo}">
                 <td><c:out value="${cola.usuario.nome}"/></td>
-                <td><c:out value="${cola.descricaoIdeiaAtual}"/></td>
+                <%-- M.10 (2026-07-06): texto num span (.colab-texto) pra dar pra atualizar
+                     apos editar; botao de editar (lapis) so pro AUTOR da colaboracao e so
+                     enquanto nao foi adicionada a descricao (flSalvado null), fora de
+                     retencao. As mesmas regras sao reforcadas no EditarColaboracaoServlet. --%>
+                <td>
+                  <span class="colab-texto"><c:out value="${cola.descricaoIdeiaAtual}"/></span>
+                  <c:if test="${cola.usuario.codigo eq sessionScope.codigoUsuario and cola.flSalvado eq null and isRetencao eq false}">
+                    <a class="btn-editar-colab" data-codigo="${cola.codigo}" href="javascript:;" title="Editar colaboração" aria-label="Editar colaboração" style="margin-left:6px;"><i class="material-icons" style="font-size:16px; vertical-align:middle; color:#00796b;">edit</i></a>
+                  </c:if>
+                </td>
                 <c:if test="${sessionScope.lider eq 'S' and isRetencao eq false}">
                   <c:choose>
                     <c:when test="${cola.flSalvado eq null}">
@@ -125,6 +141,7 @@
                   </c:choose>
                 </c:if>
               </tr>
+              <c:set var="ultimoCodigoInicial" value="${cola.codigo}" />
             </c:forEach>
           </table>
 
@@ -176,6 +193,9 @@
           $("#descricaoAtual").text(responseTexto);
           form[0][1].setAttribute("disabled", "true");
           form[0][1].setAttribute("class", "btn-floating disabled teal darken-1");
+          // REVISAO 2026-07-07: aria-label nao era atualizado ao desabilitar -- ficava
+          // com o texto antigo ("Adicionar à Descrição", sem o "ja enviado").
+          form[0][1].setAttribute("aria-label", "Adicionar à Descrição (já enviado)");
         },
         error: function () {
           alert("Erro ao adicionar colaboração à descrição. Tente novamente.");
@@ -183,9 +203,106 @@
       });
     }
 
+    // M.10 (2026-07-06): editar a propria colaboracao inline (troca o texto por um
+    // textarea + Salvar/Cancelar no lugar). So aparece pro autor e enquanto nao foi
+    // adicionada a descricao -- o EditarColaboracaoServlet reforca as 2 regras no servidor.
+    $(document).on("click", ".btn-editar-colab", function () {
+      var $btn = $(this);
+      var codigo = $btn.data("codigo");
+      var $cell = $btn.closest("td");
+      var $span = $cell.find(".colab-texto");
+      if ($cell.find(".edit-colab-ta").length) return; // ja esta editando
+
+      var textoAtual = $span.text();
+      $span.hide();
+      $btn.hide();
+
+      var $ta = $("<textarea class='edit-colab-ta' maxlength='1500' style='width:100%; min-height:60px;'></textarea>").val(textoAtual);
+      var $salvar = $("<a class='btn green lighten-1' href='javascript:;' style='margin-right:6px;'>Salvar</a>");
+      var $cancelar = $("<a class='btn-flat' href='javascript:;'>Cancelar</a>");
+      var $acoes = $("<div style='text-align:right; margin-top:6px;'></div>").append($salvar).append($cancelar);
+      var $editor = $("<div class='edit-colab-box'></div>").append($ta).append($acoes);
+      $cell.append($editor);
+      $ta.focus();
+
+      function restaurar() {
+        $editor.remove();
+        $span.show();
+        $btn.show();
+      }
+
+      $cancelar.on("click", restaurar);
+
+      $salvar.on("click", function () {
+        var novo = $.trim($ta.val());
+        if (novo === "") { alert("A colaboração não pode ficar vazia."); return; }
+        $.ajax({
+          type: "POST",
+          url: "EditarColaboracaoServlet",
+          data: { colaboracao: codigo, descricao: novo },
+          success: function (resp) {
+            $span.text(resp.descricaoIdeiaAtual);
+            restaurar();
+          },
+          error: function () {
+            alert("Não foi possível editar. A colaboração pode já ter sido adicionada à descrição pelo líder.");
+            restaurar();
+          }
+        });
+      });
+    });
+
     // SEC-05: escapa dado do usuario (nome/descricao da colaboracao vindos do JSON)
     // antes de injetar no DOM via .html() -> impede XSS armazenado.
     function escapeHtml(s){if(s==null)return '';return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+    // M.6 (2026-07-06): maior codigo de colaboracao ja renderizado na tela. Tanto o envio
+    // quanto o polling so renderizam colaboracoes com codigo MAIOR que este (e atualizam
+    // ele). Como JS e single-thread, cada handler checa+atualiza de forma atomica, entao a
+    // MESMA colaboracao nunca e adicionada 2x -- fim da duplicacao que acontecia na corrida
+    // envio-vs-polling. Inicia no maior codigo que ja veio renderizado do servidor.
+    var ultimoCodigo = ${ultimoCodigoInicial};
+    // M.10 (2026-07-06): codigo do usuario logado e flag de retencao -- pra decidir se a
+    // linha nova (via AJAX) leva o botao de editar (so o AUTOR, so nao-salvada, fora de retencao).
+    var meuCodigo = ${sessionScope.codigoUsuario};
+    var isRetencaoJS = ${isRetencao};
+
+    // Monta a <tr> de uma colaboracao e adiciona na tabela -- SO se ainda nao foi vista
+    // (codigo > ultimoCodigo). Reutilizado pelo envio e pelo polling.
+    function renderColaboracao(cola) {
+      if (cola == null || cola.usuario == null) return;
+      if (cola.codigo <= ultimoCodigo) return; // ja renderizada (ou corrida) -> ignora
+
+      // M.10: botao de editar (lapis) so pro autor da colaboracao, nao-salvada, fora de retencao.
+      var btnEditar = (!isRetencaoJS && cola.usuario.codigo === meuCodigo && cola.flSalvado == null)
+        ? " <a class=\"btn-editar-colab\" data-codigo=\"" + cola.codigo + "\" href=\"javascript:;\" title=\"Editar colaboração\" aria-label=\"Editar colaboração\" style=\"margin-left:6px;\"><i class=\"material-icons\" style=\"font-size:16px; vertical-align:middle; color:#00796b;\">edit</i></a>"
+        : "";
+
+      var texto = "<td>" + escapeHtml(cola.usuario.nome) + "</td>\n"
+                + "<td><span class=\"colab-texto\">" + escapeHtml(cola.descricaoIdeiaAtual) + "</span>" + btnEditar + "</td>\n";
+
+      if ("${sessionScope.lider}" === "S") {
+        // REVISAO 2026-07-07: aria-label sumiu na consolidacao do M.6 -- a versao JSTL
+        // (colaboracoes ja renderizadas no load inicial) sempre teve aria-label nos 2
+        // estados; toda colaboracao que aparece DEPOIS (via envio ou polling) passava por
+        // aqui sem, entao praticamente todo botao "+" em uso real ficava sem nome acessivel.
+        if (cola.flSalvado == null) {
+          texto += "<td><form name=\"addDescricao\" id=\"addDescricao\" action=\"AddDescricaoServlet\" method=\"POST\">\n"
+                 + "<input type=\"hidden\" value=\"" + cola.codigo + "\" id=\"colaboracao\" name=\"colaboracao\">\n"
+                 + "<button class=\"btn-floating teal darken-1 tooltipped\" data-position=\"right\" data-delay=\"50\" data-tooltip=\"Adicionar à Descrição\" aria-label=\"Adicionar à Descrição\">"
+                 + "<a type=\"submit\" name=\"adicionar\"><i class=\"material-icons\">add</i></a>"
+                 + "</button></form></td>\n";
+        } else {
+          texto += "<td><button class=\"btn-floating disabled teal darken-1\" disabled=\"true\" aria-label=\"Adicionar à Descrição (já enviado)\">"
+                 + "<a name=\"adicionar\"><i class=\"material-icons\">add</i></a>"
+                 + "</button></td>\n";
+        }
+      }
+
+      $("<tr>").attr("data-codigo", cola.codigo).html(texto).appendTo("#tabelaColab");
+      revelarTabelaColaboracoes();
+      ultimoCodigo = cola.codigo;
+    }
 
     function chamaAjaxEnviar() {
       if ($("#descricao").val() === "") return;
@@ -195,28 +312,8 @@
         url: 'EnviarColaboracaoServlet',
         data: { descricao: $("#descricao").val() },
         success: function (responseJson) {
-          var tr    = $("<tr>");
-          var texto = "<td>" + escapeHtml(responseJson.usuario.nome) + "</td>\n"
-                    + "<td>" + escapeHtml(responseJson.descricaoIdeiaAtual) + "</td>\n";
-
-          if ("${sessionScope.lider}" === "S") {
-            if (responseJson.flSalvado == null) {
-              texto += "<td><form name=\"addDescricao\" id=\"addDescricao\" action=\"AddDescricaoServlet\" method=\"POST\">\n"
-                     + "<input type=\"hidden\" value=\"" + responseJson.codigo + "\" id=\"colaboracao\" name=\"colaboracao\">\n"
-                     + "<button class=\"btn-floating teal darken-1 tooltipped\" data-position=\"right\" data-delay=\"50\" data-tooltip=\"Adicionar à Descrição\">"
-                     + "<a type=\"submit\" name=\"adicionar\"><i class=\"material-icons\">add</i></a>"
-                     + "</button></form></td>\n";
-            } else {
-              texto += "<td><button class=\"btn-floating disabled teal darken-1\" disabled=\"true\">"
-                     + "<a name=\"adicionar\"><i class=\"material-icons\">add</i></a>"
-                     + "</button></td>\n";
-            }
-          }
-
-          tr.html(texto).appendTo("#tabelaColab");
-          revelarTabelaColaboracoes();
+          renderColaboracao(responseJson);
           $("#descricao").val("");
-          numMensagens++;
         },
         error: function () {
           alert("Erro ao enviar colaboração. Tente novamente.");
@@ -224,39 +321,17 @@
       });
     }
 
-    <%-- COL-12: usa colaboracoes já em cache — sem 4ª query ao banco --%>
-    <%-- COL-13: var declara variável local (não global) --%>
-    var numMensagens = ${not empty colaboracoes ? colaboracoes.size() : 0};
-
     setInterval(function () {
       $.ajax({
         type: 'POST',
         url: 'RetornaMensagensServlet',
-        data: { numMensagens: numMensagens },
+        data: { ultimoCodigo: ultimoCodigo },
         success: function (responseJson) {
-          if (responseJson == null || responseJson.usuario == null) return;
-
-          var tr    = $("<tr>");
-          var texto = "<td>" + escapeHtml(responseJson.usuario.nome) + "</td>\n"
-                    + "<td>" + escapeHtml(responseJson.descricaoIdeiaAtual) + "</td>\n";
-
-          if ("${sessionScope.lider}" === "S") {
-            if (responseJson.flSalvado == null) {
-              texto += "<td><form name=\"addDescricao\" id=\"addDescricao\" action=\"AddDescricaoServlet\" method=\"POST\">\n"
-                     + "<input type=\"hidden\" value=\"" + responseJson.codigo + "\" id=\"colaboracao\" name=\"colaboracao\">\n"
-                     + "<button class=\"btn-floating teal darken-1 tooltipped\" data-position=\"right\" data-delay=\"50\" data-tooltip=\"Adicionar à Descrição\">"
-                     + "<a type=\"submit\" name=\"adicionar\"><i class=\"material-icons\">add</i></a>"
-                     + "</button></form></td>\n";
-            } else {
-              texto += "<td><button class=\"btn-floating disabled teal darken-1\" disabled=\"true\">"
-                     + "<a name=\"adicionar\"><i class=\"material-icons\">add</i></a>"
-                     + "</button></td>\n";
-            }
-          }
-
-          tr.html(texto).appendTo("#tabelaColab");
-          revelarTabelaColaboracoes();
-          numMensagens++;
+          // M.6: o servlet agora devolve um ARRAY com todas as colaboracoes novas
+          // (codigo > ultimoCodigo), em ordem crescente. Renderiza cada uma (o proprio
+          // renderColaboracao ignora as ja vistas, cobrindo a corrida com o envio).
+          if (!Array.isArray(responseJson)) return;
+          responseJson.forEach(renderColaboracao);
         },
         <%-- COL-13: error handler adicionado ao polling --%>
         error: function () {

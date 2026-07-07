@@ -55,7 +55,8 @@
                                 <tr>
                                     <form name="detalhes" action="EntrarDetalheServlet" method="POST">
                                         <td class="title">
-                                            <div class="truncate" style="max-width: 150px"><c:out value="${ideia.titulo}"/></div>
+                                            <%-- M.5 (2026-07-06): titulo (max 50) completo, sem truncate/ellipsis de 150px. --%>
+                                            <div style="word-break: break-word;"><c:out value="${ideia.titulo}"/></div>
                                         </td>
                                         <td class="description">
                                             <div class="truncate" style="display: inline-block; max-width: 250px;"><c:out value="${ideia.descricao}"/></div>

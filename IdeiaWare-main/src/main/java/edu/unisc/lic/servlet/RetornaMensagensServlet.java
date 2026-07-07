@@ -5,11 +5,11 @@
  */
 package edu.unisc.lic.servlet;
 
-import com.google.gson.Gson;
 import edu.unisc.lic.dao.ColaboracaoIdeiaDAO;
 import edu.unisc.lic.dao.IdeiaDAO;
 import edu.unisc.lic.domain.ColaboracaoIdeia;
 import edu.unisc.lic.domain.Ideia;
+import edu.unisc.lic.util.JsonUtil;
 import java.io.IOException;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -57,37 +57,33 @@ public class RetornaMensagensServlet extends HttpServlet {
             return;
         }
 
-        // COLM-04: o polling roda a cada 2s; um valor inválido não deve gerar 500.
-        int numMensagens;
+        // M.6 (2026-07-06): protocolo por ULTIMO CODIGO visto (nao mais por contagem). O
+        // cliente manda o maior codigo que ja renderizou; devolvemos TODAS as colaboracoes
+        // com codigo maior (array JSON, possivelmente vazio). Isso (1) nunca perde uma
+        // colaboracao do meio (a versao antiga so trazia a ultima) e (2) elimina a corrida
+        // que duplicava a colaboracao recem enviada. COLM-04: valor invalido nao gera 500.
+        long ultimoCodigo;
         try {
-            numMensagens = Integer.parseInt(request.getParameter("numMensagens"));
+            ultimoCodigo = Long.parseLong(request.getParameter("ultimoCodigo"));
         } catch (NumberFormatException e) {
-            response.setContentType("text/plain");
-            response.getWriter().write("não");
-            return;
+            ultimoCodigo = 0L;
         }
 
         ColaboracaoIdeiaDAO colaboracaoIdeiaDAO = new ColaboracaoIdeiaDAO();
 
         ColaboracaoIdeia colaboracaoIdeia = new ColaboracaoIdeia();
-
         colaboracaoIdeia.setIdeia(ideia);
 
-        List<ColaboracaoIdeia> lista = colaboracaoIdeiaDAO.listarParametro(colaboracaoIdeia);
+        List<ColaboracaoIdeia> novas = colaboracaoIdeiaDAO.listarAposCodigo(colaboracaoIdeia, ultimoCodigo);
 
-        int teste = lista.size();
-
-//        System.out.println("\n\n\n\n " + request.getParameter("numMensagens") + "  " + teste + "\n\n\n\n\n\n\n\n\n");
-        if (numMensagens < teste) {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(new Gson().toJson(colaboracaoIdeiaDAO.ultimaColab(colaboracaoIdeia)));
-
-        } else {
-            response.setContentType("text/plain");
-            response.getWriter().write("não");
-        }
-
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        // REVISAO 2026-07-07: JsonUtil.GSON_SEM_SENHA -- "novas" e uma lista de
+        // ColaboracaoIdeia, cada uma com .usuario (hash bcrypt da senha). O M.6 fez este
+        // endpoint devolver um ARRAY (varias colaboracoes por poll, nao mais so 1) --
+        // Gson padrao vazaria o hash de CADA autor pra QUALQUER participante que faz
+        // polling na tela (a cada 2s).
+        response.getWriter().write(JsonUtil.GSON_SEM_SENHA.toJson(novas));
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

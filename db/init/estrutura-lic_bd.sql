@@ -144,6 +144,10 @@ CREATE TABLE IF NOT EXISTS `ideiausuario` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
   `dtInscricao` datetime DEFAULT NULL,
   `flLider` varchar(1) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  -- M.2/M.3 (2026-07-06): lista de espera do grupo. flStatusVinculo = P(endente)/
+  -- A(provado)/R(ejeitado); motivoRejeicaoMembro = motivo quando o lider recusa a entrada.
+  `flStatusVinculo` varchar(1) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `motivoRejeicaoMembro` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ideia_codigo` bigint(20) NOT NULL,
   `usuario_codigo` bigint(20) NOT NULL,
   PRIMARY KEY (`codigo`),
@@ -157,6 +161,14 @@ CREATE TABLE IF NOT EXISTS `ideiausuario` (
 -- rodar manualmente uma vez: ALTER TABLE ideiausuario ADD UNIQUE KEY uk_ideiausuario_par
 -- (usuario_codigo, ideia_codigo); (falha com "Duplicate entry" se ja existir duplicata
 -- real -- resolver a duplicata primeiro, ex.: manter a linha mais antiga e apagar as demais.)
+--
+-- M.2/M.3 (2026-07-06): banco ja existente tambem precisa das colunas novas + marcar os
+-- vinculos ATUAIS como aprovados (eram membros efetivos antes da lista de espera existir):
+--   ALTER TABLE ideiausuario ADD COLUMN flStatusVinculo varchar(1) DEFAULT NULL,
+--     ADD COLUMN motivoRejeicaoMembro varchar(200) DEFAULT NULL;
+--   UPDATE ideiausuario SET flStatusVinculo = 'A' WHERE flStatusVinculo IS NULL;
+-- (No codigo, flStatusVinculo NULL ja e tratado como aprovado, entao o UPDATE e opcional,
+--  so deixa os dados explicitos.)
 
 -- ---------------------------------------------------------------------
 -- 8) logcolaboracao  (LIC, FK -> ideia, usuario)

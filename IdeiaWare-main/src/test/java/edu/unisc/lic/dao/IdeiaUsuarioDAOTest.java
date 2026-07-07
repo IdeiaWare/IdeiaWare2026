@@ -109,4 +109,43 @@ public class IdeiaUsuarioDAOTest {
 		assertEquals("CAN-PARTICIPANTE: membro nao-lider tambem deve ver a ideia no Canvas", 1, resultado.size());
 		assertEquals(StatusIdeia.CANVAS, resultado.get(0).getIdeia().getStatus());
 	}
+
+	@Test
+	public void fecharGrupoAtomico_naoApagaVinculoQueFoiAprovadoDepoisDaLeitura() {
+		// REVISAO 2026-07-07: achado da varredura -- FecharGrupoServlet decide QUEM remover
+		// (pendentes/rejeitados) a partir de uma leitura feita ANTES da transacao de fechar.
+		// Se AprovarMembroServlet aprovar e commitar EXATAMENTE nessa janela, o objeto em
+		// memoria usado por fecharGrupoAtomico ainda diz "P/R" -- sem o fix, o delete usava
+		// esse objeto desatualizado e apagava um membro que ja tinha sido aprovado. Simula a
+		// corrida sem threads: monta a lista de remocao com o snapshot ANTIGO (P), mas o
+		// banco ja reflete o estado NOVO (A) quando fecharGrupoAtomico roda.
+		Usuario lider = novoUsuarioSalvo("Lider Race");
+		Ideia ideia = novaIdeiaSalva(lider, StatusIdeia.VALIDADA);
+		IdeiaUsuario vinculoLider = new IdeiaUsuario(lider, ideia, "S");
+		vinculoLider.setFlStatusVinculo(StatusIdeia.VINCULO_APROVADO);
+		ideiaUsuarioDAO.salvar(vinculoLider);
+
+		Usuario candidato = novoUsuarioSalvo("Candidato Race");
+		IdeiaUsuario vinculoCandidato = new IdeiaUsuario(candidato, ideia, "N");
+		vinculoCandidato.setFlStatusVinculo(StatusIdeia.VINCULO_PENDENTE);
+		ideiaUsuarioDAO.salvar(vinculoCandidato);
+
+		// snapshot ANTIGO (como FecharGrupoServlet leu antes de decidir quem remover)
+		IdeiaUsuario snapshotAntigo = ideiaUsuarioDAO.buscar(vinculoCandidato.getCodigo());
+		assertEquals(StatusIdeia.VINCULO_PENDENTE, snapshotAntigo.getFlStatusVinculo());
+
+		// "concorrencia": AprovarMembroServlet aprova e commita ANTES do fechar rodar
+		vinculoCandidato.setFlStatusVinculo(StatusIdeia.VINCULO_APROVADO);
+		ideiaUsuarioDAO.editar(vinculoCandidato);
+
+		java.util.List<IdeiaUsuario> paraRemover = java.util.Collections.singletonList(snapshotAntigo);
+		edu.unisc.lic.domain.LogColaboracao log = new edu.unisc.lic.domain.LogColaboracao(
+				ideia, lider, edu.unisc.lic.classes.Data.horaAtual(), "desc inicial");
+
+		ideiaUsuarioDAO.fecharGrupoAtomico(ideia, new java.util.ArrayList<>(), paraRemover, log);
+
+		IdeiaUsuario recarregado = ideiaUsuarioDAO.buscar(vinculoCandidato.getCodigo());
+		org.junit.Assert.assertNotNull("vinculo recem-aprovado NAO deve ser apagado pela corrida", recarregado);
+		assertEquals(StatusIdeia.VINCULO_APROVADO, recarregado.getFlStatusVinculo());
+	}
 }

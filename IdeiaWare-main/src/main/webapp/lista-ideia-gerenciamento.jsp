@@ -149,59 +149,44 @@
           </c:if>
 
           <c:if test="${not empty todasIdeias}">
-          <%-- Busca client-side: filtra as linhas da tabela pelo texto digitado. --%>
+          <%-- M.15 (2026-07-06): retencao convertida de <table> pra listagem collapsible,
+               mesmo padrao de Storytelling/Canvas/Caixa (consistencia visual). Cabecalho
+               mostra Titulo + Situacao (o status precisa ficar sempre visivel); usuario,
+               descricao e o botao Detalhes aparecem no corpo ao expandir. Busca mantida
+               (agora filtra os <li>; como o corpo fica no DOM, ela acha por descricao tb). --%>
           <div class="input-field" style="margin:0 0 6px;">
-            <input id="filtro-gerenciamento" type="text" placeholder="Buscar ideia (título, descrição, status...)" aria-label="Buscar ideia">
+            <input id="filtro-gerenciamento" type="text" placeholder="Buscar ideia (título, status)" aria-label="Buscar ideia">
           </div>
-          <!--inicio da tabela-->
-          <table class="responsive-table" id="lista-gerenciamento">
-            <colgroup>
-              <col style="width: 15%;" />
-              <col style="width: 25%;" />
-              <col style="width: 40%;" />
-              <col style="width: 10%;" />
-              <col style="width: 10%;" />
-            </colgroup>
-            <thead>
-              <tr class="highlight" style="font-weight: bold ">
-                <td>Usuário</td>
-                <td>Título</td>
-                <td>Descrição da Ideia</td>
-                <td>Situação</td>
-                <td></td>
-              </tr>
-            </thead>
-            <tbody>
-              <!--inicio do corpo-->
-              <c:forEach var="ideia" items="${todasIdeias}" varStatus="id">
-                  <tr>
-                    <td style="white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;"><c:out value="${ideia.usuario.nome}"/></td>
-                    <td style="white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;"><c:out value="${ideia.titulo}"/></td>
-                    <td style="word-break: break-word; white-space: normal;"><c:out value="${ideia.descricao}"/></td>
-                    <td>
-                      <c:choose>
-                          <c:when test="${ideia.status eq 'VA'}">Validada</c:when>
-                          <c:when test="${ideia.status eq 'RE'}">Rejeitada</c:when>
-                          <c:when test="${ideia.status eq 'PE'}">Pendente</c:when>
-                          <c:when test="${ideia.status eq 'DE'}">Em desenvolvimento</c:when>
-                          <c:when test="${ideia.status eq 'ST'}">Storytelling</c:when>
-                          <c:when test="${ideia.status eq 'CF'}">Caixa de Ferramentas</c:when>
-                          <c:when test="${ideia.status eq 'CV'}">Canvas</c:when>
-                          <c:when test="${ideia.status eq 'FN'}">Finalizado</c:when>
-                      </c:choose>
-                    </td>
-                    <td>
-                      <form name="entrarGerenciamento" action="GerenciarIdeiaServlet"  method="POST">
-                        <input hidden="true" value="${ideia.codigo}" name="ideiaId" />
-                        <input class="btn deep-orange lighten-2" type="submit" value="Detalhes" name="Entrar" />
-                      </form>
-                    </td>
-                  </tr>
-              </c:forEach>
-            </tbody>
-          </table>
+          <ul class="collapsible" data-collapsible="accordion" id="lista-gerenciamento">
+            <c:forEach var="ideia" items="${todasIdeias}">
+              <c:set var="statusLabel"><c:choose><c:when test="${ideia.status eq 'VA'}">Validada</c:when><c:when test="${ideia.status eq 'RE'}">Rejeitada</c:when><c:when test="${ideia.status eq 'PE'}">Pendente</c:when><c:when test="${ideia.status eq 'DE'}">Em desenvolvimento</c:when><c:when test="${ideia.status eq 'ST'}">Storytelling</c:when><c:when test="${ideia.status eq 'CF'}">Caixa de Ferramentas</c:when><c:when test="${ideia.status eq 'CV'}">Canvas</c:when><c:when test="${ideia.status eq 'FN'}">Finalizado</c:when></c:choose></c:set>
+              <li>
+                <div class="collapsible-header">
+                  <span style="width:25%; text-align:left;" class="truncate"><c:out value="${ideia.usuario.nome}"/></span>
+                  <span style="width:45%; text-align:left; white-space:normal; word-break:break-word;"><c:out value="${ideia.titulo}"/></span>
+                  <span style="width:25%; text-align:left;">${statusLabel}</span>
+                  <i class="material-icons" style="width:5%; text-align:right;">add</i>
+                </div>
+                <div class="collapsible-body">
+                  <div style="text-align:justify;">
+                    <b>Usuário: </b><c:out value="${ideia.usuario.nome}"/><br>
+                    <b>Título: </b><c:out value="${ideia.titulo}"/><br>
+                    <b>Descrição: </b><c:out value="${ideia.descricao}"/><br>
+                    <b>Situação: </b>${statusLabel}<br>
+                  </div>
+                  <div style="text-align:right; margin-top:10px;">
+                    <form name="entrarGerenciamento" action="GerenciarIdeiaServlet" method="POST">
+                      <input hidden="true" value="${ideia.codigo}" name="ideiaId" />
+                      <input class="btn deep-orange lighten-2" type="submit" value="Detalhes" name="Detalhes" />
+                    </form>
+                  </div>
+                </div>
+              </li>
+            </c:forEach>
+          </ul>
           <script>
-            (function(){var i=document.getElementById('filtro-gerenciamento');if(!i)return;var t=[].slice.call(document.querySelectorAll('#lista-gerenciamento tbody tr'));i.addEventListener('input',function(){var s=i.value.toLowerCase();t.forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(s)>-1?'':'none';});});})();
+            (function(){var i=document.getElementById('filtro-gerenciamento');if(!i)return;var t=[].slice.call(document.querySelectorAll('#lista-gerenciamento > li'));i.addEventListener('input',function(){var s=i.value.toLowerCase();t.forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(s)>-1?'':'none';});});})();
+            $(document).ready(function(){ $('.collapsible').collapsible(); });
           </script>
           </c:if>
         </div>

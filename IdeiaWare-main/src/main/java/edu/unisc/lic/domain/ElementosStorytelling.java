@@ -40,13 +40,16 @@ public class ElementosStorytelling extends GenericDomain {
     // Localização no canvas
     @Column
     private int camada;
-    @Column(precision = 10, scale = 5)
+    // REVISAO 2026-07-07: precision/scale so tem efeito em DECIMAL/NUMERIC -- em campo
+    // double o Hibernate ignora e mapeia como DOUBLE mesmo (confirmado no schema real:
+    // "double DEFAULT NULL"). Removido pra nao sugerir uma precisao que nunca foi imposta.
+    @Column
     private double x;
-    @Column(precision = 10, scale = 5)
+    @Column
     private double y;
-    @Column(precision = 10, scale = 5)
+    @Column
     private double altura;
-    @Column(precision = 10, scale = 5)
+    @Column
     private double largura;
 
     // Contrutores

@@ -25,6 +25,11 @@ public final class StatusIdeia {
     public static final String GRUPO_ABERTO = "AB";        // aberto para novos colaboradores
     public static final String GRUPO_FECHADO = "FE";       // fechado
 
+    // ----- Status do Vinculo (IdeiaUsuario) -- M.2: lista de espera de entrada no grupo -----
+    public static final String VINCULO_PENDENTE = "P";     // pediu pra entrar, aguarda o lider
+    public static final String VINCULO_APROVADO = "A";     // lider aprovou (ou lider/legado)
+    public static final String VINCULO_REJEITADO = "R";    // lider recusou (com motivo, M.3)
+
     private StatusIdeia() {
     }
 }

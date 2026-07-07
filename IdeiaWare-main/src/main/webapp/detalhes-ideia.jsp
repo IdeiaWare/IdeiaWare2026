@@ -74,20 +74,62 @@
                                 Ainda não há colaboradores neste grupo.
                             </div>
                         </c:if>
+                        <%-- M.2 (2026-07-06): o grupo mostra so MEMBROS APROVADOS. Pendentes/
+                             rejeitados nao aparecem como membros (flStatusVinculo null = vinculo
+                             legado = aprovado). --%>
                         <c:forEach var="usuario" items="${grupoIdeia}" varStatus="id" >
-                            <c:choose>
-                                <c:when test="${usuario.flLider eq 'S'}" >
-                                    <div class="chip">
-                                        <c:out value="${usuario.usuario.nome}"/> <i class="tiny material-icons orange-text">stars</i>
-                                    </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="chip">
-                                        <c:out value="${usuario.usuario.nome}"/>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>    
+                            <c:if test="${usuario.flStatusVinculo ne 'P' and usuario.flStatusVinculo ne 'R'}">
+                                <c:choose>
+                                    <c:when test="${usuario.flLider eq 'S'}" >
+                                        <div class="chip">
+                                            <c:out value="${usuario.usuario.nome}"/> <i class="tiny material-icons orange-text">stars</i>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="chip">
+                                            <c:out value="${usuario.usuario.nome}"/>
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:if>
                         </c:forEach>
+
+                        <%-- M.2/M.3 (2026-07-06): LISTA DE ESPERA -- so o lider ve. Quem clicou
+                             "Participar" cai aqui (pendente) ate o lider Aprovar (+) ou Rejeitar
+                             (com motivo obrigatorio). So aprovados viram membros do grupo. --%>
+                        <c:if test="${sessionScope.lider eq 'S'}" >
+                            <c:set var="temPendente" value="false" />
+                            <c:forEach var="pend" items="${grupoIdeia}"><c:if test="${pend.flStatusVinculo eq 'P'}"><c:set var="temPendente" value="true" /></c:if></c:forEach>
+                            <c:if test="${temPendente}">
+                                <h6 style="margin-top:20px;">Solicitações de entrada</h6>
+                                <%-- REVISAO 2026-07-07: thead adicionado -- faltava (as demais
+                                     listagens tabulares do projeto sempre tem), perdia contexto
+                                     de coluna pra quem navega via leitor de tela. --%>
+                                <table class="highlight" style="max-width:520px; margin:0 auto;">
+                                    <thead>
+                                      <tr style="font-weight: bold">
+                                        <td style="text-align:left;">Usuário</td>
+                                        <td></td>
+                                      </tr>
+                                    </thead>
+                                    <c:forEach var="pend" items="${grupoIdeia}">
+                                        <c:if test="${pend.flStatusVinculo eq 'P'}">
+                                            <tr>
+                                                <td style="text-align:left;"><c:out value="${pend.usuario.nome}"/></td>
+                                                <td style="text-align:right; white-space:nowrap;">
+                                                    <form action="AprovarMembroServlet" method="POST" style="display:inline; margin:0;">
+                                                        <input hidden="true" name="vinculo" value="${pend.codigo}" />
+                                                        <button class="btn green lighten-1" type="submit">Aprovar</button>
+                                                    </form>
+                                                    <a href="#modalRejeitarMembro" class="btn red lighten-1 modal-trigger" data-vinculo="${pend.codigo}" data-nome="<c:out value='${pend.usuario.nome}'/>">Rejeitar</a>
+                                                </td>
+                                            </tr>
+                                        </c:if>
+                                    </c:forEach>
+                                </table>
+                            </c:if>
+                        </c:if>
+
                         <c:if test="${sessionScope.lider eq 'S'}" >
                             <p/>
                             <a href="#modalFecharGrupo" class="btn orange darken-1 modal-trigger" data-target="modalFecharGrupo" data-codigoideia="${sessionScope.ideia.codigo}">Fechar Grupo</a>
@@ -126,16 +168,20 @@
                             <div class="col s3 offset-s3">
                                 <h6>Grupo</h6>
                                 <div style="text-align: left">
+                                    <%-- M.2 (2026-07-06): so membros APROVADOS podem ser escolhidos
+                                         lider (pendentes/rejeitados sao removidos ao fechar). --%>
                                     <c:forEach var="usuario" items="${ideiaUsuarioDAO.listarParametro(ideiaUsuario)}" varStatus="id" >
-                                        <c:if test="${usuario.flLider eq 'S'}" >
-                                            <input name="radio" type="radio" id="${usuario.usuario.codigo}" value="${usuario.usuario.codigo}" checked="checked"/>
-                                            <label for="${usuario.usuario.codigo}"><c:out value="${usuario.usuario.nome}"/></label>
-                                            <br />
-                                        </c:if>
-                                        <c:if test="${usuario.flLider != 'S'}" >
-                                            <input name="radio" type="radio" id="${usuario.usuario.codigo}" value="${usuario.usuario.codigo}"/>
-                                            <label for="${usuario.usuario.codigo}"><c:out value="${usuario.usuario.nome}"/></label>
-                                            <br />
+                                        <c:if test="${usuario.flStatusVinculo ne 'P' and usuario.flStatusVinculo ne 'R'}">
+                                            <c:if test="${usuario.flLider eq 'S'}" >
+                                                <input name="radio" type="radio" id="${usuario.usuario.codigo}" value="${usuario.usuario.codigo}" checked="checked"/>
+                                                <label for="${usuario.usuario.codigo}"><c:out value="${usuario.usuario.nome}"/></label>
+                                                <br />
+                                            </c:if>
+                                            <c:if test="${usuario.flLider != 'S'}" >
+                                                <input name="radio" type="radio" id="${usuario.usuario.codigo}" value="${usuario.usuario.codigo}"/>
+                                                <label for="${usuario.usuario.codigo}"><c:out value="${usuario.usuario.nome}"/></label>
+                                                <br />
+                                            </c:if>
                                         </c:if>
                                     </c:forEach>
                                 </div>
@@ -149,6 +195,26 @@
                 </form>
             </div>
         </div>
+
+        <%-- M.3 (2026-07-06): modal de REJEITAR a entrada de um membro -- motivo obrigatorio
+             (mesmo padrao de rejeitar uma ideia). Envia pro RejeitarMembroServlet. --%>
+        <div id="modalRejeitarMembro" class="modal">
+            <form name="rejeitarMembro" action="RejeitarMembroServlet" method="POST" onsubmit="return document.getElementById('motivoMembro').value.trim() !== '';">
+                <div class="modal-content">
+                    <h4>Rejeitar entrada</h4>
+                    <p>Rejeitar <b><span class="nome-membro-rejeitar"></span></b> do grupo?</p>
+                    <input hidden="true" name="vinculo" value="" />
+                    <div class="input-field">
+                        <textarea id="motivoMembro" name="motivo" class="materialize-textarea" data-length="200" maxlength="200"></textarea>
+                        <label for="motivoMembro">Motivo (obrigatório)</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#!" class="modal-action modal-close btn-flat">Cancelar</a>
+                    <button class="btn red lighten-1" type="submit">Rejeitar</button>
+                </div>
+            </form>
+        </div>
     <script src="js/csrf.js"></script>
   </body>
 
@@ -159,6 +225,11 @@
             $('.modal').modal({
                 ready: function (modal, trigger) {
                     modal.find('input[name="codigo"]').val(trigger.data('codigoideia'));
+                    // M.3: modal de rejeitar membro -- preenche o vinculo e o nome.
+                    if (trigger.data('vinculo') != null) {
+                        modal.find('input[name="vinculo"]').val(trigger.data('vinculo'));
+                        modal.find('.nome-membro-rejeitar').text(trigger.data('nome') || '');
+                    }
                 }
             });
         });

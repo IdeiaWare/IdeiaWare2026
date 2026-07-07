@@ -16,7 +16,6 @@
         request.setAttribute("idUsuario", usuario.getCodigo());
         request.setAttribute("usuarioClasse", usuario);
         request.setAttribute("nome", usuario.getNome());
-        request.setAttribute("permicao", usuario.getPermissao());
         request.setAttribute("usuario", usuario.getUsuario());
     }
     
@@ -100,23 +99,10 @@
           </ul>
         </a>
         <ul id="nav-mobile" class="right hide-on-med-and-down" >
-          <c:if  test="${permicao eq 'adm'}" >
-              <li><a class='dropdown-button' data-constrainWidth="false" href='#'  data-beloworigin="true" data-activates='dropdown2'>Gestor<i class="material-icons right">arrow_drop_down</i></a></li>
-              <ul id='dropdown2' class='dropdown-content'>
-                <li><a href="lista-ideia-gerenciamento.jsp"><i class="material-icons">assessment</i>Gerenciar Ideias</a></li>
-                  <jsp:useBean id="tesDao" class="edu.unisc.lic.dao.IdeiaDAO" />
-                  <jsp:useBean id="tesX" class="edu.unisc.lic.domain.Ideia" />
-                  <jsp:setProperty name="tesX" property="status" value="PE"/>
-                  <c:choose>
-                      <c:when test="${tesDao.listarParametro(tesX).size() eq 0}" >
-                      <li class="tooltipped disabled" data-position="left" data-delay="50" data-tooltip="Sem ideias no momento" aria-label="Sem ideias no momento"><a class="btn-flat disabled" disabled="true"><i class="material-icons">done</i>Validar Ideias</a></li>
-                      </c:when>
-                      <c:otherwise>
-                      <li><a href="validar-ideia.jsp"><i class="material-icons">done</i>Validar Ideias</a></li>
-                      </c:otherwise>
-                  </c:choose>
-              </ul>
-          </c:if>
+          <%-- UX (2026-07-06, pedido do usuario): dropdown "Gestor" removido -- os 2
+               links (Gerenciar Ideias / Validar Ideias) eram redundantes aqui: a pagina
+               ja E "Validar Ideias" (o icone flutuante de Voltar cobre a navegacao) e
+               "Gerenciar Ideias" ja fica acessivel a partir de la. --%>
           <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
         </ul>
 
@@ -130,10 +116,9 @@
         <li><a class="btn-floating tooltipped teal lighten-1" href="cadastro-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Cadastrar nova ideia" aria-label="Cadastrar nova ideia"><i class="material-icons">add</i></a></li>
         <li><a class="btn-floating tooltipped teal lighten-1" href="minha-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Minhas ideias" aria-label="Minhas ideias"><i class="material-icons">account_box</i></a></li>
         <li><a class="btn-floating tooltipped  teal lighten-1" href="lista-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Outras ideias" aria-label="Outras ideias"><i class="material-icons">web_asset</i></a></li>
-          <c:if  test="${permicao eq 'adm'}" >
-          <li><a class="btn-floating tooltipped teal lighten-2" href="validar-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Validar ideias" aria-label="Validar ideias"><i class="material-icons">done</i></a></li>
-          <li><a class="btn-floating tooltipped teal lighten-2" href="lista-ideia-gerenciamento.jsp" data-position="left" data-delay="50" data-tooltip="Gerenciar ideias" aria-label="Gerenciar ideias"><i class="material-icons">assessment</i></a></li>
-          </c:if>
+          <%-- UX (2026-07-06, pedido do usuario): "Validar ideias"/"Gerenciar ideias"
+               removidos daqui pelo mesmo motivo do dropdown "Gestor" acima -- redundante
+               (a pagina ja E Validar Ideias, e o Voltar cobre a navegacao). --%>
       </ul>
     </div>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -150,6 +135,10 @@
           <jsp:setProperty name="ideia2" property="status" value="PE"/>
           <jsp:useBean id="data" class="edu.unisc.lic.classes.Data" />
           <c:set var="ideiasPendentes" value="${ideiaDAO.listarParametro(ideia2)}" />
+          <%-- M.1 (2026-07-06): ideias rejeitadas (status RE) -- pra poder REABRIR. --%>
+          <jsp:useBean id="ideiaRej" class="edu.unisc.lic.domain.Ideia" />
+          <jsp:setProperty name="ideiaRej" property="status" value="RE"/>
+          <c:set var="ideiasRejeitadas" value="${ideiaDAO.listarParametro(ideiaRej)}" />
 
           <%-- UX-01: estado vazio com mensagem contextual -- a lista (ul.collapsible)
                so pode renderizar quando ha ideias pendentes; um <ul> vazio ainda e
@@ -162,14 +151,18 @@
           </c:if>
 
           <c:if test="${not empty ideiasPendentes}">
+          <%-- M.1 (2026-07-06): titulo da secao (simetria com "Ideias rejeitadas" abaixo). --%>
+          <h5>Aguardando validação</h5>
           <ul class="collapsible" data-collapsible="accordion">
             <c:forEach var="ideia" items="${ideiasPendentes}" varStatus="id">
                 <li>
                   <div class="collapsible-header">
-                    <span style="width: 20%; text-align: left;" class="truncate"    ><c:out value="${ideia.usuario.nome}"/></span>
-                    <span style="width: 25%; text-align: left;" class="truncate"    ><c:out value="${ideia.titulo}"/></span>
-                    <span style="width: 50%; text-align: left;" class="truncate"    ><c:out value="${ideia.descricao}"/></span>
-                    <i class="material-icons" style="width: 5%; text-align: right; ">add</i>
+                    <%-- M.5 (2026-07-06): cabecalho so com Usuario + Titulo (descricao removida
+                         daqui, ja aparece no corpo ao clicar no +). Titulo (max 50) quebra em
+                         vez de cortar; sem a descricao ao lado nao ha mais o "merge" visual. --%>
+                    <span style="width: 30%; text-align: left;" class="truncate"><c:out value="${ideia.usuario.nome}"/></span>
+                    <span style="width: 65%; text-align: left; white-space: normal; word-break: break-word;"><c:out value="${ideia.titulo}"/></span>
+                    <i class="material-icons" style="width: 5%; text-align: right;">add</i>
                   </div>
                   <div class="collapsible-body">
                     <div id="parteCima" style="text-align: justify;">
@@ -187,6 +180,39 @@
                           <a href="#modalRejeitar" class="btn modal-trigger red lighten-1" data-target="modalRejeitar" data-codigo="${ideia.codigo}" data-titulo="<c:out value='${ideia.titulo}'/>" data-descricao="<c:out value='${ideia.descricao}'/>" data-usuario="<c:out value='${ideia.usuario.nome}'/>">Rejeitar</a>
                         </form>
                       </span>
+                    </div>
+                  </div>
+                </li>
+            </c:forEach>
+          </ul>
+          </c:if>
+
+          <%-- M.1 (2026-07-06): ideias REJEITADAS, com botao "Reabrir" (volta pra Validada,
+               grupo aberto). Antes RE era terminal -- nao havia como destravar. --%>
+          <c:if test="${not empty ideiasRejeitadas}">
+          <h5 style="margin-top: 30px;">Ideias rejeitadas</h5>
+          <ul class="collapsible" data-collapsible="accordion">
+            <c:forEach var="ideiaR" items="${ideiasRejeitadas}">
+                <li>
+                  <div class="collapsible-header">
+                    <span style="width: 30%; text-align: left;" class="truncate"><c:out value="${ideiaR.usuario.nome}"/></span>
+                    <span style="width: 65%; text-align: left; white-space: normal; word-break: break-word;"><c:out value="${ideiaR.titulo}"/></span>
+                    <i class="material-icons" style="width: 5%; text-align: right;">add</i>
+                  </div>
+                  <div class="collapsible-body">
+                    <div style="text-align: justify;">
+                      <b>Usuário: </b> <c:out value="${ideiaR.usuario.nome}"/><br />
+                      <b>Título: </b> <c:out value="${ideiaR.titulo}"/><br />
+                      <b>Descrição inicial: </b><c:out value="${ideiaR.descricao}"/><br />
+                      <b>Motivo da rejeição: </b><c:out value="${ideiaR.motivoRejeicao}"/><br />
+                      <b>Data de rejeição: </b>${data.formatarData(ideiaR.dtRejeicao)}<br />
+                    </div>
+                    <div style="text-align: right;">
+                      <form name="reabrirIdeia" action="ValidarIdeiaServlet" method="POST">
+                        <input hidden="true" value="${ideiaR.codigo}" name="codigo" />
+                        <input hidden="true" value="${sessionScope.codigoUsuario}" name="codUsuario" />
+                        <button class="btn green lighten-1" type="submit" value="reabrir" name="validar" onclick="return confirm('Reabrir esta ideia? Ela volta para Validada e o grupo fica aberto novamente.')">Reabrir</button>
+                      </form>
                     </div>
                   </div>
                 </li>
@@ -254,6 +280,9 @@
         }
       }
       $(document).ready(function () {
+        // M.1 (2026-07-06): init explicito do collapsible (a pagina so inicializava o
+        // modal). Garante que a lista nova de "Ideias rejeitadas" tambem expanda.
+        $('.collapsible').collapsible();
         $('.modal').modal({
           ready: function (modal, trigger) {
             modal.find('input[name="codigo"]').val(trigger.data('codigo'));

@@ -187,7 +187,9 @@
           <div class="container">
             <div class="card blue-grey darken-1">
               <div class="card-content white-text">
-                <span class="card-title"><b style="font-size: 32px;"><c:out value="${ideia.titulo}"/></b></span>
+                <%-- M.7 (2026-07-06): mesmo fix do colaboracao.jsp -- titulo (max 50) quebra
+                     no card em vez de estourar com fonte 32px fixa. --%>
+                <span class="card-title" style="display:block; word-break: break-word; line-height:1.2;"><b style="font-size: 28px;"><c:out value="${ideia.titulo}"/></b></span>
                 <p style="text-align: justify" id="descricaoAtual"><c:out value="${log2.getDescricao()}"/></p>
               </div>
             </div>
@@ -431,7 +433,14 @@
         </div>
       </div>
       <div class="modal-footer">
-        <a class="modal-action modal-close waves-effect waves-green btn-flat grey">Fechar</a>
+        <%-- M.16 (2026-07-06): botao "Fechar" oscilava entre cinza e verde -- bug do ripple
+             preso do Materialize (waves-green sobre base CINZA). 1a tentativa: base verde
+             fixa + waves-light -- ainda ficava estranho (o proprio ripple claro sobre fundo
+             verde cria o mesmo tipo de artefato visual, so que agora um "flash" claro em vez
+             de verde). REVISAO 2026-07-07: removido o ripple por completo (sem waves-effect
+             nenhum) -- mesmo padrao JA usado pros outros "Fechar" do app (ver minha-ideia.jsp,
+             2x), comprovadamente sem esse bug. href="#!" pra fechar sem pular o scroll. --%>
+        <a href="#!" class="modal-action modal-close btn-flat grey lighten-1">Fechar</a>
       </div>
     </div>
     <!--fim do modal-->

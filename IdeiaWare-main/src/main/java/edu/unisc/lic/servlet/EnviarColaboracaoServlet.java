@@ -5,7 +5,6 @@
  */
 package edu.unisc.lic.servlet;
 
-import com.google.gson.Gson;
 import edu.unisc.lic.classes.Data;
 import edu.unisc.lic.dao.ColaboracaoIdeiaDAO;
 import edu.unisc.lic.dao.IdeiaDAO;
@@ -13,6 +12,7 @@ import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.ColaboracaoIdeia;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
+import edu.unisc.lic.util.JsonUtil;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -65,7 +65,10 @@ public class EnviarColaboracaoServlet extends HttpServlet {
         // get(size-1) sujeito a race condition que havia antes.
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(new Gson().toJson(colaboracaoIdeia));
+        // REVISAO 2026-07-07: JsonUtil.GSON_SEM_SENHA (nao new Gson()) -- colaboracaoIdeia
+        // carrega .usuario, que tem o hash bcrypt da senha; Gson padrao serializa TODOS os
+        // campos por reflection e vazaria o hash pro proprio autor da colaboracao.
+        response.getWriter().write(JsonUtil.GSON_SEM_SENHA.toJson(colaboracaoIdeia));
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

@@ -63,6 +63,9 @@ public class CadastroIdeiaServlet extends HttpServlet {
         ideia.setStatusGrupo(StatusIdeia.GRUPO_ABERTO);
 
         IdeiaUsuario ideiaUsuario = new IdeiaUsuario(usuario, ideia, "S");
+        // M.2 (2026-07-06): o criador ja e lider e ja entra APROVADO (nao passa por lista
+        // de espera). So os que clicam "Participar" depois e que entram como pendentes.
+        ideiaUsuario.setFlStatusVinculo(StatusIdeia.VINCULO_APROVADO);
         ideiaUsuario.setDtInscricao();
 
         // K.8 #5: salva a Ideia e o vinculo de lideranca do autor NUMA SO transacao (antes

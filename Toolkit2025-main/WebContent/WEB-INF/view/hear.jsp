@@ -20,7 +20,7 @@
 			<ul class="browser-default">
 				<li>O que os amigos dizem? Seu marido?</li>
 				<li>Quem realmente a influencia? Como?</li>
-				<li>Que Canais de mídia são influencias?</li>				
+				<li>Quais canais de mídia a influenciam?</li>
 			</ul>
 		</div>
 		<div class="col s12 l6 attribute">

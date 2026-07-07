@@ -73,7 +73,12 @@ public class EntrarIdeiaServlet extends HttpServlet {
             return;
         }
 
+        // M.2 (2026-07-06): "Participar" nao entra mais direto no grupo -- entra na LISTA
+        // DE ESPERA (flStatusVinculo = P). O lider aprova/rejeita em detalhes-ideia.jsp
+        // enquanto o grupo esta aberto (AprovarMembroServlet/RejeitarMembroServlet). So
+        // aprovados viram membros efetivos e entram na escolha de lider ao fechar o grupo.
         IdeiaUsuario ideiaUsuario = new IdeiaUsuario(usuario, ideia, "N");
+        ideiaUsuario.setFlStatusVinculo(edu.unisc.lic.classes.StatusIdeia.VINCULO_PENDENTE);
         ideiaUsuario.setDtInscricao();
         try {
             ideiaUsuarioDAO.salvar(ideiaUsuario);

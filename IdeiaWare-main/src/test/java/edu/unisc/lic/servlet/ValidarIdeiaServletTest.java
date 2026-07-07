@@ -111,6 +111,29 @@ public class ValidarIdeiaServletTest {
 	}
 
 	@Test
+	public void admin_reabreIdeiaRejeitada_voltaParaValidadaELimpaMotivo() throws Exception {
+		// M.1 (2026-07-06): reabrir uma ideia REJEITADA -> volta pra VALIDADA (grupo aberto)
+		// e limpa o motivo de rejeicao.
+		Usuario admin = novoUsuario("AdminReab", "adm");
+		Usuario autor = novoUsuario("AutorReab", "usr");
+		Ideia ideia = novaIdeiaPendente(autor);
+		// primeiro rejeita
+		HttpServletRequest reqRej = mockRequest(admin.getCodigo(), ideia.getCodigo().toString(), admin.getCodigo().toString(), "rejeitar");
+		when(reqRej.getParameter("motivo")).thenReturn("Motivo qualquer");
+		new ValidarIdeiaServlet().doPost(reqRej, mock(HttpServletResponse.class));
+		assertEquals(StatusIdeia.REJEITADA, ideiaDAO.buscar(ideia.getCodigo()).getStatus());
+
+		// agora reabre
+		HttpServletRequest reqReab = mockRequest(admin.getCodigo(), ideia.getCodigo().toString(), admin.getCodigo().toString(), "reabrir");
+		new ValidarIdeiaServlet().doPost(reqReab, mock(HttpServletResponse.class));
+
+		Ideia recarregada = ideiaDAO.buscar(ideia.getCodigo());
+		assertEquals(StatusIdeia.VALIDADA, recarregada.getStatus());
+		assertEquals(StatusIdeia.GRUPO_ABERTO, recarregada.getStatusGrupo());
+		org.junit.Assert.assertNull("motivo deve ser limpo ao reabrir", recarregada.getMotivoRejeicao());
+	}
+
+	@Test
 	public void codigoInvalido_redirecionaParaValidarIdeiaSemQuebrar() throws Exception {
 		Usuario admin = novoUsuario("Admin3", "adm");
 		HttpServletRequest request = mockRequest(admin.getCodigo(), "abc", admin.getCodigo().toString(), "validar");

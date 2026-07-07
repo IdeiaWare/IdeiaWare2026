@@ -6,6 +6,18 @@
   <head>
     <link href="js/quill/quill.snow.css" rel="stylesheet">
     <title>IdeiaWare - Editar Texto</title>
+    <style>
+      /* M.9 (2026-07-06): o editor crescia demais e empurrava os botoes Concluir/Cancelar
+         pra muito abaixo (precisava rolar quase 1 pagina). O Quill modela altura assim:
+         .ql-container (=#editor) e .ql-editor tem height:100% -- entao a altura vinha do
+         pai (min-height:90vh). O jeito certo (uso pretendido do Quill) e dar uma ALTURA
+         fixa no #editor/container; o .ql-editor de dentro ja tem overflow-y:auto e rola
+         sozinho. Setar so max-height no .ql-editor (tentativa anterior) nao resolvia
+         porque o container continuava com height:100%. */
+      #editor {
+        height: 40vh;
+      }
+    </style>
   </head>
   <body class="center-align">
     <%-- UX-VOLTAR-V2 (2026-07-06, achado real testando): faltava o icone flutuante

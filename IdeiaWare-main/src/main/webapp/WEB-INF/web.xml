@@ -134,6 +134,11 @@
         <servlet-name>AddDescricaoServlet</servlet-name>
         <servlet-class>edu.unisc.lic.servlet.AddDescricaoServlet</servlet-class>
     </servlet>
+    <!-- M.10: edicao de colaboracao (so autor, so antes de adicionada a descricao). -->
+    <servlet>
+        <servlet-name>EditarColaboracaoServlet</servlet-name>
+        <servlet-class>edu.unisc.lic.servlet.EditarColaboracaoServlet</servlet-class>
+    </servlet>
     <servlet>
         <servlet-name>EntrarDetalheServlet</servlet-name>
         <servlet-class>edu.unisc.lic.servlet.EntrarDetalheServlet</servlet-class>
@@ -309,6 +314,10 @@
     <servlet-mapping>
         <servlet-name>AddDescricaoServlet</servlet-name>
         <url-pattern>/AddDescricaoServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EditarColaboracaoServlet</servlet-name>
+        <url-pattern>/EditarColaboracaoServlet</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>EntrarDetalheServlet</servlet-name>

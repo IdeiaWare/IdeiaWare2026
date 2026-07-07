@@ -17,9 +17,9 @@
 		<div class="col s12 m6 vertical-divider">
 			<h4>Qual a sua Dor?</h4>
 			<ul class="browser-default">
-				<li>Quais são sua maiores frustrações?</li>
+				<li>Quais são suas maiores frustrações?</li>
 				<li>Que obstáculos existem entre ela e o que ela quer e precisa obter?</li>
-				<li>Quais riscos teme enfrentar?</li>				
+				<li>Quais riscos ela teme enfrentar?</li>
 			</ul>
 		</div>
 		<div class="col s12 l6 attribute">

@@ -81,7 +81,9 @@ public class ColaboracaoIdeiaDAOTest {
 	}
 
 	@Test
-	public void quantidadeMes_contaSoAsColaboracoesDaIdeiaFiltrada() {
+	public void quantidadeTotal_contaSoAsColaboracoesDaIdeiaFiltrada() {
+		// REVISAO 2026-07-07: renomeado de quantidadeMes -- o metodo nunca filtrou por
+		// data, so por ideia; o nome antigo prometia algo que o codigo nao fazia.
 		Ideia ideiaA = novaIdeiaSalva();
 		Ideia ideiaB = novaIdeiaSalva();
 
@@ -92,6 +94,6 @@ public class ColaboracaoIdeiaDAOTest {
 		ColaboracaoIdeia filtro = new ColaboracaoIdeia();
 		filtro.setIdeia(ideiaA);
 
-		assertEquals(2, colaboracaoIdeiaDAO.quantidadeMes(filtro));
+		assertEquals(2, colaboracaoIdeiaDAO.quantidadeTotal(filtro));
 	}
 }

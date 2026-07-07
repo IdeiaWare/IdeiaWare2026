@@ -5,6 +5,7 @@ import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -18,7 +19,12 @@ import javax.persistence.TemporalType;
 public class Storytelling extends GenericDomain {
 
     // Chaves estrangeiras
-    @OneToOne
+    // REVISAO 2026-07-07: era @OneToOne, mas 1 usuario (lider) tem N storytellings (1 por
+    // ideia que ele lidera) -- a relacao e N:1. O DB real ja tem usuario_codigo como KEY
+    // (nao UNIQUE), entao funcionava; mas @OneToOne geraria UNIQUE em create-mode e barraria
+    // o 2o storytelling do mesmo lider. Corrigido p/ @ManyToOne. (O @OneToOne correto e so o
+    // de 'ideia', com unique=true -- 1 storytelling por ideia, K.8 #3.)
+    @ManyToOne
     @JoinColumn(nullable = false)
     private Usuario usuario;
 

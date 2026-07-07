@@ -64,8 +64,14 @@
                     <td class="name">
                         <div class="ellipsis"><c:out value="${ideia.ideia.usuario.nome}"/></div>
                     </td>
-                    <td class="title">
-                        <div class="ellipsis"><c:out value="${ideia.ideia.titulo}"/></div>
+                    <%-- M.5 (2026-07-06): fix inline (nao via colaboracao.css) -- o CSS
+                         externo fica em cache no navegador e o F5 normal nao rebaixa, entao
+                         o titulo continuava cortado aqui mesmo com a regra nova no .css.
+                         Inline vem junto do HTML (a prova de cache), igual ja foi feito em
+                         lista-ideia.jsp/lista-ideia-gerenciamento.jsp. Sem a classe
+                         "ellipsis" (que corta); mostra o titulo completo (max 50). --%>
+                    <td class="title" style="white-space: normal; word-break: break-word;">
+                        <div><c:out value="${ideia.ideia.titulo}"/></div>
                     </td>
                     <td class="description">
                         <div class="ellipsis"><c:out value="${ideia.ideia.descricao}"/></div>
@@ -88,20 +94,43 @@
                     <td>
                       <c:choose>
                           <c:when test="${ideia.ideia.status eq 'VA' or ideia.ideia.status eq 'DE'}">
+                              <%-- M.2 (2026-07-06): participante na lista de espera ("Aguardando
+                                   aprovação") ou rejeitado do grupo ("Não aprovado" + motivo, M.3)
+                                   ve o status em vez de "Entrar". Aprovado/lider seguem o fluxo
+                                   normal (flStatusVinculo null = vinculo legado = aprovado). --%>
                               <c:choose>
-                                  <c:when test="${ideia.ideia.statusGrupo eq 'AB'}" >
-                                      <form name="entrarColaboracao" action="EntrarDetalheServlet" method="POST">
-                                        <input hidden="true" value="${ideia.ideia.codigo}" name="codigo" />
-                                        <input hidden="true" value="${ideia.flLider}" name="lider" />
-                                        <input class="btn teal darken-1" type="submit" value="Entrar"  name="Entrar" />
-                                      </form>
+                                  <c:when test="${ideia.flStatusVinculo eq 'P'}">
+                                      <%-- M.2: mesmo padrao de botao desabilitado do resto da tela
+                                           (input.btn.disabled). REVISAO 2026-07-07: "Pendente"
+                                           colidia com o "Pendente" ja usado na coluna Status
+                                           (ideia aguardando validacao do admin -- significado
+                                           diferente). "Em análise" e curto o bastante pra nao
+                                           estourar o botao e nao ambiguo.
+                                           REVISAO 2026-07-07 (2): faltava type="button" -- sem
+                                           type, o Materialize trata o <input> como campo de texto
+                                           (input:not([type]):disabled ganha border-bottom:1px
+                                           dotted, o "risquinho" estranho embaixo do botao). --%>
+                                      <input type="button" class="btn disabled" disabled="true" value="Em análise" />
+                                  </c:when>
+                                  <c:when test="${ideia.flStatusVinculo eq 'R'}">
+                                      <a href="#modalMembroRejeitado" class="btn modal-trigger red lighten-2" data-motivomembro="<c:out value='${ideia.motivoRejeicaoMembro}'/>" data-titulo="<c:out value='${ideia.ideia.titulo}'/>">Não aprovado</a>
                                   </c:when>
                                   <c:otherwise>
-                                      <form name="entrarColaboracao" action="EntrarColaboracaoServlet" method="POST">
-                                        <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
-                                        <!--<input hidden="true" value="${ideia.flLider}" name="lider" />-->
-                                        <input class="btn teal darken-1" type="submit" value="Entrar"  name="Entrar" />
-                                      </form>
+                                      <c:choose>
+                                          <c:when test="${ideia.ideia.statusGrupo eq 'AB'}" >
+                                              <form name="entrarColaboracao" action="EntrarDetalheServlet" method="POST">
+                                                <input hidden="true" value="${ideia.ideia.codigo}" name="codigo" />
+                                                <input hidden="true" value="${ideia.flLider}" name="lider" />
+                                                <input class="btn teal darken-1" type="submit" value="Entrar"  name="Entrar" />
+                                              </form>
+                                          </c:when>
+                                          <c:otherwise>
+                                              <form name="entrarColaboracao" action="EntrarColaboracaoServlet" method="POST">
+                                                <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
+                                                <input class="btn teal darken-1" type="submit" value="Entrar"  name="Entrar" />
+                                              </form>
+                                          </c:otherwise>
+                                      </c:choose>
                                   </c:otherwise>
                               </c:choose>
                           </c:when>
@@ -135,8 +164,20 @@
                                 <input class="btn blue darken-4" type="submit" value="Entrar"  name="Canva" />
                               </form>
                           </c:when>
+                          <c:when test="${ideia.ideia.status eq 'FN'}">
+                              <%-- M.13 (2026-07-06): ideia finalizada -- botao "Detalhes" abre a
+                                   tela de processo (retencao) via GerenciarIdeiaServlet, que ja
+                                   autoriza participante (o colaborador da ideia finalizada e
+                                   participante). Antes caia no otherwise = botao "Entrar" morto. --%>
+                              <form name="entrarGerenciamento" action="GerenciarIdeiaServlet" method="POST">
+                                <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
+                                <input class="btn deep-orange lighten-2" type="submit" value="Detalhes" name="Detalhes" />
+                              </form>
+                          </c:when>
                           <c:otherwise>
-                              <input class="btn disabled" disabled="true" value="Entrar" />
+                              <%-- REVISAO 2026-07-07: mesmo fix do "Em análise" acima -- faltava
+                                   type="button" (pre-existente, nao introduzido nesta sessao). --%>
+                              <input type="button" class="btn disabled" disabled="true" value="Entrar" />
                           </c:otherwise>
                       </c:choose>
                     </td>
@@ -198,6 +239,22 @@
             <a href="#!" class="modal-action modal-close  btn-flat grey lighten-1">Fechar</a>
           </div>
         </div>
+
+        <%-- M.2/M.3 (2026-07-06): modal do participante REJEITADO do grupo -- mostra o
+             motivo que o lider informou ao nao aprovar a entrada. --%>
+        <div id="modalMembroRejeitado" class="modal">
+          <div class="modal-content">
+            <h4>Não aprovado no grupo</h4>
+            <br>
+            <div style="text-align: justify">
+              <div id="divMembroTitulo"></div>
+              <div id="divMembroMotivo"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close btn-flat grey lighten-1">Fechar</a>
+          </div>
+        </div>
       </div>
     </div>
   <script src="js/csrf.js"></script>
@@ -208,6 +265,15 @@
       $(document).ready(function () {
         $('.modal').modal({
           ready: function (modal, trigger) {
+            // REVISAO 2026-07-07: este ready() e compartilhado por TODOS os .modal da
+            // pagina, mas #modal-detalhe-ideia (aberto pelo .info-icon, ver abaixo) chama
+            // .modal('open') SEM passar trigger -> trigger vinha undefined e
+            // trigger.data(...) estourava TypeError a cada clique no icone (inofensivo --
+            // o conteudo desse modal ja e preenchido por outro caminho antes do open --
+            // mas sujava o console). So roda o preenchimento (que depende de trigger)
+            // quando trigger realmente existe.
+            if (!trigger) { return; }
+
             modal.find('input[name="codigo"]').val(trigger.data('codigo'));
 
             //                        aqui é onde tudo é inserido na div, dá pra criar divs depois do igual
@@ -217,6 +283,12 @@
             document.getElementById('divDescricao').innerHTML = "<b>Descrição:</b> " + escapeHtml(trigger.data('descricao'));
             document.getElementById('divUsuario').innerHTML = "<b>Usuário:</b> " + escapeHtml(trigger.data('usuario'));
             document.getElementById('divMotivo').innerHTML = "<b>Motivo:</b> " + escapeHtml(trigger.data('motivo'));
+
+            // M.2/M.3: modal "Não aprovado" do participante rejeitado do grupo.
+            if (trigger.data('motivomembro') != null) {
+              document.getElementById('divMembroTitulo').innerHTML = "<b>Ideia:</b> " + escapeHtml(trigger.data('titulo'));
+              document.getElementById('divMembroMotivo').innerHTML = "<b>Motivo:</b> " + escapeHtml(trigger.data('motivomembro'));
+            }
 
           }
         });
