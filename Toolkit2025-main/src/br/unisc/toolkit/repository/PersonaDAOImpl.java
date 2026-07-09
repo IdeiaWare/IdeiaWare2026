@@ -24,8 +24,11 @@ public class PersonaDAOImpl implements PersonaDAO {
 		Session currentSession = sessionFactory.getCurrentSession();
 		
 		// create a query ... sort by name
-		Query<Persona> theQuery = 
-				currentSession.createQuery("from Persona where ideia_codigo=:IdeiaCodigo order by name", Persona.class);
+		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): ideia_codigo -> ideiaCodigo
+		// (nome de propriedade, nao de coluna -- funcionava por coincidencia, mesmo
+		// motivo documentado em EmpathyDAOImpl).
+		Query<Persona> theQuery =
+				currentSession.createQuery("from Persona where ideiaCodigo=:IdeiaCodigo order by name", Persona.class);
 		theQuery.setParameter("IdeiaCodigo", ideiaCodigo);
 		
 		// execute query and get result list
@@ -61,7 +64,8 @@ public class PersonaDAOImpl implements PersonaDAO {
 		Session currentSession = sessionFactory.getCurrentSession();
 
 		// TK-03: filtra por ideia_codigo para impedir deletar persona de outra ideia (IDOR)
-		Query theQuery = currentSession.createQuery("delete from Persona where id=:ID and ideia_codigo=:ideiaCodigo");
+		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): ideia_codigo -> ideiaCodigo.
+		Query theQuery = currentSession.createQuery("delete from Persona where id=:ID and ideiaCodigo=:ideiaCodigo");
 		theQuery.setParameter("ID", theId);
 		theQuery.setParameter("ideiaCodigo", ideiaCodigo);
 
@@ -74,8 +78,10 @@ public class PersonaDAOImpl implements PersonaDAO {
 		// get the curent hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 		
-		Query<Persona> theQuery = 
-				currentSession.createQuery("from Persona where persona_id=:PersonaId and ideia_codigo=:IdeiaCodigo order by name", Persona.class);
+		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): persona_id/ideia_codigo
+		// -> id/ideiaCodigo (nomes de propriedade, nao de coluna).
+		Query<Persona> theQuery =
+				currentSession.createQuery("from Persona where id=:PersonaId and ideiaCodigo=:IdeiaCodigo order by name", Persona.class);
 		theQuery.setParameter("PersonaId", theId);
 		theQuery.setParameter("IdeiaCodigo", ideiaCodigo);
 		// now retrieve/read from database using the primary key

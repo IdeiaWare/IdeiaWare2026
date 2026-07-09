@@ -65,7 +65,12 @@ public class SeeQuestionController {
 				return "redirect:/persona/empatia/mapa?personaId=" + theEmpathy.getPersonaId();
 			}
 			theEmpathy.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
-			
+			// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): "attribute" (o tipo do
+			// quadrante) vinha 100% do form:hidden, nunca setado no servidor -- um POST
+			// direto pra este endpoint com attribute=pain gravava tipo arbitrario. Forca
+			// o valor correto no servidor, igual ja e feito com ideiaCodigo acima.
+			theEmpathy.setAttribute("see");
+
 			// save the empathy attribute using our service
 			empathyService.saveEmpathyAttribute(theEmpathy);
 			
@@ -76,7 +81,9 @@ public class SeeQuestionController {
 		}
 	}
 	
-	@GetMapping("/o-que-ve/delete")
+	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET): virou
+	// POST -- mesmo motivo do GainQuestionController.
+	@PostMapping("/o-que-ve/delete")
 	public String deleteAttribute(@RequestParam("personaId") int personaId,
 								@RequestParam("attributeId") int attributeId,
 								Model theModel, HttpServletRequest request)

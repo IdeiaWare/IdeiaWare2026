@@ -201,13 +201,17 @@
       <div class="modal-content">
         <div class="row">
           <div class="input-field col s6">
-            <input value="" id="AlturaId" placeholder="Altura" aria-label="Altura" type="text" class="validate">
+            <%-- REVISAO 2026-07-08 (varredura JS, achado ALTA): type="number" min="10"
+                 como 1a barreira (o guard de verdade e no JS, controle.js#btnModificar --
+                 este input aceita valor direto via $.val(), entao o HTML5 sozinho nao
+                 e suficiente, mas ajuda a UI/teclado mobile e evita o caso mais obvio). --%>
+            <input value="" id="AlturaId" placeholder="Altura" aria-label="Altura" type="number" min="10" class="validate">
             <label class="active" for="Altura">Altura</label>
           </div>
         </div>
         <div class="row">
           <div class="input-field col s6">
-            <input value="" id="LarguraId" placeholder="Largura" aria-label="Largura" type="text" class="validate">
+            <input value="" id="LarguraId" placeholder="Largura" aria-label="Largura" type="number" min="10" class="validate">
             <label class="active" for="Largura">Largura</label>
           </div>
         </div>

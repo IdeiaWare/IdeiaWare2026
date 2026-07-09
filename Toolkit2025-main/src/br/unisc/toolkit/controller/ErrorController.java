@@ -28,6 +28,13 @@ public class ErrorController {
                 errorMsg = "Você precisa estar autenticado para acessar isso.";
                 break;
             }
+            // REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): faltava o caso 403,
+            // que o proprio CsrfInterceptor gera ao bloquear um token invalido/ausente --
+            // usuario caia aqui sem nenhuma mensagem (errorMsg ficava "").
+            case 403: {
+                errorMsg = "Ação bloqueada por segurança (token inválido ou expirado). Recarregue a página e tente novamente.";
+                break;
+            }
             case 404: {
                 errorMsg = "Página não encontrada.";
                 break;

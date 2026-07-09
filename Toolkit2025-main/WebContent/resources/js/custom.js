@@ -45,10 +45,23 @@
 	}
 	
 	Toolkit.Persona.selectColorPicker = function(){
-		$(".post-it .btn").click(function(){
-			$(".card-color").val($(this).attr("data-color"))
+		// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): os "botoes" de cor sao
+		// <div> puros -- so respondiam a mouse. Extraida a selecao pra uma funcao
+		// nomeada e ligada tambem no keydown (Enter/Espaco), pra funcionar com
+		// role="button" tabindex="0" (adicionado nos 6 JSPs de quadrante).
+		function selecionarCor(el){
+			$(".card-color").val($(el).attr("data-color"))
 			$(".post-it .btn").removeClass("active");
-			$(this).addClass("active")			
+			$(el).addClass("active")
+		}
+		$(".post-it .btn").click(function(){
+			selecionarCor(this);
+		})
+		$(".post-it .btn").on("keydown", function(e){
+			if (e.key === "Enter" || e.key === " " || e.keyCode === 13 || e.keyCode === 32) {
+				e.preventDefault();
+				selecionarCor(this);
+			}
 		})
 	}
 	
@@ -64,10 +77,9 @@
 	
 	
 	Toolkit.Persona.exportFile = function(areaClass, forceOrient){
-		// Reescrito para usar a API de Promise do html2canvas (.then). A versao
-		// antiga usava o callback "onrendered", removido no html2canvas 0.5, por
-		// isso o #file-location nunca era preenchido e ia null para o servidor
-		// (erro "Column 'file_location' cannot be null" -> 405).
+		// TK-16: usa a opcao "onrendered" (API de callback do html2canvas 0.5.0-beta3,
+		// nao a Promise .then) -- ver o comentario mais abaixo, que documenta certo o
+		// motivo da troca de versao da lib.
 		$("#overlay").attr('style','display: block !important');
 
 		var section = $(areaClass)[0];
@@ -143,12 +155,30 @@
 				var blob = pdf.output("blob");
 				var reader = new FileReader();
 				reader.readAsDataURL(blob);
+				// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): onloadend dispara em
+				// sucesso OU falha (diferente de onload, so sucesso); sem checar reader.error
+				// primeiro, uma falha de leitura submetia o form com #file-location vazio/null
+				// pro servidor, em vez de avisar o usuario.
 				reader.onloadend = function () {
+					if (reader.error) {
+						console.error('Falha ao ler o PDF gerado:', reader.error);
+						$("#overlay").attr('style','display: none !important');
+						alert('Não foi possível gerar o PDF. Tente novamente.');
+						return;
+					}
 					$("#file-location").val(reader.result);
 					$("#overlay").attr('style','display: none !important');
 					$("form#overview, form#detailed").submit();
 				};
 			}
+		}).catch(function (err) {
+			// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): o overlay de loading so
+			// era escondido no caminho de SUCESSO (dentro de onrendered) -- se o html2canvas
+			// falhar (CSS nao suportado, canvas "tainted" por imagem cross-origin), o overlay
+			// ficava visivel PRA SEMPRE, sem mensagem, so recarregando a pagina resolvia.
+			console.error('Falha ao gerar o PDF:', err);
+			$("#overlay").attr('style','display: none !important');
+			alert('Não foi possível gerar o PDF. Tente novamente.');
 		});
 	}
 	
@@ -364,11 +394,18 @@
 		$(".persona-overview .card").click(function(){
 			var info = $(this).find(".card-content").text().trim();
 			var color = $(this).attr("class");
-			
-			$(".modal-card-info .card-content").html("<p>"+ info +"</p>")
+
+			// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- XSS armazenado via
+			// re-injecao): o texto do post-it e escapado com seguranca na listagem via
+			// <c:out>, mas .text() aqui DECODIFICA as entidades de volta pro caractere
+			// original -- reinjetar isso com .html() faz o navegador interpretar como
+			// HTML de verdade (ex.: <img src=x onerror=alert(1)> executa). .empty()+
+			// .append($("<p>").text(...)) monta a mesma estrutura <p>texto</p> sem
+			// nunca passar o texto por um parser de HTML.
+			$(".modal-card-info .card-content").empty().append($("<p>").text(info));
 			$(".modal-card-info .card-content").css("word-break", "break-all")
 			$(".modal-card-info .card").attr("class", color);
-			
+
 			$('.modal-card-info').modal('open');
 		})
 	}
@@ -389,12 +426,16 @@
 			var user = $(this).closest("tr").find("td:nth-child(2) .pov-info").text().trim();
 			var need = $(this).closest("tr").find("td:nth-child(3) .pov-info").text().trim();
 			var insight = $(this).closest("tr").find("td:nth-child(4) .pov-info").text().trim();
-			
-			$(".modal-pov-info .names").html("<p>"+ names +"</p>")
-			$(".modal-pov-info .user").html("<p>"+ user +"</p>")
-			$(".modal-pov-info .need").html("<p>"+ need +"</p>")
-			$(".modal-pov-info .insight").html("<p>"+ insight +"</p>")
-			
+
+			// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- XSS armazenado via
+			// re-injecao): mesmo padrao do buildCardViewOnModal acima -- .text() decodifica
+			// as entidades, .html() reinjetava cru. 4 pontos de injecao (nome/usuario/
+			// necessidade/introspeccao do POV).
+			$(".modal-pov-info .names").empty().append($("<p>").text(names));
+			$(".modal-pov-info .user").empty().append($("<p>").text(user));
+			$(".modal-pov-info .need").empty().append($("<p>").text(need));
+			$(".modal-pov-info .insight").empty().append($("<p>").text(insight));
+
 			$('.modal-pov-info').modal('open');
 		})
 	}
@@ -615,6 +656,19 @@ $(document).ready(function(){
 	$(".button-collapse").sideNav();
 	$('.collapsible').collapsible();
 
+	// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- acessibilidade sistemica):
+	// botoes so-icone (FAB de criar Persona/POV, acoes de linha Abrir/Editar/Excluir/
+	// Visao Geral, editar/excluir atributo nas 6 telas de empatia, "Voltar" -- presente
+	// em quase toda tela do modulo) usam data-tooltip pra UI visual, mas esta versao
+	// do Materialize NAO gera aria-label a partir disso -- ficavam sem nome acessivel
+	// nenhum, inoperaveis/mudos pra leitor de tela. Deriva aria-label automaticamente
+	// de data-tooltip pra qualquer elemento que ainda nao tenha um -- cobre todos os
+	// botoes so-icone de uma vez (inclusive os que vierem a ser adicionados depois,
+	// sem depender de lembrar disso em cada JSP novo).
+	$('[data-tooltip]:not([aria-label])').each(function(){
+		$(this).attr('aria-label', $(this).attr('data-tooltip'));
+	});
+
 		// TK-13 (v2 - JS): a lib Waves envolve <input type="submit" class="btn"> num
 		// <i class="btn waves-input-wrapper"><input class="waves-button-input">. O
 		// <input> interno fica do tamanho do TEXTO, entao clicar na "borda" do botao
@@ -652,34 +706,54 @@ $(document).ready(function(){
 	$(".btn-floating.criar-pov").click(function(){
 		if(Toolkit.Persona.thereIsPersonaSelected()){
 			var data = [];
-			
+
 			$(".personas-list table tbody tr").each(function(){
 				if($(this).find(".chkPersona").is(":checked")){
 					var value = $(this).find(".chkPersona").val();
-					data.push(value);
+					data.push("personas=" + encodeURIComponent(value));
 				}
 			})
 
 			// Passa as personas via query string (codificada) em vez de path.
 			// Nomes com espacos/"+" no path causavam 404 no Tomcat 9; na query
-			// string esses caracteres sao tratados corretamente. A virgula separa
-			// a List<String> esperada pelo @RequestParam do controller.
-			window.location.href = contextPath + "/point-of-view/criar-pov?personas=" + encodeURIComponent(data.join(","));
+			// string esses caracteres sao tratados corretamente.
+			// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): antes juntava tudo
+			// com "," num unico param, contando com o Spring quebrar por virgula -- se
+			// o NOME de uma persona tivesse virgula, a lista quebrava errado (a virgula
+			// do nome virava um separador fantasma). Agora manda 1 "personas=" por
+			// persona (List<String> do Spring aceita parametro repetido nativamente),
+			// cada um com seu proprio encodeURIComponent -- sem depender de delimitador
+			// nenhum entre personas diferentes.
+			window.location.href = contextPath + "/point-of-view/criar-pov?" + data.join("&");
 		}
 		else
 			Materialize.toast('Voc&ecirc; deve selecionar pelo menos uma Persona', 4000)
 	})
 	
-	$("#logout").click(function(){
+	// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- menu mobile): trocado de
+	// #logout (id) pra .logout-link (classe) -- o link "Sair" agora existe 2x no HTML
+	// (nav desktop + drawer mobile, ver header.tag/no-container-header.tag), e 2
+	// elementos com o MESMO id e invalido/so o 1o seria encontrado por #id.
+	$(".logout-link").click(function(){
 		Toolkit.eraseCookie("ideiaId")
 		Toolkit.eraseCookie("usuarioNome")
 		Toolkit.eraseCookie("ideiaSig")
 		// Sair = LOGOUT de verdade: o LogOutServlet invalida a sessao do LIC e vai pro
 		// login num clique so. Antes ia pra listagem de caixas (sem deslogar) -> 2o clique.
-		window.location.href = "/LIC/LogOutServlet"
+		// REVISAO 2026-07-08 (varredura Toolkit, DRY): /LIC/ centralizado -- licBasePath e
+		// exposto como global JS por header.tag/no-container-header.tag (mesmo padrao ja
+		// usado pra contextPath), ja que este arquivo estatico nao le EL da JSP.
+		window.location.href = licBasePath + "/LogOutServlet"
 	})
 	
-	if(Toolkit.readCookie("usuarioNome") != "")
-		var nome =  Toolkit.readCookie("usuarioNome")
-		$("footer .usuario").text(decodeURIComponent(nome.replace(/\+/g, '%20')))
+	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): 2 bugs aqui --
+	// (1) if sem chaves: so a declaracao de "nome" ficava dentro da condicao, a
+	//     linha de exibir o nome no rodape RODAVA SEMPRE, incondicionalmente;
+	// (2) readCookie devolve null (nao "") quando o cookie nao existe, e
+	//     `null != ""` e true -- a guarda antiga nao protegia contra cookie ausente.
+	// Corrigido lendo 1 vez + checagem truthy (cobre null E "" de uma vez), com chaves.
+	var nomeUsuario = Toolkit.readCookie("usuarioNome");
+	if (nomeUsuario) {
+		$("footer .usuario").text(decodeURIComponent(nomeUsuario.replace(/\+/g, '%20')));
+	}
 })

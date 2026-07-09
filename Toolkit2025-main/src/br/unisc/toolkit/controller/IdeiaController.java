@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import br.unisc.toolkit.classes.AdminCookies;
@@ -22,7 +22,11 @@ public class IdeiaController {
 	AdminCookies cookie = new AdminCookies();
 	
 	
-	@GetMapping("/finalize")
+	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET): virou
+	// POST -- este era o mais grave dos 9 porque o link fica no header, presente em
+	// TODA pagina do modulo. Mesmo motivo dos outros: token vinha na query string
+	// (historico do navegador, logs de proxy, header Referer, prefetch/crawler).
+	@PostMapping("/finalize")
 	public String finalizeIdeia(HttpServletRequest request){
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 			Long ideiaCodigo = cookie.getCookieIdeiaCodigo(request);

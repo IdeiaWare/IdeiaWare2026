@@ -34,14 +34,14 @@
 			          <label for="attribute-text">O que Ganha a cliente?</label>
 			          <div class="attribute-error"></div>
 			        </div>
-			        <label class="lbl-post-it" for="card-color">Cor do post-it</label>
+			        <label class="lbl-post-it" for="cardColor">Cor do post-it</label>
 			        <div class="input-field col s12">			        	
 			        	<div class="post-it">		        
-					  		<div class="btn blue" data-color="blue"></div>
-					  		<div class="btn green" data-color="green"></div>
-					  		<div class="btn yellow" data-color="yellow"></div>
-					  		<div class="btn orange" data-color="orange"></div>
-					  		<div class="btn pink" data-color="pink"></div>
+					  		<div class="btn blue" data-color="blue" role="button" tabindex="0" aria-label="Azul"></div>
+					  		<div class="btn green" data-color="green" role="button" tabindex="0" aria-label="Verde"></div>
+					  		<div class="btn yellow" data-color="yellow" role="button" tabindex="0" aria-label="Amarelo"></div>
+					  		<div class="btn orange" data-color="orange" role="button" tabindex="0" aria-label="Laranja"></div>
+					  		<div class="btn pink" data-color="pink" role="button" tabindex="0" aria-label="Rosa"></div>
 				  		</div>
 					    <form:hidden path="cardColor" class="card-color"/>
 					</div>
@@ -60,15 +60,19 @@
 			<div class="row">
 				<c:if test="${empty attributes}"><div class="col s12 center-align grey-text" style="padding: 30px 20px;">Nenhum item adicionado ainda.</div></c:if>
 				<c:forEach var="tempAttribute" items="${attributes}">
-					<!-- construct an "delete" link with attribute id -->
-					<c:url var="deleteLink" value="/persona/empatia/quais-sao-os-ganhos/delete">
-					<c:param name="csrfToken" value="${csrfToken}"/>
-						<c:param name="personaId" value="${tempAttribute.personaId}" />
-						<c:param name="attributeId" value="${tempAttribute.id}" />						
-					</c:url>
-				
+					<%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET):
+					     virou form POST. O <a> continua IDENTICO (sem class, mesmo lugar no DOM)
+					     -- so o href virou javascript:; e o onclick agora envia o form escondido
+					     em vez de navegar, pra nao arriscar quebrar o CSS do Materialize trocando
+					     de <a> pra <button>. --%>
+					<form id="deleteAttributeForm${tempAttribute.id}" action="${pageContext.request.contextPath}/persona/empatia/quais-sao-os-ganhos/delete" method="POST" style="display:none;">
+						<input type="hidden" name="csrfToken" value="${csrfToken}"/>
+						<input type="hidden" name="personaId" value="${tempAttribute.personaId}"/>
+						<input type="hidden" name="attributeId" value="${tempAttribute.id}"/>
+					</form>
+
 			        <div class="col s12 m4 item">
-		          		<div class="card ${tempAttribute.cardColor}">
+		          		<div class="card <c:out value='${tempAttribute.cardColor}'/>">
 			            	<div class="card-content">
 			              		<p><c:out value="${tempAttribute.attributeText}"/></p>
 			            	</div>
@@ -76,13 +80,13 @@
 		              			<a href="javascript:;" data-id="${tempAttribute.id}" data-text="<c:out value='${tempAttribute.attributeText}'/>" data-color="<c:out value='${tempAttribute.cardColor}'/>" onclick="Toolkit.EmpathyAttribute.editAttribute(this.dataset.id, this.dataset.text, this.dataset.color)">
 			              			<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 			              		</a>
-			              		<a href="${deleteLink}"
-									onclick="if (!(confirm('Você tem certeza que deseja deletar este atributo?'))) return false">
+			              		<a href="javascript:;"
+									onclick="if (confirm('Você tem certeza que deseja deletar este atributo?')) document.getElementById('deleteAttributeForm${tempAttribute.id}').submit();">
 										<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 			            	</div>
 			          	</div>
-			        </div>								
+			        </div>
 				</c:forEach>
 			</div>
 		</div>

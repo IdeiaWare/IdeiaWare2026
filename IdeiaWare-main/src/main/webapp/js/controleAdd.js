@@ -1,5 +1,6 @@
 /* global Konva */
-var indice = 0;
+// REVISAO 2026-07-08 (varredura JS, achado BAIXA): "indice" nunca era referenciada em
+// lugar nenhum -- codigo morto, removido.
 //var layer = new Konva.Layer();
 
 function drawImage(imageObj, stage, caracteristicas) {
@@ -42,7 +43,15 @@ function drawImage(imageObj, stage, caracteristicas) {
         type: 'POST',
         url: "DeletarObjServlet",
         contentType: 'application/json',
-        data: JSON.stringify(this.attrs.id)
+        data: JSON.stringify(this.attrs.id),
+        // REVISAO 2026-07-08 (varredura JS, achado ALTA): a figura ja e escondida e
+        // destruida no CLIENTE antes do POST -- se a requisicao falhar (rede/sessao
+        // expirada/500/CSRF), o servidor nunca recebe o delete, mas a tela ja mostra
+        // como se tivesse sumido, sem nenhum aviso. Mesmo padrao de error() ja usado
+        // no save MANUAL (controle.js).
+        error: function () {
+          alert("Erro ao excluir a figura no servidor. Recarregue a página -- ela pode reaparecer.");
+        }
       });
     }
   });
@@ -55,7 +64,13 @@ function drawImage(imageObj, stage, caracteristicas) {
       type: 'POST',
       url: 'AutoSalvarStoryServlet',
       contentType: 'application/json',
-      data: JSON.stringify([{ tipo: 'outro', codigo: a.id, x: a.x, y: a.y, height: a.height, width: a.width }])
+      data: JSON.stringify([{ tipo: 'outro', codigo: a.id, x: a.x, y: a.y, height: a.height, width: a.width }]),
+      // REVISAO 2026-07-08 (varredura JS, achado ALTA): a figura ja esta visualmente
+      // na posicao nova (o usuario acabou de soltar) -- se o auto-save falhar, a
+      // posicao real no servidor fica desatualizada sem nenhum aviso na hora do erro.
+      error: function () {
+        alert("Erro ao salvar a nova posição. Recarregue a página para conferir se a figura ficou no lugar certo.");
+      }
     });
   });
 
@@ -92,11 +107,20 @@ function drawText(stage, caracteristicas) {
       type: 'POST',
       url: 'AutoSalvarStoryServlet',
       contentType: 'application/json',
-      data: JSON.stringify([{ tipo: 'texto', codigo: a.id, x: a.x, y: a.y, conteudo: a.text, fonte: a.fontFamily, tamanhoFonte: a.fontSize, cor: a.fill }])
+      data: JSON.stringify([{ tipo: 'texto', codigo: a.id, x: a.x, y: a.y, conteudo: a.text, fonte: a.fontFamily, tamanhoFonte: a.fontSize, cor: a.fill }]),
+      // REVISAO 2026-07-08 (varredura JS, achado ALTA): mesmo motivo do dragend de
+      // imagem acima -- posicao ja mudou na tela, sem aviso se o auto-save falhar.
+      error: function () {
+        alert("Erro ao salvar a nova posição. Recarregue a página para conferir se o texto ficou no lugar certo.");
+      }
     });
   });
 
-  textNode.on('click', function () {
+  // REVISAO 2026-07-08 (varredura JS, achado BAIXA): namespace .deletar adicionado
+  // (era so 'click', sem namespace -- inconsistente com o delete de imagem, que ja
+  // usa 'click.deletar'). Sem efeito pratico hoje (nada mais liga 'click' neste
+  // textNode), padroniza pra facilitar manutencao futura.
+  textNode.on('click.deletar', function () {
     var y = document.getElementById("deletarAlgo");
     if (y.style.display == "block") {
       this.hide();
@@ -106,7 +130,12 @@ function drawText(stage, caracteristicas) {
         type: 'POST',
         url: "DeletarObjServlet",
         contentType: 'application/json',
-        data: JSON.stringify(this.attrs.id)
+        data: JSON.stringify(this.attrs.id),
+        // REVISAO 2026-07-08 (varredura JS, achado ALTA): mesmo motivo do delete de
+        // imagem acima -- texto ja escondido/destruido no cliente antes do POST.
+        error: function () {
+          alert("Erro ao excluir o texto no servidor. Recarregue a página -- ele pode reaparecer.");
+        }
       });
     }
   });
@@ -161,7 +190,13 @@ function drawText(stage, caracteristicas) {
           type: 'POST',
           url: 'AutoSalvarStoryServlet',
           contentType: 'application/json',
-          data: JSON.stringify([{ tipo: 'texto', codigo: a.id, x: a.x, y: a.y, conteudo: a.text, fonte: a.fontFamily, tamanhoFonte: a.fontSize, cor: a.fill }])
+          data: JSON.stringify([{ tipo: 'texto', codigo: a.id, x: a.x, y: a.y, conteudo: a.text, fonte: a.fontFamily, tamanhoFonte: a.fontSize, cor: a.fill }]),
+          // REVISAO 2026-07-08 (varredura JS, achado ALTA): o texto ja foi trocado na
+          // tela (textNode.text(textarea.value) acima) antes do POST -- se o auto-save
+          // falhar, o conteudo editado nao chega no servidor sem nenhum aviso.
+          error: function () {
+            alert("Erro ao salvar o texto editado. Recarregue a página para conferir se a edição ficou salva.");
+          }
         });
       }
     });
@@ -169,76 +204,8 @@ function drawText(stage, caracteristicas) {
 
 }
 
-
-function drawFreeLine(stage, layer) {
-  layer = new Konva.Layer();
-  stage.add(layer);
-
-  //#######
-  var canvas = document.createElement('canvas');
-  canvas.width = stage.width() / 1;
-  canvas.height = stage.height() / 1;
-
-  // creted canvas we can add to layer as "Konva.Image" element
-
-  var image = new Konva.Image({
-    image: canvas,
-    x: stage.width() / 1000,
-    y: stage.height() / 1000,
-    draggable: false
-  });
-
-  layer.add(image);
-  stage.draw();
-
-  // Good. Now we need to get access to context element
-  var context = canvas.getContext('2d');
-  context.strokeStyle = "#df4b26";
-  context.lineJoin = "round";
-  context.lineWidth = 6;
-  var isPaint = false;
-  var lastPointerPosition;
-  var mode = 'brush';
-  // now we need to bind some events
-  // we need to start drawing on mousedown
-  // and stop drawing on mouseup
-  stage.on('contentMousedown.proto', function () {
-    isPaint = true;
-    lastPointerPosition = stage.getPointerPosition();
-  });
-  stage.on('contentMouseup.proto', function () {
-    isPaint = false;
-  });
-  // and core function - drawing
-  stage.on('contentMousemove.proto', function () {
-    if (!isPaint) {
-      return;
-    }
-    if (mode === 'brush') {
-      context.globalCompositeOperation = 'source-over';
-    }
-    if (mode === 'eraser') {
-      context.globalCompositeOperation = 'destination-out';
-    }
-    context.beginPath();
-    var localPos = {
-      x: lastPointerPosition.x - image.x(),
-      y: lastPointerPosition.y - image.y()
-    };
-    context.moveTo(localPos.x, localPos.y);
-    var pos = stage.getPointerPosition();
-    localPos = {
-      x: pos.x - image.x(),
-      y: pos.y - image.y()
-    };
-    context.lineTo(localPos.x, localPos.y);
-    context.closePath();
-    context.stroke();
-    lastPointerPosition = pos;
-    layer.draw();
-  });
-  var select = document.getElementById('tool');
-  select.addEventListener('change', function () {
-    mode = select.value;
-  });
-}
+// REVISAO 2026-07-08 (varredura JS, achado BAIXA): drawFreeLine() foi removida --
+// codigo morto confirmado (nunca chamada em lugar nenhum; dependia de
+// document.getElementById('tool'), um id que nao existe em nenhum JSP do projeto).
+// Alem de morta, ela empilhava listeners `stage.on('....proto', ...)` sem nunca dar
+// `stage.off('.proto')` -- se um dia for reaproveitada, precisa desse cuidado.

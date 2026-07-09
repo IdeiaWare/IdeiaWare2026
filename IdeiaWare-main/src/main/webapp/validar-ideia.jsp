@@ -152,7 +152,6 @@
 
           <c:if test="${not empty ideiasPendentes}">
           <%-- M.1 (2026-07-06): titulo da secao (simetria com "Ideias rejeitadas" abaixo). --%>
-          <h5>Aguardando validação</h5>
           <ul class="collapsible" data-collapsible="accordion">
             <c:forEach var="ideia" items="${ideiasPendentes}" varStatus="id">
                 <li>

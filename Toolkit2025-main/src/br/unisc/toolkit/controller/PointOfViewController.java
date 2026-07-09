@@ -26,24 +26,19 @@ import br.unisc.toolkit.classes.ToolkitValidacao;
 import org.springframework.validation.BindingResult;
 import br.unisc.toolkit.entity.ExportFile;
 import br.unisc.toolkit.entity.Persona;
-import br.unisc.toolkit.entity.PersonaPointOfView;
 import br.unisc.toolkit.entity.PointOfView;
 import br.unisc.toolkit.entity.PointOfViewInfo;
 import br.unisc.toolkit.service.PointOfViewService;
 import br.unisc.toolkit.service.ExportFileService;
-import br.unisc.toolkit.service.PersonaPointOfViewService;
 import br.unisc.toolkit.service.PersonaService;
 
 @Controller
 @RequestMapping("/point-of-view")
 public class PointOfViewController {
-	
+
 	@Autowired
 	private PointOfViewService pointOfViewService;
-	
-	@Autowired
-	private PersonaPointOfViewService personaPointOfViewService;
-	
+
 	@Autowired
 	private PersonaService personaService;
 	
@@ -55,14 +50,21 @@ public class PointOfViewController {
 	// Recebe as personas via query string (?personas=...) em vez de path variable.
 	// Nomes de persona contem espacos e "+", que no path causavam 404 no Tomcat 9.
 	@GetMapping("/criar-pov")
-	public String showPOVTemplate(@RequestParam("personas") List<String> personas, Model theModel){
-		
+	public String showPOVTemplate(@RequestParam("personas") List<String> personas, Model theModel, HttpServletRequest request){
+		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): unico GET deste
+		// controller que nao conferia o cookie -- sem risco de dado hoje (so reflete
+		// a query string, ja escapada pela JSP), mas quebra o padrao do resto do app.
+		if (cookie.getCookieIdeiaCodigo(request) == null) {
+			theModel.addAttribute("pageTitle", "Erro");
+			return "redirect";
+		}
+
 		PointOfView thePOV = new PointOfView();
-		
+
 		theModel.addAttribute("pageTitle", "Novo Point of View");
 		theModel.addAttribute("personas", personas);
 		theModel.addAttribute("pov", thePOV);
-		
+
 		return "form-pov";
 	}
 	
@@ -86,9 +88,12 @@ public class PointOfViewController {
 			}
 			thePOV.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
 
-			pointOfViewService.savePOV(thePOV);
-
-			savePersonasPOVItem(thePOV);
+			// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA): save + reassociar
+			// personas consolidados numa unica transacao no service (ver
+			// PointOfViewServiceImpl.criarComPersonas) -- antes eram chamadas
+			// @Transactional separadas, falha no meio deixava POV com associacoes
+			// parciais/zero.
+			pointOfViewService.criarComPersonas(thePOV);
 
 			redirectAttrs.addFlashAttribute("toastOk", "Point of View criado com sucesso.");
 			return "redirect:/point-of-view/lista";
@@ -187,10 +192,11 @@ public class PointOfViewController {
 			}
 			thePOV.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
 
-			personaPointOfViewService.removePOVIdFromAuxiliarTable(thePOV.getId());
-			pointOfViewService.savePOV(thePOV);
-
-			savePersonasPOVItem(thePOV);
+			// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA): remove+save+reassociar
+			// consolidados numa unica transacao no service (ver
+			// PointOfViewServiceImpl.atualizarComPersonas) -- antes eram 2+N chamadas
+			// @Transactional separadas.
+			pointOfViewService.atualizarComPersonas(thePOV);
 
 			redirectAttrs.addFlashAttribute("toastOk", "Point of View atualizado com sucesso.");
 			return "redirect:/point-of-view/lista";
@@ -200,7 +206,9 @@ public class PointOfViewController {
 		}		
 	}
 	
-	@GetMapping("/deletar")
+	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET): virou
+	// POST -- mesmo motivo do PersonaController.deletar.
+	@PostMapping("/deletar")
 	public String deletePointOfView(@RequestParam("povId") int theId, Model theModel, HttpServletRequest request){
 		// TK-03: exige cookie de ideia; o filtro por ideia_codigo no DAO impede IDOR
 		if(cookie.getCookieIdeiaCodigo(request) != null){
@@ -258,19 +266,5 @@ public class PointOfViewController {
 		}
 		
 		theModel.addAttribute("povs", pointOfViewsInfo);
-	}
-	
-	private void savePersonasPOVItem(PointOfView thePOV){
-		int povID = thePOV.getId();
-		Long ideiaCodigo = thePOV.getIdeiaCodigo();
-		
-		for (int id : thePOV.getPersonasId()){
-			PersonaPointOfView personaPOV = new PersonaPointOfView();
-			personaPOV.setPersonaID(id);
-			personaPOV.setPointOfViewID(povID);
-			personaPOV.setIdeiaCodigo(ideiaCodigo);
-
-			personaPointOfViewService.savePersonaPOV(personaPOV);
-		}
 	}
 }

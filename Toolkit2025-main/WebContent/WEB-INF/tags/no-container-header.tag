@@ -16,18 +16,24 @@
 		<link type="text/css" rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/style.css" />
 		
 		<script src="${pageContext.request.contextPath}/resources/js/jquery-3.2.1.min.js"></script>
+		<%-- REVISAO 2026-07-08 (varredura Toolkit, DRY): mesmo fix do header.tag. --%>
 		<script>
 			var contextPath = "${pageContext.request.contextPath}"
+			var licBasePath = "${initParam.licBasePath}"
 		</script>
 	</head>
 	<body>
 		<div id="overlay">
 			<div class="loader"></div>
 		</div>
+		<%-- REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- menu mobile quebrado):
+		     mesmo fix do header.tag -- ver o comentario la pro detalhe completo (id do
+		     <ul> do logo renomeado pra "nav-logo" em vez de removido, pra nao quebrar o
+		     CSS #nav-mobile .logo/.logo img que dependia dele). --%>
 		<nav>
 		    <div class="nav-wrapper red darken-1">
-	      		<a href="/LIC/index.jsp" class="brand-logo" style="left: 50px">
-		          <ul id="nav-mobile" class="left hide-on-med-and-down">
+	      		<a href="${initParam.licBasePath}/index.jsp" class="brand-logo" style="left: 50px">
+		          <ul id="nav-logo" class="left hide-on-med-and-down">
 	            	<div class="row">
 		              	<div class="col s1 red lighten-3 logo">
 		                	<img src="${pageContext.request.contextPath}/resources/imgs/logo-ideiaware.png" alt="IdeiaWare">
@@ -35,20 +41,35 @@
 		            	<h1 class=" col s4 center-align title-app">IdeiaWare</h1>
 		        	</div>
 		      	</ul>
-		      </a>		
-		        
-		      <a href="#" data-activates="mobile-demo" class="button-collapse">
+		      </a>
+
+		      <a href="#" data-activates="nav-mobile-drawer" class="button-collapse">
 		      	<i class="fa fa-bars" aria-hidden="true"></i>
 		      </a>
+		      <%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET):
+		           mesmo fix do header.tag -- ver o comentario la pro detalhe completo. --%>
+		      <form id="finalizeIdeiaFormDesktop" action="${pageContext.request.contextPath}/ideia/finalize" method="POST" style="display:none;">
+		      	<input type="hidden" name="csrfToken" value="${csrfToken}"/>
+		      </form>
 		      <ul id="nav-mobile" class="right hide-on-med-and-down">
 		        <li><a href="${pageContext.request.contextPath}/persona/lista">Persona</a></li>
 		        <li><a href="${pageContext.request.contextPath}/point-of-view/lista">Point Of View</a></li>
 		        <li><a href="${pageContext.request.contextPath}/informacoes">Informações</a></li>
-		        <li><a href="${pageContext.request.contextPath}/ideia/finalize?csrfToken=${csrfToken}" onclick="return confirm('Finalizar a Caixa de Ferramentas conclui esta etapa da ideia e não pode ser desfeito. Deseja continuar?')">Finalizar Caixa</a></li>
-		        <li><a href="javascript:;" id="logout">Sair<i class="fa fa-sign-out" aria-hidden="true"></i></a></li>
+		        <li><a href="javascript:;" onclick="if (confirm('Finalizar a Caixa de Ferramentas conclui esta etapa da ideia e não pode ser desfeito. Deseja continuar?')) document.getElementById('finalizeIdeiaFormDesktop').submit();">Finalizar Caixa</a></li>
+		        <li><a href="javascript:;" class="logout-link">Sair<i class="fa fa-sign-out" aria-hidden="true"></i></a></li>
 		      </ul>
 		    </div>
 	  	</nav>
+	  	<form id="finalizeIdeiaFormMobile" action="${pageContext.request.contextPath}/ideia/finalize" method="POST" style="display:none;">
+	      	<input type="hidden" name="csrfToken" value="${csrfToken}"/>
+	    </form>
+	  	<ul class="side-nav" id="nav-mobile-drawer">
+	        <li><a href="${pageContext.request.contextPath}/persona/lista">Persona</a></li>
+	        <li><a href="${pageContext.request.contextPath}/point-of-view/lista">Point Of View</a></li>
+	        <li><a href="${pageContext.request.contextPath}/informacoes">Informações</a></li>
+	        <li><a href="javascript:;" onclick="if (confirm('Finalizar a Caixa de Ferramentas conclui esta etapa da ideia e não pode ser desfeito. Deseja continuar?')) document.getElementById('finalizeIdeiaFormMobile').submit();">Finalizar Caixa</a></li>
+	        <li><a href="javascript:;" class="logout-link">Sair<i class="fa fa-sign-out" aria-hidden="true"></i></a></li>
+	    </ul>
 	  	<div id="content" role="main">
 			<div class="row">
 				<div class="col s12">

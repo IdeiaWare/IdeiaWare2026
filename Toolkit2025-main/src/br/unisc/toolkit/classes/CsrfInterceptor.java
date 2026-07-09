@@ -39,9 +39,23 @@ public class CsrfInterceptor extends HandlerInterceptorAdapter {
 
 		// Valida POST e tambem os GET que MUDAM estado (deletes via link), que o
 		// SameSite=Lax nao protege em navegacao top-level.
+		// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): HEAD tambem precisa
+		// entrar aqui -- o Spring despacha HEAD pro MESMO @GetMapping do GET (o metodo
+		// roda inteiro, so o corpo da resposta e descartado), entao sem isso um
+		// DELETE/finalize EXECUTAVA DE VERDADE numa requisicao HEAD sem checar token
+		// (crawler/link-checker same-site que usa HEAD disparava exclusao sem querer).
+		// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA): bypass via barra final na
+		// URL -- o Spring 5.3.x (trailing-slash-match=true por padrao, sem config
+		// customizando) roteia ".../delete/?..." pro MESMO handler de ".../delete", mas
+		// o endsWith("/delete") abaixo nao batia, pulando a checagem de token. Barra
+		// final removida ANTES de comparar (.contains() ja nao sofria disso).
 		String uri = req.getRequestURI();
-		boolean stateChanging = "POST".equalsIgnoreCase(req.getMethod())
-				|| ("GET".equalsIgnoreCase(req.getMethod())
+		if (uri.endsWith("/")) {
+			uri = uri.substring(0, uri.length() - 1);
+		}
+		String method = req.getMethod();
+		boolean stateChanging = "POST".equalsIgnoreCase(method)
+				|| (("GET".equalsIgnoreCase(method) || "HEAD".equalsIgnoreCase(method))
 						&& (uri.contains("/deletar") || uri.endsWith("/delete")
 								|| uri.endsWith("/finalize")));   // /finalize muda o status da ideia
 		if (stateChanging) {

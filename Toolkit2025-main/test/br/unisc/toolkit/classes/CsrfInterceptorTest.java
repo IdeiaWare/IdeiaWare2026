@@ -97,4 +97,32 @@ public class CsrfInterceptorTest {
 		assertFalse(interceptor.preHandle(req, resp, null));
 		verify(resp).sendError(eq(HttpServletResponse.SC_FORBIDDEN), anyString());
 	}
+
+	// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA): Spring roteia ".../delete/"
+	// (barra extra) pro MESMO handler de ".../delete" -- sem normalizar a URI, o
+	// endsWith("/delete") nao batia e a checagem de token era pulada por completo.
+	@Test
+	public void getFinalizeComBarraFinal_semToken_403() throws Exception {
+		when(req.getMethod()).thenReturn("GET");
+		when(req.getRequestURI()).thenReturn("/toolkit/ideia/finalize/");
+		comCookie("tok123");
+		when(req.getParameter("csrfToken")).thenReturn(null);
+		when(req.getHeader("X-CSRF-Token")).thenReturn(null);
+		assertFalse(interceptor.preHandle(req, resp, null));
+		verify(resp).sendError(eq(HttpServletResponse.SC_FORBIDDEN), anyString());
+	}
+
+	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): o Spring despacha HEAD pro
+	// mesmo @GetMapping do GET (o metodo roda inteiro) -- sem o fix, este teste falhava
+	// porque HEAD escapava da checagem por completo.
+	@Test
+	public void headDelete_semToken_403() throws Exception {
+		when(req.getMethod()).thenReturn("HEAD");
+		when(req.getRequestURI()).thenReturn("/toolkit/persona/deletar");
+		comCookie("tok123");
+		when(req.getParameter("csrfToken")).thenReturn(null);
+		when(req.getHeader("X-CSRF-Token")).thenReturn(null);
+		assertFalse(interceptor.preHandle(req, resp, null));
+		verify(resp).sendError(eq(HttpServletResponse.SC_FORBIDDEN), anyString());
+	}
 }

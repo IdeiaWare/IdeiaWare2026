@@ -110,6 +110,10 @@ CREATE TABLE IF NOT EXISTS `persona_pov` (
   KEY `persona_id` (`persona_id`),
   KEY `pov_id` (`pov_id`),
   KEY `ideia_codigo` (`ideia_codigo`),
+  -- REVISAO 2026-07-08 (varredura Toolkit, achado ALTA): sem isso, duplo-clique em
+  -- "Salvar" no formulario de POV podia duplicar a linha de associacao
+  -- persona<->POV (a mesma dupla persona_id+pov_id inserida 2x).
+  UNIQUE KEY `uk_persona_pov_persona_pov` (`persona_id`,`pov_id`),
   CONSTRAINT `persona_pov_ibfk_1` FOREIGN KEY (`persona_id`) REFERENCES `persona` (`persona_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `persona_pov_ibfk_2` FOREIGN KEY (`pov_id`) REFERENCES `pov` (`pov_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `persona_pov_ibfk_3` FOREIGN KEY (`ideia_codigo`) REFERENCES `ideia` (`codigo`) ON DELETE CASCADE ON UPDATE CASCADE

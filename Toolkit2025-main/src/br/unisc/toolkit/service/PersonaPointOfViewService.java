@@ -8,6 +8,6 @@ public interface PersonaPointOfViewService {
 
 	public void savePersonaPOV(PersonaPointOfView personaPOV);
 
-	public void removePOVIdFromAuxiliarTable(int povID);
+	public void removePOVIdFromAuxiliarTable(int povID, Long ideiaCodigo);
 
 }

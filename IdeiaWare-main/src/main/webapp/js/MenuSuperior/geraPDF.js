@@ -67,6 +67,14 @@ function geraPDF(stage) {
           salvaPDF(reader.result);
         };
       };
+      // REVISAO 2026-07-08 (varredura JS, achado MEDIA): img.onload tratava so o
+      // sucesso -- se a imagem gerada pelo canvas falhar por qualquer motivo (ex.:
+      // dataURL invalido), onload nunca dispara e o overlay de loading (ligado na
+      // linha acima) ficava bloqueando a tela pra sempre, sem mensagem nenhuma.
+      img.onerror = function () {
+        $("#overlay").attr('style', 'display: none !important');
+        alert('Erro ao gerar o PDF :(');
+      };
       img.src = dataURL;
     }
   });

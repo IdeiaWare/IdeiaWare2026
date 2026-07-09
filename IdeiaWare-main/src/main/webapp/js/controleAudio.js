@@ -41,6 +41,23 @@ function startRecording() {
     alert('Este navegador não suporta gravação de áudio, ou a página não está em um contexto seguro (HTTPS).');
     return;
   }
+  // REVISAO 2026-07-08 (varredura JS, achado MEDIA): audio_context e criado em
+  // Initialize() no window.onload (fora de qualquer gesto de clique) -- a politica de
+  // autoplay dos navegadores modernos pode deixar ele "suspended" ate um gesto do
+  // usuario, e nesse estado a gravacao roda inteira SEM ERRO NENHUM mas fica vazia/
+  // silenciosa (nada acusa o problema pro usuario). resume() aqui, dentro do clique em
+  // "Gravar", garante o estado "running" antes de comecar. Chamada e segura mesmo se o
+  // contexto ja estiver rodando (vira no-op).
+  if (audio_context && audio_context.state === 'suspended') {
+    audio_context.resume();
+  }
+  // REVISAO 2026-07-08 (varredura JS, achado BAIXA): antes o start-btn so era
+  // desabilitado DENTRO do .then() (depois do usuario responder o prompt de
+  // permissao do navegador) -- um clique duplo nesse intervalo podia disparar 2
+  // getUserMedia concorrentes, o 2o sobrescrevendo audio_stream/recorder do 1o sem
+  // parar as tracks dele (microfone ficava "vazado"). Desabilita JA, sincrono, antes
+  // da Promise.
+  document.getElementById("start-btn").disabled = true;
   navigator.mediaDevices.getUserMedia({audio: true}).then(function (stream) {
     // Expose the stream to be accessible globally
     audio_stream = stream;
@@ -60,6 +77,10 @@ function startRecording() {
     document.getElementById("start-btn").disabled = true;
     document.getElementById("stop-btn").disabled = false;
   }).catch(function (e) {
+    // REVISAO 2026-07-08: reabilita o start-btn se a permissao for negada/falhar --
+    // senao, como agora ele e desabilitado ANTES da Promise (fix acima), uma negacao
+    // deixaria o botao travado pra sempre (sem chegar no .then() que reabilitaria).
+    document.getElementById("start-btn").disabled = false;
     console.error('No live audio input: ' + e);
     alert('Não foi possível acessar o microfone. Verifique as permissões do navegador.');
   });
@@ -76,8 +97,15 @@ function stopRecording(callback, AudioFormat) {
   recorder && recorder.stop();
 //     console.log('Stopped recording.');
 
-  // Stop the getUserMedia Audio Stream !
-  audio_stream.getAudioTracks()[0].stop();
+  // REVISAO 2026-07-08 (varredura JS, achado ALTA): audio_stream nao tinha guard
+  // (diferente da linha anterior, recorder && recorder.stop()). CONFIRMADO no JSP que
+  // nem #start-btn nem #stop-btn tem disabled por padrao -- os 2 nascem clicaveis.
+  // Clicar "Parar" antes de "Gravar" (ou 2x seguidas) fazia audio_stream ser undefined
+  // -> TypeError nao tratado, que travava a funcao ANTES do reset dos botoes abaixo.
+  if (audio_stream) {
+    // Stop the getUserMedia Audio Stream !
+    audio_stream.getAudioTracks()[0].stop();
+  }
 
   // Disable Stop button and enable Record button !
   document.getElementById("start-btn").disabled = false;

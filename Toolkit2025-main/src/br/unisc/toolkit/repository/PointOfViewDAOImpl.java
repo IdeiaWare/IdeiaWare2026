@@ -25,8 +25,18 @@ public class PointOfViewDAOImpl implements PointOfViewDAO {
 		// ORDER BY pov_id DESC: lista os POV mais recentes em cima (pov_id e
 		// auto-increment). Combina com o LinkedHashMap do controller, que preserva
 		// esta ordem ao montar o mapa exibido.
+		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): removido o prefixo
+		// "lic_bd." hardcoded -- a native query ja roda na conexao JDBC apontada pro
+		// schema certo (fragil so se o nome do banco mudar; sem risco de SQL injection,
+		// parametros ja eram bindados).
+		// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- IDOR, defesa em
+		// profundidade): "AND persona.ideia_codigo=pov.ideia_codigo" adicionado. O fix
+		// principal e no savePersonasPOVItem() do controller (impede o vinculo cross-
+		// ideia de ser criado); isto aqui garante que mesmo um vinculo indevido pre-
+		// existente (dado legado, ou um bug futuro que reabra o mesmo problema) nao
+		// vaze nome de persona de outra ideia nesta listagem.
 		Query<Object> theQuery =
-				currentSession.createNativeQuery("SELECT persona_pov.ID, persona.name, persona.persona_id, pov.user, pov.need, pov.insight, pov.pov_id FROM lic_bd.persona_pov inner join persona on (persona.persona_id = persona_pov.persona_id) inner join pov on (pov.pov_id = persona_pov.pov_id) where pov.ideia_codigo=:IdeiaCodigo ORDER BY pov.pov_id DESC");
+				currentSession.createNativeQuery("SELECT persona_pov.ID, persona.name, persona.persona_id, pov.user, pov.need, pov.insight, pov.pov_id FROM persona_pov inner join persona on (persona.persona_id = persona_pov.persona_id) inner join pov on (pov.pov_id = persona_pov.pov_id) where pov.ideia_codigo=:IdeiaCodigo AND persona.ideia_codigo=pov.ideia_codigo ORDER BY pov.pov_id DESC");
 		theQuery.setParameter("IdeiaCodigo", ideiaCodigo);
 		
 		// execute query and get result list
@@ -43,8 +53,12 @@ public class PointOfViewDAOImpl implements PointOfViewDAO {
 
 		// SEC-23 (IDOR): escopo por ideia_codigo -> nao da p/ ler o POV de OUTRA ideia
 		// chutando o pov_id (antes a query buscava so por pov_id).
+		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): removido o prefixo
+		// "lic_bd." hardcoded -- mesmo motivo da query acima.
+		// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- IDOR, defesa em
+		// profundidade): mesmo motivo da query getPointOfViews acima.
 		Query<Object> theQuery =
-				currentSession.createNativeQuery("SELECT persona_pov.ID, persona.name, persona.persona_id, pov.user, pov.need, pov.insight, pov.pov_id FROM lic_bd.persona_pov inner join persona on (persona.persona_id = persona_pov.persona_id) inner join pov on (pov.pov_id = persona_pov.pov_id) where pov.pov_id=:ID and pov.ideia_codigo=:IdeiaCodigo");
+				currentSession.createNativeQuery("SELECT persona_pov.ID, persona.name, persona.persona_id, pov.user, pov.need, pov.insight, pov.pov_id FROM persona_pov inner join persona on (persona.persona_id = persona_pov.persona_id) inner join pov on (pov.pov_id = persona_pov.pov_id) where pov.pov_id=:ID and pov.ideia_codigo=:IdeiaCodigo and persona.ideia_codigo=pov.ideia_codigo");
 		theQuery.setParameter("ID", theId);
 		theQuery.setParameter("IdeiaCodigo", ideiaCodigo);
 		
@@ -74,6 +88,25 @@ public class PointOfViewDAOImpl implements PointOfViewDAO {
 	public void savePOV(PointOfView thePOV) {
 		Session currentSession = sessionFactory.getCurrentSession();
 
+		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): defesa em profundidade --
+		// hoje os 2 controllers que chamam este metodo ja conferem povPertenceAIdeia()
+		// antes de um UPDATE (SEC-24), entao isto nao e exploravel agora; mas o DAO em
+		// si nao tinha NENHUMA blindagem propria (diferente de Persona/Empathy, que
+		// reforcam mesmo se o controller esquecer) -- fragil a um refactor futuro
+		// reabrir a mesma classe de IDOR. Mesmo padrao de evict() do povPertenceAIdeia()
+		// acima, pra nao conflitar com o saveOrUpdate logo em seguida.
+		if (thePOV.getId() != 0) {
+			PointOfView existente = currentSession.get(PointOfView.class, thePOV.getId());
+			if (existente != null) {
+				boolean mesmaIdeia = existente.getIdeiaCodigo() != null
+						&& existente.getIdeiaCodigo().equals(thePOV.getIdeiaCodigo());
+				currentSession.evict(existente);
+				if (!mesmaIdeia) {
+					return;
+				}
+			}
+		}
+
 		currentSession.saveOrUpdate(thePOV);
 	}
 
@@ -83,7 +116,9 @@ public class PointOfViewDAOImpl implements PointOfViewDAO {
 		Session currentSession = sessionFactory.getCurrentSession();
 
 		// TK-03: filtra por ideia_codigo para impedir deletar POV de outra ideia (IDOR)
-		Query theQuery = currentSession.createQuery("delete from PointOfView where id=:ID and ideia_codigo=:ideiaCodigo");
+		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): ideia_codigo -> ideiaCodigo
+		// (nome de propriedade, nao de coluna -- mesmo motivo documentado em EmpathyDAOImpl).
+		Query theQuery = currentSession.createQuery("delete from PointOfView where id=:ID and ideiaCodigo=:ideiaCodigo");
 		theQuery.setParameter("ID", theId);
 		theQuery.setParameter("ideiaCodigo", ideiaCodigo);
 

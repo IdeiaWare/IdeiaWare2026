@@ -41,16 +41,28 @@ public class EmpathyExportController {
 	
 	AdminCookies cookie = new AdminCookies();
 	
+	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): os 2 GETs abaixo sempre
+	// retornavam a view, mesmo sem cookie valido (diferente de todos os outros
+	// controllers) -- personaView() ja checava o cookie por dentro, mas so pra decidir
+	// se populava o model; se nao populasse, a JSP (<form:form modelAttribute="overview">)
+	// explodia com excecao generica em vez do redirect limpo padrao. Guard adicionado
+	// aqui, mesmo padrao usado no resto do app.
 	@GetMapping("/visao-geral")
 	public String showFilledEmpathyMapOverview(@RequestParam("personaId") int theId, Model theModel,  HttpServletRequest request){
-		personaView(theId, theModel, "overview", request);
-		
+		if (cookie.getCookieIdeiaCodigo(request) == null || !personaView(theId, theModel, "overview", request)) {
+			theModel.addAttribute("pageTitle", "Erro");
+			return "redirect";
+		}
+
 		return "empathy-map-overview";
 	}
 
 	@GetMapping("/visao-detalhada")
 	public String showFilledEmpathyMapDetailed(@RequestParam("personaId") int theId, Model theModel, HttpServletRequest request){
-		personaView(theId, theModel, "detailed", request);
+		if (cookie.getCookieIdeiaCodigo(request) == null || !personaView(theId, theModel, "detailed", request)) {
+			theModel.addAttribute("pageTitle", "Erro");
+			return "redirect";
+		}
 		return "empathy-map-detailed";
 	}
 	
@@ -88,31 +100,41 @@ public class EmpathyExportController {
 		}		
 	}
 	
-	private void personaView(int theId, Model theModel, String viewType, HttpServletRequest request){
+	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): getPersona() pode voltar
+	// null (uniqueResult, ex.: persona deletada/id invalido) -- sem o guard abaixo o
+	// model era populado com persona=null e os callers retornavam a view normalmente,
+	// renderizando pagina "quebrada" (campos em branco) em vez de redirecionar com
+	// erro. void virou boolean pra callers saberem quando cair pro redirect.
+	private boolean personaView(int theId, Model theModel, String viewType, HttpServletRequest request){
 		Long ideiaCodigo = Long.valueOf(0);
-		
+
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 			ideiaCodigo = cookie.getCookieIdeiaCodigo(request);
-		
-			Persona thePersona = personaService.getPersona(theId, ideiaCodigo);		
+
+			Persona thePersona = personaService.getPersona(theId, ideiaCodigo);
+			if (thePersona == null) {
+				return false;
+			}
 			List<Empathy> EmpatiesThinkFeel = empathyService.getAttributes(theId, "think_feel", ideiaCodigo);
 			List<Empathy> EmpatiesSee = empathyService.getAttributes(theId, "see", ideiaCodigo);
 			List<Empathy> EmpatiesSayDo = empathyService.getAttributes(theId, "say_do", ideiaCodigo);
 			List<Empathy> EmpatiesHear = empathyService.getAttributes(theId, "hear", ideiaCodigo);
 			List<Empathy> EmpatiesPain = empathyService.getAttributes(theId, "pain", ideiaCodigo);
 			List<Empathy> EmpatiesGain = empathyService.getAttributes(theId, "gain", ideiaCodigo);
-			
+
 			theModel.addAttribute("pageTitle", "Mapa de Empatia - Exportar");
-			theModel.addAttribute("persona", thePersona);		
+			theModel.addAttribute("persona", thePersona);
 			theModel.addAttribute("thinkFeelAtributes", EmpatiesThinkFeel);
 			theModel.addAttribute("seeAtributes", EmpatiesSee);
 			theModel.addAttribute("sayDoAtributes", EmpatiesSayDo);
 			theModel.addAttribute("hearAtributes", EmpatiesHear);
 			theModel.addAttribute("painAtributes", EmpatiesPain);
 			theModel.addAttribute("gainAtributes", EmpatiesGain);
-			
+
 			ExportFile exportFile = new ExportFile();
 			theModel.addAttribute(viewType, exportFile);
+			return true;
 		}
+		return false;
 	}
 }

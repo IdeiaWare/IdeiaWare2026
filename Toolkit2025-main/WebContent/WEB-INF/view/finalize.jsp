@@ -13,7 +13,7 @@
 	          <div class="white-text center-align" style="font-size:45px;"><i class="fa fa-smile-o" aria-hidden="true"></i></div>
 	          <div class="white-text center-align" style="text-transform:uppercase;">Caixa de Ferramentas finalizada!</div>
 	          <div class="right-align">
-	          	<a class="white-text" href="/LIC/minha-ideia.jsp" style="text-transform:uppercase;">
+	          	<a class="white-text" href="${initParam.licBasePath}/minha-ideia.jsp" style="text-transform:uppercase;">
 	          		<i class="fa fa-angle-double-left" aria-hidden="true"></i> Ver minhas ideias
 	          	</a>
 	          </div>

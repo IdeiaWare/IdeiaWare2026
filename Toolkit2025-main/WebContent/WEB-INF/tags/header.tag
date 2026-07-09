@@ -16,16 +16,33 @@
 		<link type="text/css" rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/style.css" />
 		
 		<script src="${pageContext.request.contextPath}/resources/js/jquery-3.2.1.min.js"></script>
-		<script>var contextPath = "${pageContext.request.contextPath}"</script>
+		<%-- REVISAO 2026-07-08 (varredura Toolkit, DRY): licBasePath exposto pro custom.js
+		     (arquivo estatico, nao le EL), mesmo padrao ja usado pra contextPath. --%>
+		<script>var contextPath = "${pageContext.request.contextPath}"; var licBasePath = "${initParam.licBasePath}";</script>
 	</head>
 	<body style="display:flex; flex-direction:column; min-height:100vh;">
 		<div id="overlay">
 			<div class="loader"></div>
 		</div>
+		<%-- REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- menu mobile quebrado em
+		     TODAS as paginas): eram 2 problemas somados: (1) id="nav-mobile" duplicado
+		     neste <ul> do logo (HTML invalido, nao e o menu de navegacao de verdade) --
+		     e tambem o gancho de estilo usado por style.css (#nav-mobile .logo/.logo img)
+		     pro circulo/tamanho do logo, entao so REMOVER o id quebrava o CSS (logo
+		     renderizava em tamanho nativo, gigante); renomeado pra "nav-logo" em vez de
+		     removido, com o CSS atualizado junto; (2) o botao hamburguer apontava
+		     data-activates="mobile-demo", um id que NUNCA existiu em lugar nenhum (sobra
+		     do exemplo oficial do Materialize, nunca trocado pelo id real) -- e nao havia
+		     NENHUM <ul class="side-nav"> pra ativar de qualquer forma (o <ul class="right
+		     hide-on-med-and-down"> e so pra desktop, fica escondido no breakpoint mobile).
+		     Resultado: navegacao inacessivel em mobile/tablet no modulo inteiro. FIX: id
+		     duplicado renomeado; data-activates aponta pro novo drawer abaixo;
+		     $(".button-collapse").sideNav() ja existia em custom.js (nunca tinha um alvo
+		     valido pra ativar). --%>
 		<nav>
 		    <div class="nav-wrapper red darken-1">
-	      		<a href="/LIC/index.jsp" class="brand-logo" style="left: 50px">
-		          <ul id="nav-mobile" class="left hide-on-med-and-down">
+	      		<a href="${initParam.licBasePath}/index.jsp" class="brand-logo" style="left: 50px">
+		          <ul id="nav-logo" class="left hide-on-med-and-down">
 	            	<div class="row">
 		              	<div class="col s1 red lighten-3 logo">
 		                	<img src="${pageContext.request.contextPath}/resources/imgs/logo-ideiaware.png" alt="IdeiaWare">
@@ -33,20 +50,39 @@
 		            	<h1 class=" col s4 center-align title-app">IdeiaWare</h1>
 		        	</div>
 		      	</ul>
-		      </a>		
-		        
-		      <a href="#" data-activates="mobile-demo" class="button-collapse">
+		      </a>
+
+		      <a href="#" data-activates="nav-mobile-drawer" class="button-collapse">
 		      	<i class="fa fa-bars" aria-hidden="true"></i>
 		      </a>
+		      <%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET):
+		           virou form POST -- este era o mais grave dos 9 casos por ficar em TODA
+		           pagina do modulo (token na query string = historico do navegador, logs de
+		           proxy, header Referer, prefetch/crawler). Formularios escondidos + <a
+		           href="javascript:;"> que so envia -- 2 copias (nav desktop + drawer
+		           mobile) precisam de forms com id distinto. --%>
+		      <form id="finalizeIdeiaFormDesktop" action="${pageContext.request.contextPath}/ideia/finalize" method="POST" style="display:none;">
+		      	<input type="hidden" name="csrfToken" value="${csrfToken}"/>
+		      </form>
 		      <ul id="nav-mobile" class="right hide-on-med-and-down">
 		        <li><a href="${pageContext.request.contextPath}/persona/lista">Persona</a></li>
 		        <li><a href="${pageContext.request.contextPath}/point-of-view/lista">Point Of View</a></li>
 		        <li><a href="${pageContext.request.contextPath}/informacoes">Informações</a></li>
-		        <li><a href="${pageContext.request.contextPath}/ideia/finalize?csrfToken=${csrfToken}" onclick="return confirm('Finalizar a Caixa de Ferramentas conclui esta etapa da ideia e não pode ser desfeito. Deseja continuar?')">Finalizar Caixa</a></li>
-		        <li><a href="javascript:;" id="logout">Sair<i class="fa fa-sign-out" aria-hidden="true"></i></a></li>
+		        <li><a href="javascript:;" onclick="if (confirm('Finalizar a Caixa de Ferramentas conclui esta etapa da ideia e não pode ser desfeito. Deseja continuar?')) document.getElementById('finalizeIdeiaFormDesktop').submit();">Finalizar Caixa</a></li>
+		        <li><a href="javascript:;" class="logout-link">Sair<i class="fa fa-sign-out" aria-hidden="true"></i></a></li>
 		      </ul>
 		    </div>
 	  	</nav>
+	  	<form id="finalizeIdeiaFormMobile" action="${pageContext.request.contextPath}/ideia/finalize" method="POST" style="display:none;">
+	      	<input type="hidden" name="csrfToken" value="${csrfToken}"/>
+	    </form>
+	  	<ul class="side-nav" id="nav-mobile-drawer">
+	        <li><a href="${pageContext.request.contextPath}/persona/lista">Persona</a></li>
+	        <li><a href="${pageContext.request.contextPath}/point-of-view/lista">Point Of View</a></li>
+	        <li><a href="${pageContext.request.contextPath}/informacoes">Informações</a></li>
+	        <li><a href="javascript:;" onclick="if (confirm('Finalizar a Caixa de Ferramentas conclui esta etapa da ideia e não pode ser desfeito. Deseja continuar?')) document.getElementById('finalizeIdeiaFormMobile').submit();">Finalizar Caixa</a></li>
+	        <li><a href="javascript:;" class="logout-link">Sair<i class="fa fa-sign-out" aria-hidden="true"></i></a></li>
+	    </ul>
 
 	  	<div id="content" role="main" style="flex:1;">
 			<div class="container">

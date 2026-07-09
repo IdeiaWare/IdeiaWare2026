@@ -23,9 +23,17 @@
 	<div class="pov-form-wrapper">
 		<div class="persona-names">
 			<strong><em>Persona(s)</em>:</strong> 
+			<%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): fn:split(tempPersona,'+')
+			     quebrava em cada ocorrencia de "+" -- persona com "+" no nome (ex.: "Joao +
+			     Maria") virava 3+ pedacos em vez de 2, embaralhando id/nome ou perdendo o id.
+			     Value agora vem
+			     "Id+Nome" (id nunca tem "+"); indexOf+substring corta so no PRIMEIRO "+", o
+			     resto (mesmo com mais "+") fica inteiro no nome. --%>
 			<c:forEach var="tempPersona" items="${personas}">
-				<c:set var="personaParts" value="${fn:split(tempPersona, '+')}" />
-				<span class="persona-data" data-id="<c:out value='${personaParts[1]}'/>"><c:out value="${personaParts[0]}"/></span>
+				<c:set var="separatorIdx" value="${fn:indexOf(tempPersona, '+')}" />
+				<c:set var="personaId" value="${fn:substring(tempPersona, 0, separatorIdx)}" />
+				<c:set var="personaName" value="${fn:substring(tempPersona, separatorIdx + 1, -1)}" />
+				<span class="persona-data" data-id="<c:out value='${personaId}'/>"><c:out value="${personaName}"/></span>
 			</c:forEach>
 		</div>
 		<div class="row">
@@ -81,7 +89,7 @@
 				<img src="${pageContext.request.contextPath}/resources/imgs/pov-madlib.png" />
 				<p>Uma pessoa adulta que vive na cidade ... 
 				<strong>precisa de</strong> acesso a um carro compartilhado 1 a 4 vezes por 10 até 60 minutos por semana ... 
-				<strong>porque</strong> ele prefere compartilhar um carro com mais pessoas, já que fica mais barato e diminui danos ao meio ambiente. No entanto, ainda deve ser fácil para mais pessoas compartilhar.</p>
+				<strong>porque</strong> ela prefere compartilhar um carro com mais pessoas, já que fica mais barato e diminui danos ao meio ambiente. No entanto, ainda deve ser fácil para mais pessoas compartilharem.</p>
 			</div>
 		</div>
 	</div>

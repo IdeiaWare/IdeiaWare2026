@@ -19,27 +19,23 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import br.unisc.toolkit.classes.AssinaturaCaixa;
 import br.unisc.toolkit.entity.PointOfView;
 import br.unisc.toolkit.service.ExportFileService;
-import br.unisc.toolkit.service.PersonaPointOfViewService;
 import br.unisc.toolkit.service.PersonaService;
 import br.unisc.toolkit.service.PointOfViewService;
 
 /**
  * TEST-02: PointOfView via MockMvc — backstop server-side do POV (exige >=1 texto
- * e >=1 persona). Mocka os 4 services autowired.
+ * e >=1 persona). Mocka os 3 services autowired.
  */
 public class PointOfViewControllerTest {
 
 	private MockMvc mvc;
 	private PointOfViewService povService;
-	private PersonaPointOfViewService personaPovService;
 
 	@Before
 	public void setup() {
 		PointOfViewController controller = new PointOfViewController();
 		povService = mock(PointOfViewService.class);
-		personaPovService = mock(PersonaPointOfViewService.class);
 		ReflectionTestUtils.setField(controller, "pointOfViewService", povService);
-		ReflectionTestUtils.setField(controller, "personaPointOfViewService", personaPovService);
 		ReflectionTestUtils.setField(controller, "personaService", mock(PersonaService.class));
 		ReflectionTestUtils.setField(controller, "exportFileService", mock(ExportFileService.class));
 		mvc = MockMvcBuilders.standaloneSetup(controller).build();
@@ -53,7 +49,10 @@ public class PointOfViewControllerTest {
 				.param("personasId", "1"))
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("/point-of-view/lista"));
-		verify(povService).savePOV(any(PointOfView.class));
+		// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA): save + reassociar
+		// personas foram consolidados num unico metodo transacional
+		// (criarComPersonas), o controller nao chama mais savePOV() direto.
+		verify(povService).criarComPersonas(any(PointOfView.class));
 	}
 
 	@Test
@@ -63,7 +62,7 @@ public class PointOfViewControllerTest {
 				.param("userText", "").param("needText", "").param("insightText", "")
 				.param("personasId", "1"))
 				.andExpect(status().is3xxRedirection());
-		verify(povService, never()).savePOV(any());
+		verify(povService, never()).criarComPersonas(any());
 	}
 
 	@Test
@@ -72,6 +71,6 @@ public class PointOfViewControllerTest {
 				.cookie(new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("5")))
 				.param("userText", "tem texto, mas sem persona"))
 				.andExpect(status().is3xxRedirection());
-		verify(povService, never()).savePOV(any());
+		verify(povService, never()).criarComPersonas(any());
 	}
 }

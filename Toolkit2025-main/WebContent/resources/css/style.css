@@ -31,22 +31,22 @@ blockquote{
   font-size: 1rem;
 }
 
-nav #nav-mobile.left{
+nav #nav-logo.left{
 	width:300px
 }
-nav #nav-mobile.left > div{
+nav #nav-logo.left > div{
 	padding-left: 10px;
 }
-nav #nav-mobile .logo{
-	width: 50px;  
-	height: 50px; 
+nav #nav-logo .logo{
+	width: 50px;
+	height: 50px;
     margin-top: 5px;
-    padding: 6px 6px; 
+    padding: 6px 6px;
 	border-radius: 100%;
 	box-sizing: border-box;
 }
-nav #nav-mobile .logo img{
-	display: block;  
+nav #nav-logo .logo img{
+	display: block;
 	width: 62%;
 	margin-left: 7px;
 	margin-top: -1px;

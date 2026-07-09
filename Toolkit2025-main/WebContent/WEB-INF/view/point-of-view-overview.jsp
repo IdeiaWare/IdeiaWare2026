@@ -12,7 +12,6 @@
 	        <span class="breadcrumb active">Visão Geral</span>
 	    </div>
   	</nav>
-  	${povs.value}
   	<div class="row">
   		<div class="col m5">
   			<h2 class="title-page">Point of View - Visão Geral</h2>

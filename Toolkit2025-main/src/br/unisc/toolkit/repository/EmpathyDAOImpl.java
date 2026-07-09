@@ -20,8 +20,14 @@ public class EmpathyDAOImpl implements EmpathyDAO {
 		Session currentSession = sessionFactory.getCurrentSession();
 		
 		// create a query
-		Query<Empathy> theQuery = 
-				currentSession.createQuery("from Empathy where fk_persona_id=:ID and attribute=:Attribute and ideia_codigo=:IdeiaCodigo", Empathy.class);
+		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): HQL usava nome de
+		// COLUNA (fk_persona_id, ideia_codigo) em vez de nome de PROPRIEDADE Java
+		// (personaId, ideiaCodigo) -- funcionava por coincidencia (fallback do parser
+		// HQL classico do Hibernate 5.x pra SQL literal quando nao reconhece a
+		// propriedade); nao sobrevive a um @Column renomeado ou ao parser estrito do
+		// Hibernate 6.
+		Query<Empathy> theQuery =
+				currentSession.createQuery("from Empathy where personaId=:ID and attribute=:Attribute and ideiaCodigo=:IdeiaCodigo", Empathy.class);
 		theQuery.setParameter("ID", theId);
 		theQuery.setParameter("Attribute", attribute);
 		theQuery.setParameter("IdeiaCodigo", ideiaCodigo);
@@ -63,7 +69,9 @@ public class EmpathyDAOImpl implements EmpathyDAO {
 		Session currentSession = sessionFactory.getCurrentSession();
 
 		// TK-03: filtra por ideia_codigo para impedir deletar atributo de outra ideia (IDOR)
-		Query theQuery = currentSession.createQuery("delete from Empathy where id=:ID and ideia_codigo=:ideiaCodigo");
+		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): ideia_codigo -> ideiaCodigo
+		// (nome de propriedade, nao de coluna -- mesmo motivo da query acima).
+		Query theQuery = currentSession.createQuery("delete from Empathy where id=:ID and ideiaCodigo=:ideiaCodigo");
 		theQuery.setParameter("ID", attributeId);
 		theQuery.setParameter("ideiaCodigo", ideiaCodigo);
 

@@ -6,7 +6,7 @@
 	<%-- UX-VOLTAR-V2: mesmo padrao do resto do app -- icone circular flutuante no
 	     canto superior esquerdo. Toolkit e acessado via LIC (minha-ideia.jsp),
 	     entao o alvo e cross-webapp (contexto /LIC). --%>
-	<a href="/LIC/minha-ideia.jsp" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+	<a href="${initParam.licBasePath}/minha-ideia.jsp" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <span class="breadcrumb active">Personas</span>
@@ -58,21 +58,34 @@
 		        </thead>
 		        <tbody>
 					<!-- loop over and print our personas -->
-					<c:if test="${empty personas}"><tr><td colspan="4" class="center-align grey-text" style="padding: 30px;">Nenhuma persona criada ainda. Clique no botao + para criar a primeira.</td></tr></c:if>
+					<c:if test="${empty personas}"><tr><td colspan="4" class="center-align grey-text" style="padding: 30px;">Nenhuma persona criada ainda. Clique no botão + para criar a primeira.</td></tr></c:if>
 					<c:forEach var="tempPersona" items="${personas}">
 						
 						<c:url var="viewLink" value="/persona/empatia/mapa">
 							<c:param name="personaId" value="${tempPersona.id}" />
 						</c:url>
 						
-						<c:url var="deleteLink" value="/persona/deletar">
-					<c:param name="csrfToken" value="${csrfToken}"/>
-							<c:param name="personaId" value="${tempPersona.id}" />
-						</c:url>
-						
+						<%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET):
+						     virou form POST -- token vinha na query string (historico do
+						     navegador, logs de proxy, header Referer). O <a> abaixo continua
+						     IDENTICO (mesmas classes/tooltip) -- so o href virou javascript:; e
+						     o onclick manda o form escondido em vez de navegar. --%>
+						<form id="deletePersonaForm${tempPersona.id}" action="${pageContext.request.contextPath}/persona/deletar" method="POST" style="display:none;">
+							<input type="hidden" name="csrfToken" value="${csrfToken}"/>
+							<input type="hidden" name="personaId" value="${tempPersona.id}"/>
+						</form>
+
 						<tr>
 							<td>
-								<input type="checkbox" value="<c:out value='${tempPersona.name}'/>+${tempPersona.id}" class="filled-in chkPersona" id="filled-in-box${tempPersona.id}"/>
+								<%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): label vazio (padrao do
+								     Materialize -- o ::before/::after dele desenha o checkbox visualmente, texto
+								     visivel dentro quebraria o layout) nao dava nenhuma pista pra leitor de tela.
+								     aria-label no input resolve sem mexer no CSS. --%>
+								<%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): ID vem ANTES do nome
+								     agora (era Nome+Id) -- o nome e texto livre e pode conter "+" (ex.: "Joao +
+								     Maria"), o que quebrava o fn:split em form-pov.jsp. Com o ID (sempre numerico,
+								     nunca tem "+") na frente, so o PRIMEIRO "+" e o delimitador de verdade. --%>
+								<input type="checkbox" value="${tempPersona.id}+<c:out value='${tempPersona.name}'/>" class="filled-in chkPersona" id="filled-in-box${tempPersona.id}" aria-label="Selecionar <c:out value='${tempPersona.name}'/>"/>
 								<label for="filled-in-box${tempPersona.id}"></label>
 							</td>
 							<td>
@@ -105,11 +118,11 @@
 									data-id="${tempPersona.id}" data-name="<c:out value='${tempPersona.name}'/>" data-age="${tempPersona.age}" onclick="Toolkit.Persona.buildPersonaEditModal(this.dataset.id, this.dataset.name, this.dataset.age)">
 									<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 								</a>
-								<a href="${deleteLink}" class="btn-floating btn-small red darken-1 tooltipped"
+								<a href="javascript:;" class="btn-floating btn-small red darken-1 tooltipped"
 									data-position="top"
 									data-delay="50"
 									data-tooltip="Excluir"
-									onclick="if (!(confirm('Você tem certeza que deseja deletar esta persona?'))) return false">
+									onclick="if (confirm('Você tem certeza que deseja deletar esta persona?')) document.getElementById('deletePersonaForm${tempPersona.id}').submit();">
 									<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 							</td>

@@ -96,7 +96,13 @@ public class EntrarCaixaServlet extends HttpServlet {
         response.addCookie(ck2);
 
         // INFRA-11: usa o scheme da requisicao (http em dev, https em prod).
-        response.sendRedirect(request.getScheme() + "://" + host + ":" + port + "/toolkit");
+        // ROUTE-404-01: redirecionava pra "/toolkit" nu, dependendo da cadeia fragil
+        // welcome-file (index.jsp) -> scriptlet "response.sendRedirect(persona/lista)"
+        // pra chegar numa rota de verdade -- o DispatcherServlet do Spring esta mapeado
+        // em "/" e nao tem NENHUM controller respondendo por "/" exata, entao qualquer
+        // falha nessa cadeia (welcome-file nao resolvido, JSP nao compilado, etc.) da
+        // 404 direto. Aponta direto pra rota real, sem depender de nada intermediario.
+        response.sendRedirect(request.getScheme() + "://" + host + ":" + port + "/toolkit/persona/lista");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

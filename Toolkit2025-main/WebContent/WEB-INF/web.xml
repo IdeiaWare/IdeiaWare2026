@@ -2,6 +2,16 @@
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" id="WebApp_ID" version="3.1">
   <display-name>toolkit</display-name>
 
+  <!-- DRY-LIC: caminho base do LIC, antes hardcoded "/LIC/..." em 6 lugares (custom.js,
+       header.tag, no-container-header.tag, finalize.jsp, list-personas.jsp, redirect.jsp).
+       Centralizado aqui: acessivel nas JSPs via ${initParam.licBasePath} e exposto como
+       global JS (licBasePath) pelas tags de header, ja que custom.js e estatico e nao le
+       EL diretamente. -->
+  <context-param>
+    <param-name>licBasePath</param-name>
+    <param-value>/LIC</param-value>
+  </context-param>
+
   <!-- ENC-02 (fix 2026-06-23): forca UTF-8 na leitura dos parametros. Sem isso o Tomcat
        le o corpo do POST como ISO-8859-1 e acentos viram mojibake ("Visão" -> "VisÃ£o")
        ao salvar via export, e o LIC depois exibe o lixo gravado. O LIC ja resolvia isso

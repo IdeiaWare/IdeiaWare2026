@@ -53,7 +53,7 @@
 					<div class="row attributes-list">
 						<c:forEach var="tempAttribute" items="${thinkFeelAtributes}">
 							<div class="col m3 item">
-								<div class="card ${tempAttribute.cardColor}">
+								<div class="card <c:out value='${tempAttribute.cardColor}'/>">
 					            	<div class="card-content">
 					              		<p><c:out value="${tempAttribute.attributeText}"/></p>
 					            	</div>
@@ -66,7 +66,7 @@
 					<div class="row attributes-list">
 						<c:forEach var="tempAttribute" items="${seeAtributes}">
 							<div class="col m3 item">
-								<div class="card ${tempAttribute.cardColor}">
+								<div class="card <c:out value='${tempAttribute.cardColor}'/>">
 					            	<div class="card-content">
 					              		<p><c:out value="${tempAttribute.attributeText}"/></p>
 					            	</div>
@@ -79,7 +79,7 @@
 					<div class="row attributes-list">
 						<c:forEach var="tempAttribute" items="${sayDoAtributes}">
 							<div class="col m3 item">
-								<div class="card ${tempAttribute.cardColor}">
+								<div class="card <c:out value='${tempAttribute.cardColor}'/>">
 					            	<div class="card-content">
 					              		<p><c:out value="${tempAttribute.attributeText}"/></p>
 					            	</div>
@@ -92,7 +92,7 @@
 					<div class="row attributes-list">
 						<c:forEach var="tempAttribute" items="${hearAtributes}">
 							<div class="col m3 item">
-								<div class="card ${tempAttribute.cardColor}">
+								<div class="card <c:out value='${tempAttribute.cardColor}'/>">
 					            	<div class="card-content">
 					              		<p><c:out value="${tempAttribute.attributeText}"/></p>
 					            	</div>
@@ -105,7 +105,7 @@
 					<div class="row attributes-list">
 						<c:forEach var="tempAttribute" items="${painAtributes}">
 							<div class="col m3 item">
-								<div class="card ${tempAttribute.cardColor}">
+								<div class="card <c:out value='${tempAttribute.cardColor}'/>">
 					            	<div class="card-content">
 					              		<p><c:out value="${tempAttribute.attributeText}"/></p>
 					            	</div>
@@ -118,7 +118,7 @@
 					<div class="row attributes-list">
 						<c:forEach var="tempAttribute" items="${gainAtributes}">
 							<div class="col m3 item">
-								<div class="card ${tempAttribute.cardColor}">
+								<div class="card <c:out value='${tempAttribute.cardColor}'/>">
 					            	<div class="card-content">
 					              		<p><c:out value="${tempAttribute.attributeText}"/></p>
 					            	</div>

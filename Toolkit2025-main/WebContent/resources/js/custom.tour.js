@@ -88,7 +88,7 @@
 	
 	Toolkit.thirdStepPart = function(){
 		var enjoyhint_script_steps = [
-			{	"click .first" : 'Voc&ecirc; pode selecionar quaisquer dos quadrantes que desejar, mas por enquanto vamos come&ccedil;ar por este Ok? Clique no quadrante destacado para definir sua persona',
+			{	"click .first" : 'Voc&ecirc; pode selecionar quaisquer dos quadrantes que desejar, mas por enquanto vamos come&ccedil;ar por este, Ok? Clique no quadrante destacado para definir sua persona',
 				'showSkip': false,
 				onBeforeStart:function(){
 	  				Toolkit.createCookie("tourStep", 3, 1)
@@ -111,7 +111,7 @@
 	  			"nextButton" : {text: "Seguinte"},
 	  			'showSkip': false
 	  		},
-	  		{	"click .add-attribute" : 'Clique agora em "Adicionar" para cria-lo',
+	  		{	"click .add-attribute" : 'Clique agora em "Adicionar" para cri&aacute;-lo',
 				'showSkip': false,
 				onBeforeStart:function(){
 	  				Toolkit.createCookie("tourStep", 4, 1)
@@ -126,11 +126,11 @@
 	
 	Toolkit.fifthStepPart = function(){
 		var enjoyhint_script_steps = [
-			{	"next .brand-logo" : 'Depois de finalizar a cria&ccedil;&atilde;o dos post-its em todas os quadrantes que julgar necess&aacute;rio(a) sua persona estar&aacute; completa',
+			{	"next .brand-logo" : 'Depois de finalizar a cria&ccedil;&atilde;o dos post-its em todos os quadrantes que julgar necess&aacute;rio(a), sua persona estar&aacute; completa',
 				"nextButton" : {text: "Seguinte"},
 				'showSkip': false
 	  		},
-	  		{	"click .breadcrumb:first-child" : 'Clique aqui agora para retornarmos a p&aacute;gina inicial e ent&atilde;o iniciarmos a cria&ccedil;&atilde;o do Point of View de sua Persona',
+	  		{	"click .breadcrumb:first-child" : 'Clique aqui agora para retornarmos &agrave; p&aacute;gina inicial e ent&atilde;o iniciarmos a cria&ccedil;&atilde;o do Point of View de sua Persona',
 				'showSkip': false,
 				onBeforeStart:function(){
 	  				Toolkit.createCookie("tourStep", 5, 1)
@@ -146,10 +146,10 @@
 	
 	Toolkit.sixthStepPart = function(){
 		var enjoyhint_script_steps = [
-			{	"click td:first-child" : 'Marque aqui qual persona deseja criar o point of view. Voc&ecirc; pode selecionar uma ou mais personas conforme preferir',
+			{	"click td:first-child" : 'Marque aqui qual persona deseja criar o Point of View. Voc&ecirc; pode selecionar uma ou mais personas conforme preferir',
 				'showSkip': false
 	  		},
-	  		{	"click .criar-pov" : 'Clique aqui para dar inicio a cria&ccedil;&atilde;o do point of view',
+	  		{	"click .criar-pov" : 'Clique aqui para dar in&iacute;cio &agrave; cria&ccedil;&atilde;o do Point of View',
 				'showSkip': false,
 				onBeforeStart:function(){
 	  				$('.fixed-action-btn').openFAB();
@@ -194,7 +194,7 @@
 	
 	Toolkit.eighthStepPart = function(){
 		var enjoyhint_script_steps = [
-			{	"next .pov-list" : 'Veja aqui todos os seus point of view criados',
+			{	"next .pov-list" : 'Veja aqui todos os seus Point of View criados',
 				"nextButton" : {text: "Seguinte"},
 				'showSkip': false
 	  		},

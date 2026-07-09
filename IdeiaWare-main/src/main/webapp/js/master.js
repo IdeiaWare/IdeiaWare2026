@@ -38,7 +38,11 @@ function deleteFile(id){
           contentType: 'application/json',
           data: id.toString(),
           success: function () {
-            $('.modal.open i[data-id="'+ id +'"').closest('tr').remove();
+            // REVISAO 2026-07-08 (varredura JS, achado ALTA): faltava o "]" de fechar
+            // o seletor de atributo -- o DELETE rodava com sucesso no servidor, mas o
+            // seletor malformado nunca casava nada, entao a linha NUNCA sumia da lista
+            // (item deletado continuava aparecendo como se nada tivesse acontecido).
+            $('.modal.open i[data-id="'+ id +'"]').closest('tr').remove();
 
             if ($('.modal.open i').length === 0)
                 $('.modal.open #corpo').html("Não há arquivos exportados.");
@@ -63,7 +67,9 @@ function deleteCanvaExport(codigo){
           contentType: 'application/json',
           data: codigo.toString(),
           success: function () {
-            $('.modal.open i[data-id="'+ codigo +'"').closest('tr').remove();
+            // REVISAO 2026-07-08 (varredura JS, achado ALTA): mesmo bug (copy-paste) do
+            // deleteFile() acima -- faltava o "]" de fechar o seletor de atributo.
+            $('.modal.open i[data-id="'+ codigo +'"]').closest('tr').remove();
 
             if ($('.modal.open i').length === 0)
                 $('.modal.open #corpo').html("Nenhum Canva foi exportado.");

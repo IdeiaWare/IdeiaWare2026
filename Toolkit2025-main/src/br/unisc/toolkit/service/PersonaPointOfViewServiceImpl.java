@@ -26,9 +26,9 @@ public class PersonaPointOfViewServiceImpl implements PersonaPointOfViewService 
 
 	@Override
 	@Transactional
-	public void removePOVIdFromAuxiliarTable(int povID) {
-		personaPointOfViewDAO.removePOVIdFromAuxiliarTable(povID);
-		
+	public void removePOVIdFromAuxiliarTable(int povID, Long ideiaCodigo) {
+		personaPointOfViewDAO.removePOVIdFromAuxiliarTable(povID, ideiaCodigo);
+
 	}
 
 }

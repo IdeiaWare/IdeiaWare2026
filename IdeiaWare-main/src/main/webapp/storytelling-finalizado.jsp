@@ -38,7 +38,7 @@
 				<a href="index.jsp" class="brand-logo" style="left: 50px">
 					<img style="display:inline-block; vertical-align:middle; width:36px; margin-right:8px;" src="imagens/idea.png" alt="IdeiaWare"/>IdeiaWare
 				</a>
-				<ul id="nav-mobile" class="right hide-on-med-and-down">
+				<ul id="nav-logo" class="right hide-on-med-and-down">
 					<li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
 				</ul>
 			</div>

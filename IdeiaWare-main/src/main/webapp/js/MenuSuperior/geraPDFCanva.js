@@ -11,6 +11,13 @@ document.write(unescape("%3Cscript src='js/Bibliotecas/jspdf.js' type='text/java
  * ainda assim nao couber tudo, corta o excedente. Print-safe (nada e cortado na direita).
  */
 function geraPDF() {
+	// REVISAO 2026-07-08 (varredura JS, achado MEDIA): faltava o confirm() que o
+	// Storytelling ja tem antes de exportar -- CONFIRMADO no ExportCanvaServlet que
+	// exportar o Canva tambem seta ideia.status=FINALIZADO (mesma consequencia
+	// irreversivel do Storytelling), entao merecia o mesmo aviso.
+	var confirmation = confirm("Ao exportar o PDF, seu Canvas não poderá mais ser editado. Tem certeza disso?");
+	if (!confirmation) return;
+
 	$("#overlay").css('display', 'block');
 
 	// --- le os blocos do #myPDF: titulo -> [{text, bg}] ---
@@ -106,6 +113,7 @@ function geraPDF() {
 		}
 		pdf.setFontSize(font);
 		var lineH = font + 1.5, cy = y;
+		var desenhados = 0;
 		for (var j = 0; j < cards.length; j++) {
 			var rgb = parseRGB(cards[j].bg);
 			var lines = pdf.splitTextToSize(cards[j].text, w - cardPad * 2);
@@ -119,6 +127,17 @@ function geraPDF() {
 				pdf.text(lines[li], x + cardPad, cy + cardPad + lineH * (li + 1) - 1.5);
 			}
 			cy += ch + cardGap;
+			desenhados++;
+		}
+		// REVISAO 2026-07-08 (varredura JS, achado MEDIA): post-its que nao coubessem
+		// eram descartados em silencio -- o PDF (documento "nao editavel depois", ver
+		// fix do confirm() acima) podia sair faltando post-it sem o usuario nunca
+		// saber. Indicador minimo de quantos ficaram de fora.
+		var faltando = cards.length - desenhados;
+		if (faltando > 0) {
+			pdf.setFontSize(6);
+			pdf.setTextColor(120, 120, 120);
+			pdf.text('+' + faltando + ' não exibido' + (faltando > 1 ? 's' : ''), x + cardPad, y + h - 2);
 		}
 	}
 

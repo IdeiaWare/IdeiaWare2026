@@ -29,18 +29,21 @@
 	          		<th>Persona(s)</th>
 	          		<th>Usuário(s)</th>
 		          	<th>Necessidade(s)</th>
-		           	<th>Introspecções</th>
+		           	<th>Introspecção(ões)</th>
 		           	<th>Ações</th>
 		          </tr>
 		        </thead>
 		        <tbody>
 					<c:if test="${empty povs}"><tr><td colspan="5" class="center-align grey-text" style="padding: 30px;">Nenhum Point of View criado ainda. Crie uma persona e gere o primeiro POV.</td></tr></c:if>
 					<c:forEach var="tempPOV" items="${povs}">						
-						<c:url var="deleteLink" value="/point-of-view/deletar">
-					<c:param name="csrfToken" value="${csrfToken}"/>
-							<c:param name="povId" value="${tempPOV.value.povID}" />
-						</c:url>
-						
+						<%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET):
+						     virou form POST -- mesmo motivo do list-personas.jsp, ver o comentario
+						     la pro detalhe completo. --%>
+						<form id="deletePOVForm${tempPOV.value.povID}" action="${pageContext.request.contextPath}/point-of-view/deletar" method="POST" style="display:none;">
+							<input type="hidden" name="csrfToken" value="${csrfToken}"/>
+							<input type="hidden" name="povId" value="${tempPOV.value.povID}"/>
+						</form>
+
 						<tr>
 							<td>
 								<a class="modal-trigger tooltipped pov-info" href="#!"
@@ -90,11 +93,11 @@
 									data-povid="${tempPOV.value.povID}" data-names="<c:out value='${tempPOV.value.names}'/>" data-user="<c:out value='${tempPOV.value.user}'/>" data-need="<c:out value='${tempPOV.value.need}'/>" data-insight="<c:out value='${tempPOV.value.insight}'/>" data-personasid="<c:out value='${tempPOV.value.personasID}'/>" onclick="Toolkit.PointOfView.buildPOVInfoEditOnModal(this.dataset.povid, this.dataset.names, this.dataset.user, this.dataset.need, this.dataset.insight, this.dataset.personasid)">
 									<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 								</a>
-								<a href="${deleteLink}" class="btn-floating btn-small red darken-1 tooltipped"
+								<a href="javascript:;" class="btn-floating btn-small red darken-1 tooltipped"
 									data-position="top"
 									data-delay="50"
 									data-tooltip="Excluir"
-									onclick="if (!(confirm('Você tem certeza que deseja deletar este Point of View?'))) return false">
+									onclick="if (confirm('Você tem certeza que deseja deletar este Point of View?')) document.getElementById('deletePOVForm${tempPOV.value.povID}').submit();">
 									<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 							</td>
@@ -126,7 +129,7 @@
      		<div class="user"></div>
      		<label>Necessidade(s)</label>
      		<div class="need"></div>
-     		<label>Introspecções</label>
+     		<label>Introspecção(ões)</label>
      		<div class="insight"></div>     		
 	    </div>
 	   	<div class="modal-footer">
@@ -142,7 +145,7 @@
 	   			<form:hidden id="pov-id" path="id" />
 	   			<form:hidden path="ideiaCodigo"/>
 	   			<div class="input-field col s12 space">
-	   				<span>Nome</span>
+	   				<label for="name-tags">Nome</label>
 		   			<input id="name-tags" type="text"/>
 		   			<form:hidden id="personas-id" path="personasId"/>
 		   			<div class="names-error"></div>

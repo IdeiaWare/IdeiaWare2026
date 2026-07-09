@@ -120,7 +120,10 @@ window.onload = function () {
       hf.innerHTML = hf.download;
       li.appendChild(au);
       li.appendChild(hf);
-      recordingslist.appendChild(li);
+      // REVISAO 2026-07-08 (varredura JS, achado BAIXA): era acesso implicito global
+      // (window.recordingslist, valido por "named access" do id no HTML, mas fragil/
+      // nao-idiomatico) -- trocado por getElementById explicito.
+      document.getElementById('recordingslist').appendChild(li);
     });
   }).fail(function () {
     alert("Erro ao carregar os áudios salvos.");
@@ -239,14 +242,26 @@ window.onload = function () {
   // -------RESIZE--------
   $('#btnModificar').click(function () {
     var id = $('#imgaemIdResize').val();
+    // REVISAO 2026-07-08 (varredura JS, achado ALTA): sem validacao nenhuma antes.
+    // Campo vazio -> Number('')===0 -> figura virava 0x0 (invisivel) E ISSO ERA SALVO
+    // AUTOMATICO no servidor -- como fica invisivel, nao da pra clicar de novo pra
+    // corrigir (dado corrompido de forma NAO RECUPERAVEL pela UI). Campo com letra ->
+    // NaN, quebrava o desenho. Valida >0 e !isNaN ANTES de aplicar/salvar; type="number"
+    // min="10" no JSP (storytelling.jsp) como 1a barreira.
+    var novaLargura = Number($('#LarguraId').val());
+    var novaAltura = Number($('#AlturaId').val());
+    if (!novaLargura || !novaAltura || isNaN(novaLargura) || isNaN(novaAltura) || novaLargura <= 0 || novaAltura <= 0) {
+      alert('Informe uma largura e uma altura válidas (maiores que zero).');
+      return;
+    }
     for (var i = 0; i < stage.children.length; i++) {
       for (var j = 0; j < stage.children[i].children.length; j++) {
         var node = stage.children[i].children[j];
         if (node.attrs.id == id) {
           // STM-23: usa os setters width()/height() com Number (antes atribuia a
           // string do input direto em attrs, que nao redimensionava de fato).
-          node.width(Number($('#LarguraId').val()));
-          node.height(Number($('#AlturaId').val()));
+          node.width(novaLargura);
+          node.height(novaAltura);
           stage.draw();
           $('#modalResize').modal('close');
           // persiste o novo tamanho na hora
@@ -358,7 +373,10 @@ window.onload = function () {
       hf.innerHTML = hf.download;
       li.appendChild(au);
       li.appendChild(hf);
-      recordingslist.appendChild(li);
+      // REVISAO 2026-07-08 (varredura JS, achado BAIXA): era acesso implicito global
+      // (window.recordingslist, valido por "named access" do id no HTML, mas fragil/
+      // nao-idiomatico) -- trocado por getElementById explicito.
+      document.getElementById('recordingslist').appendChild(li);
     }, "audio/wav");
   }, false);
 
@@ -367,8 +385,9 @@ window.onload = function () {
   });
 
   // -------ÁUDIO INIT----
-  var audio_context;
-  var recorder;
-  var audio_stream;
+  // REVISAO 2026-07-08 (varredura JS, achado BAIXA): as 3 var abaixo sombreavam sem
+  // nenhum efeito real as globais de mesmo nome em controleAudio.js (Initialize/
+  // startRecording/stopRecording fecham sobre AS GLOBAIS, nao sobre estas locais) --
+  // codigo morto confuso, removido.
   Initialize();
 };
