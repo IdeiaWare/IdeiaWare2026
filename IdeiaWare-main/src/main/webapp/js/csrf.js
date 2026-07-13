@@ -1,10 +1,4 @@
-/*
- * CSRF-02 (client): le o cookie XSRF-TOKEN e
- *  (a) injeta <input hidden name="csrfToken"> em TODOS os forms da pagina;
- *  (b) manda o header X-CSRF-Token em todo XHR POST (intercepta XMLHttpRequest
- *      direto -> independe de jQuery e da ordem de carregamento dos scripts).
- * Assim o servidor (CsrfFilter) valida POST por token sem editar cada form/AJAX.
- */
+// CSRF-02: le o cookie XSRF-TOKEN, injeta <input hidden> em todo form e manda X-CSRF-Token em todo XHR POST.
 (function () {
 	function getCookie(name) {
 		var m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
@@ -36,10 +30,7 @@
 		injectForms();
 	}
 
-	// (a2) FIX 2026-06-23: forms criados DINAMICAMENTE via JS (ex.: gerenciamento-ideia.jsp
-	// monta o form 'entrarStory' com html+=... depois do DOMContentLoaded) nao sao pegos
-	// pela varredura acima -> POST sem token -> 403. Este listener injeta o token no
-	// instante do submit (o campo entra na serializacao), cobrindo qualquer form dinamico.
+	// CSRF-DYN: injeta o token no instante do submit (cobre forms montados dinamicamente via JS).
 	document.addEventListener('submit', function (e) {
 		ensureToken(e.target);
 	}, true);

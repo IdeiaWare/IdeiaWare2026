@@ -33,8 +33,7 @@ public class IdeiaDAOImpl implements IdeiaDAO {
 		Query<Ideia> theQuery = currentSession.createQuery("from Ideia where codigo=:IdeiaId", Ideia.class);
 		theQuery.setParameter("IdeiaId", ideiaCodigo);
 
-		// TK-02: uniqueResult retorna null se a ideia nao existir, em vez de
-		// lancar NoResultException como getSingleResult().
+		// TK-02: uniqueResult retorna null se nao existir (getSingleResult() lancaria excecao).
 		Ideia theIdeia = theQuery.uniqueResult();
 
 		return theIdeia;

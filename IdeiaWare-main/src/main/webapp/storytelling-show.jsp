@@ -45,10 +45,7 @@
     </style>
   </head>
   <body class="indigo lighten-5">
-    <%-- UX-VOLTAR-V2: mesmo padrao do resto do app -- icone circular flutuante no
-         canto superior esquerdo. Visao somente-leitura do storytelling, so tinha
-         a logo do cabecalho (pra index.jsp) -- volta pra lista-storytelling.jsp,
-         igual storytelling.jsp (o editor). --%>
+    <%-- UX-VOLTAR-V2: icone flutuante padrao (antes so tinha a logo, que ia pra index.jsp). --%>
     <a href="lista-storytelling.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
 
     <nav>
@@ -108,9 +105,7 @@
     <script type="text/javascript" src="js/controleAdd.js"></script>
     <script type="text/javascript" src="js/Bibliotecas/base64.js"></script>
     <script type="text/javascript" src="js/Bibliotecas/Konva.min.js"></script>
-    <%-- UX-03: removido o 2o carregamento de jQuery (CDN). A pagina ja carrega
-         jQuery local acima (js/Bibliotecas/jquery-3.2.1.js); carregar de novo
-         reinicializava o jQuery e podia derrubar handlers/plugins ja ligados. --%>
+    <%-- UX-03: removido o 2o carregamento de jQuery (reinicializava e derrubava handlers ja ligados). --%>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script type="text/javascript" src="js/materialize.js"></script>
 

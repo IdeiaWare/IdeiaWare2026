@@ -10,19 +10,8 @@ import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 
-/**
- *
- * @author viniciussdsilva
- */
 public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> {
 
-    /**
-     * Lista todos os elementos de determinado storytelling e seu respectivo
-     * tipo
-     *
-     * @param est
-     * @return
-     */
     public List<ElementosStorytelling> listarParametro(ElementosStorytelling est) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
@@ -70,11 +59,7 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
         }
     }
 
-    /**
-     * PERF-02: busca varios elementos por codigo NUMA SO query (Restrictions.in), em vez de
-     * um buscar(codigo) por elemento. Usado pelo AutoSalvarStoryServlet para eliminar o N+1
-     * do autosave do quadro de Storytelling.
-     */
+    // PERF-02: busca varios por codigo NUMA SO query (elimina o N+1 do autosave).
     @SuppressWarnings("unchecked")
     public List<ElementosStorytelling> buscarPorCodigos(List<Long> codigos) {
         if (codigos == null || codigos.isEmpty()) {
@@ -93,10 +78,7 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
         }
     }
 
-    /**
-     * PERF-02: salva/atualiza uma lista inteira numa UNICA Session/Transaction (1 commit no
-     * final), em vez de 1 editar() por elemento (cada um abrindo sua propria conexao).
-     */
+    // PERF-02: salva a lista inteira numa UNICA transacao (1 commit, nao 1 por elemento).
     public void salvarLote(List<ElementosStorytelling> elementos) {
         if (elementos == null || elementos.isEmpty()) {
             return;
@@ -121,10 +103,7 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
         }
     }
 
-    /**
-     * PERF-02: exclui uma lista inteira numa UNICA Session/Transaction, em vez de 1 excluir()
-     * por elemento. Usado pelo SalvarAudioServlet (remove o audio anterior do storytelling).
-     */
+    // PERF-02: exclui a lista inteira numa UNICA transacao (nao 1 por elemento).
     public void excluirTodos(List<ElementosStorytelling> elementos) {
         if (elementos == null || elementos.isEmpty()) {
             return;
@@ -149,13 +128,7 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
         }
     }
 
-    /**
-     * K.8 #7 (2026-07-06): substitui o(s) audio(s) antigo(s) do storytelling pelo novo
-     * numa UNICA Session/Transaction. Antes, SalvarAudioServlet chamava excluirTodos(...)
-     * e depois salvar(...) em 2 transacoes SEPARADAS -- uma falha exatamente entre as duas
-     * apagava o audio antigo (ja commitado) sem o novo ser salvo, perda total do audio.
-     * Agora ou os dois passos commitam juntos, ou nenhum commita (rollback).
-     */
+    // K.8 #7: apaga o(s) audio(s) antigo(s) + salva o novo NUMA UNICA transacao (antes, perda total em falha no meio).
     public void substituirAudio(List<ElementosStorytelling> antigos, ElementosStorytelling novo) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
         Transaction transacao = null;

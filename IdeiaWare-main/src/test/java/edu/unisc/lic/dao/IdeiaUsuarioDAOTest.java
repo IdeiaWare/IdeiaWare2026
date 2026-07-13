@@ -112,13 +112,7 @@ public class IdeiaUsuarioDAOTest {
 
 	@Test
 	public void fecharGrupoAtomico_naoApagaVinculoQueFoiAprovadoDepoisDaLeitura() {
-		// REVISAO 2026-07-07: achado da varredura -- FecharGrupoServlet decide QUEM remover
-		// (pendentes/rejeitados) a partir de uma leitura feita ANTES da transacao de fechar.
-		// Se AprovarMembroServlet aprovar e commitar EXATAMENTE nessa janela, o objeto em
-		// memoria usado por fecharGrupoAtomico ainda diz "P/R" -- sem o fix, o delete usava
-		// esse objeto desatualizado e apagava um membro que ja tinha sido aprovado. Simula a
-		// corrida sem threads: monta a lista de remocao com o snapshot ANTIGO (P), mas o
-		// banco ja reflete o estado NOVO (A) quando fecharGrupoAtomico roda.
+		// GT-03: simula a corrida sem threads -- snapshot ANTIGO (P) na lista de remocao, banco ja reflete o estado NOVO (A).
 		Usuario lider = novoUsuarioSalvo("Lider Race");
 		Ideia ideia = novaIdeiaSalva(lider, StatusIdeia.VALIDADA);
 		IdeiaUsuario vinculoLider = new IdeiaUsuario(lider, ideia, "S");

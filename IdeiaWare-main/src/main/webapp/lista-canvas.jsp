@@ -116,9 +116,7 @@
           <jsp:setProperty name="ideia" property="usuario" value="${usuarioClasse}" />
           <jsp:useBean id="data" class="edu.unisc.lic.classes.Data" />
           <c:set var="ideiasCanva" value="${ideiaDAO.listarIdeiasCanva(ideia)}" />
-          <%-- UX: <ul class="collapsible"> so aparece com conteudo -- vazia, o
-               Materialize ainda desenha a borda dela (uma linha fina sem nada
-               dentro), por cima da mensagem de estado vazio. --%>
+          <%-- UX-01: collapsible so aparece com conteudo (vazia, o Materialize desenha a borda mesmo assim). --%>
           <c:if test="${not empty ideiasCanva}">
           <ul class="collapsible" data-collapsible="accordion">
             <c:forEach var="canva" items="${ideiasCanva}" varStatus="id">

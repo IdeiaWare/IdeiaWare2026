@@ -7,10 +7,6 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
-/**
- *
- * @author viniciussdsilva
- */
 public class ExportFileDAO extends GenericDAO<ExportFile> {
 
     public List<ExportFile> listarParametro(ExportFile ef) {

@@ -15,28 +15,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author Vinicius Santiago
- */
 public class AbrirPersona extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         response.setContentType("application/pdf");
 
-        // AUTORIZACAO: exige login. Antes, qualquer um baixava o PDF de qualquer
-        // persona/POV exportado so chutando o id (IDOR / vazamento de dados).
+        // SEC-17: exige login (antes, PDF exportado abria sem auth pra quem chutasse o id).
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("codigoUsuario") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -55,9 +41,7 @@ public class AbrirPersona extends HttpServlet {
             return;
         }
 
-        // AUTORIZACAO (IDOR): exige que o usuario seja PARTICIPANTE da ideia dona
-        // deste export, ou admin -- antes, qualquer usuario logado baixava o PDF de
-        // qualquer export so adivinhando o codigo.
+        // SRV-IDOR-07: exige participacao na ideia dona do export, ou admin (antes, IDOR).
         Usuario sessionUser = new UsuarioDAO().buscar((Long) session.getAttribute("codigoUsuario"));
         if (sessionUser == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -76,43 +60,21 @@ public class AbrirPersona extends HttpServlet {
 
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

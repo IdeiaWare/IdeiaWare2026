@@ -49,10 +49,7 @@ public class EntrarStorytellingServlet extends HttpServlet {
             return;
         }
 
-        // AUTORIZACAO (IDOR): antes o servlet nao checava participacao nenhuma -- a
-        // busca de Storytelling filtrava so por ideiaId (usuario=new Usuario(), vazio
-        // = "qualquer um"). Qualquer usuario logado trocando ideiaId na URL acessava
-        // (e editava, se status DE) o Storytelling de QUALQUER outra ideia.
+        // SRV-IDOR-02: exige participacao (antes, IDOR -- filtrava so por ideiaId, sem checar usuario).
         Usuario usuarioLogado = new UsuarioDAO().buscar((Long) codigoUsuarioObj);
         List<IdeiaUsuario> vinculo = new IdeiaUsuarioDAO()
                 .listarParametro(new IdeiaUsuario(usuarioLogado, ideia, null));

@@ -10,15 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- * M.10 (2026-07-06): edicao de uma colaboracao ja enviada. Regras decididas com o usuario:
- *  - SO o AUTOR da colaboracao pode editar (nao o lider, nao outro participante);
- *  - SO enquanto a colaboracao ainda NAO foi adicionada a descricao oficial da ideia
- *    (flSalvado != "ad"). Depois de mesclada, o texto ja foi pra descricao (LogColaboracao)
- *    e editar aqui criaria inconsistencia -- por isso e bloqueado (na UI o botao some, e
- *    aqui no servidor tambem, pra nao depender so do front).
- * Ambas as checagens sao no SERVIDOR (nao so escondendo o botao na UI).
- */
+// M.10: edita colaboracao ja enviada -- so o AUTOR, so antes de virar descricao oficial.
 public class EditarColaboracaoServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -78,8 +70,7 @@ public class EditarColaboracaoServlet extends HttpServlet {
             novoTexto = novoTexto.substring(0, 1500);
         }
 
-        // Guarda o texto anterior (a coluna descricaoIdeiaAnterior ja existe no dominio,
-        // sem uso ate agora) como historico simples da edicao, e marca dtModificacao.
+        // M.10: guarda o texto anterior como historico simples da edicao.
         colaboracaoIdeia.setDescricaoIdeiaAnterior(colaboracaoIdeia.getDescricaoIdeiaAtual());
         colaboracaoIdeia.setDescricaoIdeiaAtual(novoTexto);
         colaboracaoIdeia.setDtModificacao();
@@ -87,9 +78,7 @@ public class EditarColaboracaoServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        // REVISAO 2026-07-07: JsonUtil.GSON_SEM_SENHA (nao new Gson()) -- colaboracaoIdeia
-        // carrega .usuario, que tem o hash bcrypt da senha; Gson padrao serializa TODOS os
-        // campos por reflection e vazaria o hash pra qualquer participante do grupo.
+        // GT-01: GSON_SEM_SENHA (nao new Gson()) -- senao vaza o hash bcrypt de .usuario.
         response.getWriter().write(JsonUtil.GSON_SEM_SENHA.toJson(colaboracaoIdeia));
     }
 

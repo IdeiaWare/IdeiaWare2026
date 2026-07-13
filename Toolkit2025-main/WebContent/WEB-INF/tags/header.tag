@@ -16,29 +16,14 @@
 		<link type="text/css" rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/style.css" />
 		
 		<script src="${pageContext.request.contextPath}/resources/js/jquery-3.2.1.min.js"></script>
-		<%-- REVISAO 2026-07-08 (varredura Toolkit, DRY): licBasePath exposto pro custom.js
-		     (arquivo estatico, nao le EL), mesmo padrao ja usado pra contextPath. --%>
+		<%-- DRY-LIC: licBasePath exposto pro custom.js (arquivo estatico, nao le EL). --%>
 		<script>var contextPath = "${pageContext.request.contextPath}"; var licBasePath = "${initParam.licBasePath}";</script>
 	</head>
 	<body style="display:flex; flex-direction:column; min-height:100vh;">
 		<div id="overlay">
 			<div class="loader"></div>
 		</div>
-		<%-- REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- menu mobile quebrado em
-		     TODAS as paginas): eram 2 problemas somados: (1) id="nav-mobile" duplicado
-		     neste <ul> do logo (HTML invalido, nao e o menu de navegacao de verdade) --
-		     e tambem o gancho de estilo usado por style.css (#nav-mobile .logo/.logo img)
-		     pro circulo/tamanho do logo, entao so REMOVER o id quebrava o CSS (logo
-		     renderizava em tamanho nativo, gigante); renomeado pra "nav-logo" em vez de
-		     removido, com o CSS atualizado junto; (2) o botao hamburguer apontava
-		     data-activates="mobile-demo", um id que NUNCA existiu em lugar nenhum (sobra
-		     do exemplo oficial do Materialize, nunca trocado pelo id real) -- e nao havia
-		     NENHUM <ul class="side-nav"> pra ativar de qualquer forma (o <ul class="right
-		     hide-on-med-and-down"> e so pra desktop, fica escondido no breakpoint mobile).
-		     Resultado: navegacao inacessivel em mobile/tablet no modulo inteiro. FIX: id
-		     duplicado renomeado; data-activates aponta pro novo drawer abaixo;
-		     $(".button-collapse").sideNav() ja existia em custom.js (nunca tinha um alvo
-		     valido pra ativar). --%>
+		<%-- TK-39/NAV-LOGO-01: id="nav-mobile" duplicado no logo (renomeado "nav-logo") + hamburguer apontava pra id inexistente. --%>
 		<nav>
 		    <div class="nav-wrapper red darken-1">
 	      		<a href="${initParam.licBasePath}/index.jsp" class="brand-logo" style="left: 50px">
@@ -55,12 +40,7 @@
 		      <a href="#" data-activates="nav-mobile-drawer" class="button-collapse">
 		      	<i class="fa fa-bars" aria-hidden="true"></i>
 		      </a>
-		      <%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET):
-		           virou form POST -- este era o mais grave dos 9 casos por ficar em TODA
-		           pagina do modulo (token na query string = historico do navegador, logs de
-		           proxy, header Referer, prefetch/crawler). Formularios escondidos + <a
-		           href="javascript:;"> que so envia -- 2 copias (nav desktop + drawer
-		           mobile) precisam de forms com id distinto. --%>
+		      <%-- TK-26: virou form POST (2 copias -- nav desktop + drawer mobile -- com id distinto). --%>
 		      <form id="finalizeIdeiaFormDesktop" action="${pageContext.request.contextPath}/ideia/finalize" method="POST" style="display:none;">
 		      	<input type="hidden" name="csrfToken" value="${csrfToken}"/>
 		      </form>

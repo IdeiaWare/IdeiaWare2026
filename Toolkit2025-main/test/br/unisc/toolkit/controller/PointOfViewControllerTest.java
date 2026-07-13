@@ -49,9 +49,7 @@ public class PointOfViewControllerTest {
 				.param("personasId", "1"))
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("/point-of-view/lista"));
-		// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA): save + reassociar
-		// personas foram consolidados num unico metodo transacional
-		// (criarComPersonas), o controller nao chama mais savePOV() direto.
+		// TK-TXN: save + reassociar consolidados em criarComPersonas (controller nao chama savePOV() direto).
 		verify(povService).criarComPersonas(any(PointOfView.class));
 	}
 

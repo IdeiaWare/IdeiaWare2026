@@ -51,9 +51,7 @@ public class PointOfViewController {
 	// Nomes de persona contem espacos e "+", que no path causavam 404 no Tomcat 9.
 	@GetMapping("/criar-pov")
 	public String showPOVTemplate(@RequestParam("personas") List<String> personas, Model theModel, HttpServletRequest request){
-		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): unico GET deste
-		// controller que nao conferia o cookie -- sem risco de dado hoje (so reflete
-		// a query string, ja escapada pela JSP), mas quebra o padrao do resto do app.
+		// TK-COOKIE-GUARD: guard de cookie (unico GET deste controller que nao conferia antes).
 		if (cookie.getCookieIdeiaCodigo(request) == null) {
 			theModel.addAttribute("pageTitle", "Erro");
 			return "redirect";
@@ -72,9 +70,7 @@ public class PointOfViewController {
 	public String savePointOfView(@ModelAttribute("pointOfView") PointOfView thePOV, BindingResult result, HttpServletRequest request, RedirectAttributes redirectAttrs){
 
 		if(cookie.getCookieIdeiaCodigo(request) != null){
-			// SEC-24 (IDOR de escrita): se vier um id (UPDATE), confere que o POV e DESTA
-			// ideia ANTES de mexer na tabela auxiliar / salvar -> bloqueia editar ou
-			// sobrescrever POV de outra ideia chutando o pov_id.
+			// SEC-24: se vier id (UPDATE), confere que o POV e DESTA ideia antes de salvar (IDOR de escrita).
 			if (thePOV.getId() != 0
 					&& !pointOfViewService.povPertenceAIdeia(thePOV.getId(), cookie.getCookieIdeiaCodigo(request))) {
 				return "redirect:/point-of-view/lista";
@@ -88,11 +84,7 @@ public class PointOfViewController {
 			}
 			thePOV.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
 
-			// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA): save + reassociar
-			// personas consolidados numa unica transacao no service (ver
-			// PointOfViewServiceImpl.criarComPersonas) -- antes eram chamadas
-			// @Transactional separadas, falha no meio deixava POV com associacoes
-			// parciais/zero.
+			// TK-TXN: save + reassociar personas NUMA UNICA transacao (antes, falha no meio deixava associacoes parciais).
 			pointOfViewService.criarComPersonas(thePOV);
 
 			redirectAttrs.addFlashAttribute("toastOk", "Point of View criado com sucesso.");
@@ -176,9 +168,7 @@ public class PointOfViewController {
 	@PostMapping("/atualizar")
 	public String savePOV(@ModelAttribute("pov") PointOfView thePOV, BindingResult result, HttpServletRequest request, RedirectAttributes redirectAttrs){
 		if(cookie.getCookieIdeiaCodigo(request) != null){
-			// SEC-24 (IDOR de escrita): se vier um id (UPDATE), confere que o POV e DESTA
-			// ideia ANTES de mexer na tabela auxiliar / salvar -> bloqueia editar ou
-			// sobrescrever POV de outra ideia chutando o pov_id.
+			// SEC-24: se vier id (UPDATE), confere que o POV e DESTA ideia antes de salvar (IDOR de escrita).
 			if (thePOV.getId() != 0
 					&& !pointOfViewService.povPertenceAIdeia(thePOV.getId(), cookie.getCookieIdeiaCodigo(request))) {
 				return "redirect:/point-of-view/lista";
@@ -192,10 +182,7 @@ public class PointOfViewController {
 			}
 			thePOV.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
 
-			// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA): remove+save+reassociar
-			// consolidados numa unica transacao no service (ver
-			// PointOfViewServiceImpl.atualizarComPersonas) -- antes eram 2+N chamadas
-			// @Transactional separadas.
+			// TK-TXN: remove+save+reassociar NUMA UNICA transacao (antes, 2+N chamadas @Transactional separadas).
 			pointOfViewService.atualizarComPersonas(thePOV);
 
 			redirectAttrs.addFlashAttribute("toastOk", "Point of View atualizado com sucesso.");
@@ -206,8 +193,7 @@ public class PointOfViewController {
 		}		
 	}
 	
-	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET): virou
-	// POST -- mesmo motivo do PersonaController.deletar.
+	// TK-26: virou POST (mesmo motivo do PersonaController.deletar).
 	@PostMapping("/deletar")
 	public String deletePointOfView(@RequestParam("povId") int theId, Model theModel, HttpServletRequest request){
 		// TK-03: exige cookie de ideia; o filtro por ideia_codigo no DAO impede IDOR
@@ -227,9 +213,7 @@ public class PointOfViewController {
 		for (int i=0; i < povItemsList.size(); i++){
 			Object[] row = (Object[]) povItemsList.get(i);
 			
-			// TK-18: native query do MySQL pode devolver BigInteger nas colunas
-			// numericas; o cast (Integer) cru dava ClassCastException. (Number).
-			// intValue() aceita Integer/Long/BigInteger sem quebrar (blindagem).
+			// TK-18: (Number).intValue() em vez de cast (Integer) cru (native query pode devolver BigInteger).
 			int id = ((Number) Arrays.asList(row).get(0)).intValue();
 			String names = (String) Arrays.asList(row).get(1);
 			int personaID = ((Number) Arrays.asList(row).get(2)).intValue();

@@ -18,21 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author yanrodrigues
- */
 public class EntrarCanvaServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -40,9 +27,7 @@ public class EntrarCanvaServlet extends HttpServlet {
         
         IdeiaDAO ideiaDAO = new IdeiaDAO();
 
-        // CAN-09: determina o ideiaId (parametro tem prioridade; senao a sessao).
-        // Se NENHUM existir (sessao sem ideiaId / acesso direto), redireciona em
-        // vez de chamar buscar(null), que causava erro 500 "id to load is required".
+        // CAN-09: ideiaId do parametro ou da sessao; se nenhum existir, redireciona (evita 500).
         Long ideiaId = null;
         String paramIdeia = request.getParameter("ideiaId");
         if (paramIdeia != null) {
@@ -65,9 +50,7 @@ public class EntrarCanvaServlet extends HttpServlet {
             return;
         }
 
-        // TEST-04: faltava checagem de login -- session.getAttribute("codigoUsuario")
-        // nulo dava NPE no unboxing (long), em vez de redirecionar como os demais
-        // servlets do modulo (ex.: EntrarCaixaServlet).
+        // TEST-04: faltava checagem de login (codigoUsuario nulo dava NPE no unboxing).
         Object codigoUsuarioObj = request.getSession().getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
             response.sendRedirect(request.getContextPath() + File.separator + "login.jsp");
@@ -89,11 +72,7 @@ public class EntrarCanvaServlet extends HttpServlet {
         	iu = null;
         }
 
-        // CAN-PARTICIPANTE: exige que o usuario seja PARTICIPANTE da ideia (lider
-        // ou nao). Antes, o servlet so usava essa consulta pra saber o flLider (pro
-        // "lider" da sessao) mas NUNCA barrava quem nao participava -- qualquer
-        // usuario logado que soubesse/adivinhasse o ideiaId entrava no Canvas de
-        // QUALQUER ideia. A restricao ao lider so existia na UI (o botao/link).
+        // CAN-ACESSO-V2: exige participacao (antes so calculava flLider, nunca barrava acesso).
         if (iu == null) {
         	response.sendRedirect(request.getContextPath() + File.separator + "lista-canvas.jsp");
         	return;
@@ -141,43 +120,21 @@ public class EntrarCanvaServlet extends HttpServlet {
 
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

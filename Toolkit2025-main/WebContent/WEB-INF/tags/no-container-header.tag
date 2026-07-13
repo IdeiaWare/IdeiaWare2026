@@ -16,7 +16,7 @@
 		<link type="text/css" rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/style.css" />
 		
 		<script src="${pageContext.request.contextPath}/resources/js/jquery-3.2.1.min.js"></script>
-		<%-- REVISAO 2026-07-08 (varredura Toolkit, DRY): mesmo fix do header.tag. --%>
+		<%-- DRY-LIC: mesmo fix do header.tag. --%>
 		<script>
 			var contextPath = "${pageContext.request.contextPath}"
 			var licBasePath = "${initParam.licBasePath}"
@@ -26,10 +26,7 @@
 		<div id="overlay">
 			<div class="loader"></div>
 		</div>
-		<%-- REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- menu mobile quebrado):
-		     mesmo fix do header.tag -- ver o comentario la pro detalhe completo (id do
-		     <ul> do logo renomeado pra "nav-logo" em vez de removido, pra nao quebrar o
-		     CSS #nav-mobile .logo/.logo img que dependia dele). --%>
+		<%-- TK-39: mesmo fix do header.tag (menu mobile). --%>
 		<nav>
 		    <div class="nav-wrapper red darken-1">
 	      		<a href="${initParam.licBasePath}/index.jsp" class="brand-logo" style="left: 50px">
@@ -46,8 +43,7 @@
 		      <a href="#" data-activates="nav-mobile-drawer" class="button-collapse">
 		      	<i class="fa fa-bars" aria-hidden="true"></i>
 		      </a>
-		      <%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET):
-		           mesmo fix do header.tag -- ver o comentario la pro detalhe completo. --%>
+		      <%-- TK-26: mesmo fix do header.tag. --%>
 		      <form id="finalizeIdeiaFormDesktop" action="${pageContext.request.contextPath}/ideia/finalize" method="POST" style="display:none;">
 		      	<input type="hidden" name="csrfToken" value="${csrfToken}"/>
 		      </form>

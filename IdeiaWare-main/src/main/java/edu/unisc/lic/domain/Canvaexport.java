@@ -11,22 +11,15 @@ import javax.persistence.TemporalType;
 
 import edu.unisc.lic.classes.Data;
 
-/**
- *
- * @author yanrodrigues
- */
 @SuppressWarnings("serial")
 @Entity
 public class Canvaexport extends GenericDomain {
 
-    //Chave estrangeira
-    // K.8 #4 (2026-07-06): unique=true trava no BANCO que uma ideia tenha mais de 1
-    // export de Canvas -- antes so o @OneToOne em Java "sugeria" isso, sem constraint real.
+    // K.8 #4: unique=true trava no BANCO que uma ideia tenha mais de 1 export de Canvas.
 	@OneToOne
     @JoinColumn(name = "ideia_codigo", nullable = false, unique = true)
     private Ideia ideia;
 
-    //Atributos
     @Column(columnDefinition = "longtext",nullable = false)
     private String file;
 
@@ -34,7 +27,6 @@ public class Canvaexport extends GenericDomain {
     @Temporal(TemporalType.TIMESTAMP)
     private Date created;
 
-    //Métodos Construtores
     public Canvaexport() {
         ideia = new Ideia();
     }

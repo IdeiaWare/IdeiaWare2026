@@ -5,20 +5,10 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-/**
- * REVISAO 2026-07-07 (varredura de servlets): Gson padrao (new Gson()) serializa TODOS os
- * campos de uma entidade via reflection, inclusive Usuario.senha (hash bcrypt) sempre que um
- * objeto com uma referencia a Usuario e devolvido como JSON (ex.: ColaboracaoIdeia.usuario).
- * Antes do M.6, isso ja acontecia em EnviarColaboracaoServlet; o M.6 (RetornaMensagensServlet
- * devolvendo um ARRAY de colaboracoes por poll, em vez de so 1) ampliou a exposicao -- cada
- * participante do grupo passou a receber periodicamente o hash de senha de QUALQUER outro
- * colaborador que postou algo.
- *
- * NAO da pra marcar Usuario.senha como `transient` (o Java transient, em campo mapeado por
- * JPA com acesso por campo, faz o Hibernate parar de PERSISTIR o campo tambem -- quebraria
- * login/senha). Em vez disso, este Gson compartilhado exclui Usuario.senha so na
- * SERIALIZACAO, sem tocar na entidade/persistencia.
- */
+// GT-01: Gson padrao vaza Usuario.senha (hash bcrypt) por reflection em qualquer entidade com
+// referencia a Usuario. NAO marcar o campo como `transient` pra resolver -- em campo JPA
+// mapeado por acesso direto, isso faz o Hibernate parar de PERSISTIR a senha tambem (quebraria
+// login). Este Gson compartilhado exclui o campo so na serializacao, sem tocar a persistencia.
 public final class JsonUtil {
 
     /** Gson que nunca inclui Usuario.senha no JSON de saida. Uso: JsonUtil.GSON_SEM_SENHA.toJson(obj). */

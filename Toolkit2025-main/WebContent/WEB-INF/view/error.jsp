@@ -1,11 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
-<%-- error.jsp: pagina de erro generica (view "error" do ErrorController, alvo do
-     <error-page> catch-all do web.xml). Antes este JSP NAO existia -> qualquer erro
-     do container caia em /error, o resolver nao achava a view e o erro real ficava
-     mascarado (erro dentro do erro). Mostra a mensagem (errorMsg, escapada com c:out)
-     e um caminho de volta, no mesmo padrao visual do redirect.jsp/success.jsp. --%>
+<%-- TK-06: view "error" do ErrorController (alvo do <error-page> catch-all) nao existia -- erro real ficava mascarado. --%>
 <t:header></t:header>
 	<div id="error-page">
 		 <div class="row">

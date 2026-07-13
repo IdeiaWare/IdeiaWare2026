@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.classes.Constantes;
@@ -27,39 +22,19 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
-/**
- *
- * @author Vinicius Santiago
- */
 public class UploadArquivoServlet extends HttpServlet {
 
     // STR-06: limites de upload de imagem/áudio do storytelling.
     private static final int MAX_MEMORY_SIZE = 1024 * 1024 * 16;
     private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 10; // 10 MB
 
-    // SEGURANCA (upload): allowlist de extensoes de imagem. Bloqueia .jsp/.html/etc.
-    // que, gravados na pasta do webapp servida pelo Tomcat, seriam EXECUTADOS (RCE).
+    // SEC-12: allowlist de extensoes de imagem (bloqueia .jsp/.html executavel na pasta do webapp).
     private static final java.util.Set<String> EXTENSOES_IMAGEM =
             new java.util.HashSet<>(java.util.Arrays.asList("png", "jpg", "jpeg", "gif", "webp", "bmp"));
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        /**
-         * Pessoa que estiver lendo esse código e se perguntando o que se passa
-         * nele, aqui vai a minha resposta: eu não faço a menor fucking ideia.
-         * Simplesmente copiei do post
-         * https://stackoverflow.com/questions/19510656/how-to-upload-files-on-server-folder-using-jsp
-         */
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(false);
@@ -103,8 +78,7 @@ public class UploadArquivoServlet extends HttpServlet {
                 FileItem item = (FileItem) iter.next();
 
                 if (!item.isFormField()) {
-                    // So aceita extensoes de IMAGEM (allowlist) -> impede gravar .jsp/.html
-                    // executavel na pasta servida pelo Tomcat (RCE).
+                    // SEC-12: so aceita extensao de imagem (allowlist).
                     String original = new File(item.getName()).getName();
                     String ext = "";
                     int ponto = original.lastIndexOf('.');
@@ -115,8 +89,7 @@ public class UploadArquivoServlet extends HttpServlet {
                         continue; // ignora qualquer coisa que nao seja imagem
                     }
 
-                    // Nome aleatorio: nao confia no nome enviado (evita sobrescrita e
-                    // caracteres perigosos). A extensao ja foi validada acima.
+                    // SEC-12: nome aleatorio, nao confia no nome enviado.
                     fileName = System.currentTimeMillis() + "_"
                             + java.util.UUID.randomUUID().toString().replace("-", "") + "." + ext;
                     File uploadedFile = new File(uploadFolder + File.separator + fileName);
@@ -159,43 +132,21 @@ public class UploadArquivoServlet extends HttpServlet {
         diretorio.mkdirs();
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

@@ -52,9 +52,7 @@ public class FinalizarColaboracaoServlet extends HttpServlet {
             return;
         }
 
-        // RET-12 (servidor): nao re-finalizar uma ideia ja avancada. O botao some
-        // na Retencao (RET-12 UI), mas um POST direto regrediria o status (ex.: de
-        // Storytelling/Canvas de volta para ST). Bloqueia os status ja avancados.
+        // RET-12: nao re-finaliza ideia ja avancada (antes, POST direto regredia o status).
         String statusAtual = ideia.getStatus();
         if (StatusIdeia.STORYTELLING.equals(statusAtual) || StatusIdeia.CAIXA_FERRAMENTAS.equals(statusAtual)
                 || StatusIdeia.CANVAS.equals(statusAtual) || StatusIdeia.FINALIZADO.equals(statusAtual)) {
@@ -62,8 +60,7 @@ public class FinalizarColaboracaoServlet extends HttpServlet {
             return;
         }
 
-        // AUTORIZACAO: so o LIDER da ideia pode finalizar a colaboracao. Antes,
-        // qualquer um finalizava a ideia de outro grupo com um POST do ideiaId.
+        // SEC-14: so o LIDER finaliza (antes, qualquer um finalizava ideia de outro grupo).
         Usuario sessionUser = new Usuario();
         sessionUser.setCodigo((Long) codigoUsuario);
         List<IdeiaUsuario> souLider = new IdeiaUsuarioDAO()
@@ -128,10 +125,7 @@ public class FinalizarColaboracaoServlet extends HttpServlet {
         try {
             stDAO.salvar(new Storytelling(u, i, Data.horaAtual(), "DE"));
         } catch (org.hibernate.exception.ConstraintViolationException ex) {
-            // K.8 #3: 2 submits quase-simultaneos de "Finalizar Colaboracao" passam os 2
-            // pela checagem "existentes" acima antes de qualquer um commitar -- a UNIQUE
-            // do banco (uk_storytelling_ideia) barra o 2o insert. O resultado pro usuario
-            // e o mesmo de o storytelling ja existir: a ideia segue seu fluxo normal.
+            // K.8 #3: 2 submits quase-simultaneos -- UNIQUE do banco barra o 2o insert.
         }
     }
 }

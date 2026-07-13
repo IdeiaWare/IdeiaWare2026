@@ -13,10 +13,7 @@ import org.hibernate.criterion.Restrictions;
 
 public class IdeiaDAO extends GenericDAO<Ideia> {
 
-    /**
-     * Retenção do Conhecimento (lista-ideia-gerenciamento) usa listar(): sobrescrito
-     * para listar as ideias da mais NOVA para a mais antiga (codigo é auto-incremento).
-     */
+    // Sobrescrito pra listar da ideia mais NOVA pra mais antiga.
     @Override
     public List<Ideia> listar() {
         Session s = HibernateUtil.getFabricaDeSessoes().openSession();
@@ -29,13 +26,6 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
         }
     }
 
-    /**
-     * Esse método busca e retorna resultados referentes ao status, codigo da
-     * ideia, título, descricao, etc.
-     *
-     * @param ideia
-     * @return
-     */
     public List<Ideia> listarParametro(Ideia ideia) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
@@ -52,9 +42,7 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
                 filtro.add(Restrictions.eq("usuario", ideia.getUsuario()));
             }
 
-            // Listagens do mais NOVO para o mais antigo (ex.: ideias pendentes de
-            // validacao). 'codigo' e auto-incremento, entao desc = recem-cadastradas
-            // em cima. O size()-check em lista-ideia-gerenciamento nao e afetado.
+            // Mais NOVO pro mais antigo ('codigo' e auto-incremento).
             filtro.addOrder(Order.desc("codigo"));
 
             return filtro.list();
@@ -64,15 +52,7 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
         }
     }
 
-    /**
-     * Retorna ideias com status=VA e statusGrupo=AB das quais o usuário
-     * ainda não participa. Substitui a combinação de ideiaDAO.listar() +
-     * N chamadas ao IdeiaUsuarioDAO, resolvendo COL-10 e COL-14 com uma
-     * única query HQL.
-     *
-     * @param usuario usuário logado
-     * @return lista de ideias disponíveis para participação, ordenadas por data
-     */
+    // COL-10/COL-14: ideias VA/AB que o usuario ainda nao participa, numa unica query HQL.
     @SuppressWarnings("unchecked")
     public List<Ideia> listarIdeiasDisponiveis(Usuario usuario) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
@@ -94,12 +74,7 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
         }
     }
 
-    /**
-     * K.8 #5 (2026-07-06): salva a Ideia e o vinculo de lideranca (IdeiaUsuario) do autor
-     * NUMA UNICA Session/Transaction. Antes, CadastroIdeiaServlet fazia ideiaDAO.salvar(ideia)
-     * e depois IdeiaUsuarioDAO.salvar(vinculo) em 2 transacoes separadas -- uma falha entre
-     * as duas deixava a Ideia ja commitada mas SEM nenhum lider vinculado (orfa).
-     */
+    // K.8 #5: Ideia + vinculo de lideranca NUMA UNICA transacao (antes, falha deixava Ideia orfa).
     public void criarComLider(Ideia ideia, IdeiaUsuario vinculoLider) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
         Transaction transacao = null;

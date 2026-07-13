@@ -5,43 +5,21 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-/**
- *
- * @author viniciussdsilva
- */
 public class Data {
 
-    // Método construtor
     public Data() {
     }
 
-    // Métodos
-    /**
-     * Saber a hora atual do computador
-     *
-     * @return Timestamp = data completa do sistema (YYYY/MM/DD HH:MM:SS.MsMs)
-     */
     public static Timestamp horaAtual() {
         Date date = new Date();
         return new Timestamp(date.getTime());
     }
 
-    /**
-     * Informar a hora atual no padrao dia/mês/ano
-     *
-     * @return string
-     */
     public static String dataAtualFormatada() {
         Date date = new Date();
         return new SimpleDateFormat("dd/MM/yyyy").format(date);
     }
 
-    /**
-     * Formatar a hora passada por parâmetro para o formato dd/MM/yyyy
-     *
-     * @param dt
-     * @return string
-     */
     public static String formatarData(Date dt) {
         if (dt == null) {
             dt = horaAtual();
@@ -63,13 +41,6 @@ public class Data {
         return new SimpleDateFormat("dd/MM/yyyy HH:mm").format(dt);
     }
 
-    /**
-     *
-     * @param dt1
-     * @param dt2 para que a data seja considerada a data atual, deixar como
-     * null
-     * @return string formatada como X dias, Y horas e Z minutos.
-     */
     public static String diferencaDatas(Date dt1, Date dt2) {
         if (dt1 == null) {
             dt1 = Data.horaAtual();

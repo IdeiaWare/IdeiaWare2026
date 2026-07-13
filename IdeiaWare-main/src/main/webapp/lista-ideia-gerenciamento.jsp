@@ -117,9 +117,6 @@
           </ul>
         </a>
         <ul id="nav-mobile" class="right hide-on-med-and-down" >
-          <%-- UX: "Gerenciar Ideias" removido -- e a propria tela (redirecionaria p/
-               si mesma). "Validar Ideias" removido -- ja acessivel pelo cabecalho
-               do modulo colaborativo. --%>
           <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
         </ul>
 
@@ -149,11 +146,7 @@
           </c:if>
 
           <c:if test="${not empty todasIdeias}">
-          <%-- M.15 (2026-07-06): retencao convertida de <table> pra listagem collapsible,
-               mesmo padrao de Storytelling/Canvas/Caixa (consistencia visual). Cabecalho
-               mostra Titulo + Situacao (o status precisa ficar sempre visivel); usuario,
-               descricao e o botao Detalhes aparecem no corpo ao expandir. Busca mantida
-               (agora filtra os <li>; como o corpo fica no DOM, ela acha por descricao tb). --%>
+          <%-- M.15: retencao convertida de <table> pra collapsible (mesmo padrao de Storytelling/Canvas/Caixa). --%>
           <div class="input-field" style="margin:0 0 6px;">
             <input id="filtro-gerenciamento" type="text" placeholder="Buscar ideia (título, status)" aria-label="Buscar ideia">
           </div>

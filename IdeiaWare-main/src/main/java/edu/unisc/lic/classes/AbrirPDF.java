@@ -6,16 +6,7 @@ import java.util.Base64;
 
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * Abre o PDF exportado (persona / point of view) no navegador.
- *
- * RKM-FIX (2026-06-17): antes fazia new File(caminho) esperando um CAMINHO de
- * arquivo no disco — mas o que e salvo em export_file.file_location e o conteudo
- * em base64 (data-URI) gerado pelo export do Toolkit (FileReader.readAsDataURL).
- * Logo new File("data:application/pdf;base64,...") apontava p/ um arquivo
- * inexistente e o "abrir PDF" estava QUEBRADO. Agora decodifica o base64 e
- * escreve os bytes do PDF na resposta.
- */
+// RKM-FIX: decodifica base64 e escreve os bytes do PDF (antes, esperava um caminho de arquivo em disco).
 public class AbrirPDF {
 
 	public static void abrir(HttpServletResponse response, String conteudo, String titulo) throws IOException {
@@ -40,10 +31,7 @@ public class AbrirPDF {
 			return;
 		}
 
-		// RET-14: titulo pode vir null (ExportFile.fileName nunca e preenchido hoje em
-		// nenhum dos 2 projetos -> todo PDF baixava como "null.pdf") ou conter aspas/
-		// quebra de linha (nunca sanitizado antes de ir pro header). Fallback + limpeza
-		// aqui, sem depender do caller corrigir os dados.
+		// RET-14: titulo pode vir null (antes, PDF baixava como "null.pdf") ou com aspas/quebra de linha.
 		String nomeArquivo = (titulo == null || titulo.trim().isEmpty()) ? "documento" : titulo.trim();
 		nomeArquivo = nomeArquivo.replaceAll("[\\r\\n\"]", "");
 

@@ -268,10 +268,7 @@
                 </div>
 
                 <button class="red accent-1" type="submit" onclick="submitForm('AnonimizaUsuarioServlet','AnonimizaForm')">Anonimizar</button>
-                <%-- A11Y/bug real: id="show-user-form" estava DUPLICADO (tambem em passwordForm
-                     acima) -- $('#show-user-form').click(...) so vinculava no 1o match do DOM,
-                     entao clicar em "Voltar ao perfil" AQUI (dentro do AnonimizaForm) nao fazia
-                     nada. Trocado por classe compartilhada, um so listener cobre os 2 links. --%>
+                <%-- UX-ID-DUP: id duplicado "show-user-form" so vinculava o 1o match -- trocado por classe. --%>
                 <p class="message"><a href="#" class="show-user-form">Voltar ao perfil</a></p>
             </form>
         </div>

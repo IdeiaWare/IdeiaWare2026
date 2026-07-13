@@ -5,27 +5,20 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-/**
- *
- * @author viniciussdsilva
- */
 @SuppressWarnings("serial")
 @Entity
 public class ElementosStorytelling extends GenericDomain {
 
-    // Chaves estrangeiras
     @ManyToOne
     @JoinColumn(nullable = false)
     private Storytelling storytelling;
 
-    // Atributos
     @Column(length = 15, nullable = false)
     private String tipo;
 
     @Column(nullable = false, columnDefinition = "longtext")
     private String caminho;
 
-    // Caso for do tipo texto
     @Column(length = 20)
     private String fonte;
     @Column(length = 400)
@@ -37,12 +30,8 @@ public class ElementosStorytelling extends GenericDomain {
     @Column(length = 30)
     private String corFonte;
 
-    // Localização no canvas
     @Column
     private int camada;
-    // REVISAO 2026-07-07: precision/scale so tem efeito em DECIMAL/NUMERIC -- em campo
-    // double o Hibernate ignora e mapeia como DOUBLE mesmo (confirmado no schema real:
-    // "double DEFAULT NULL"). Removido pra nao sugerir uma precisao que nunca foi imposta.
     @Column
     private double x;
     @Column
@@ -52,7 +41,6 @@ public class ElementosStorytelling extends GenericDomain {
     @Column
     private double largura;
 
-    // Contrutores
     public ElementosStorytelling() {
         storytelling = new Storytelling();
     }
@@ -66,15 +54,12 @@ public class ElementosStorytelling extends GenericDomain {
         this.altura = altura;
         this.largura = largura;
     }
-    
-    // Métodos
 
     @Override
     public String toString() {
         return "ElementosStorytelling{" + "storytelling=" + storytelling + ", tipo=" + tipo + ", caminho=" + caminho + ", fonte=" + fonte + ", informacaoTexto=" + informacaoTexto + ", tamanhoFonte=" + tamanhoFonte + ", tipoFonte=" + tipoFonte + ", corFonte=" + corFonte + ", camada=" + camada + ", x=" + x + ", y=" + y + ", altura=" + altura + ", largura=" + largura + '}';
     }
 
-    // Getters e Setters
     public Storytelling getStorytelling() {
         return storytelling;
     }

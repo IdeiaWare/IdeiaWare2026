@@ -23,9 +23,7 @@ public class ExportFile {
 	@Column(name="file_name")
 	private String fileName;
 
-	// TK-04: alinhado com o ExportFile do IdeiaWare (E1). O PDF exportado e
-	// salvo em base64 e ultrapassa os 255 chars do VARCHAR padrao; sem longtext
-	// o conteudo era truncado e o arquivo abria corrompido.
+	// E1: longtext -- PDF em base64 ultrapassa os 255 chars do VARCHAR padrao.
 	@Column(name="file_location", columnDefinition="longtext")
 	private String fileLocation;
 	

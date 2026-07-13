@@ -14,18 +14,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * CSRF-02: protecao CSRF por token (padrao "double-submit cookie").
- *
- * O servidor mantem um token num cookie XSRF-TOKEN (NAO HttpOnly, para o csrf.js
- * conseguir ler). Em todo POST, o filtro compara o param 'csrfToken' (ou o header
- * X-CSRF-Token) com o cookie: um site atacante nao consegue ler o cookie do usuario
- * nem forjar o param/header igual, entao POST cross-site e barrado (403). Defesa em
- * profundidade alem do SameSite=Lax do cookie de sessao.
- *
- * O campo escondido dos forms e o header das chamadas AJAX sao adicionados pelo
- * resources/js/csrf.js (incluido em todas as paginas), sem precisar editar cada form.
- */
+// CSRF-02: double-submit cookie -- compara cookie XSRF-TOKEN (nao HttpOnly) com param/header em todo POST.
 public class CsrfFilter implements Filter {
 
 	private static final String COOKIE = "XSRF-TOKEN";

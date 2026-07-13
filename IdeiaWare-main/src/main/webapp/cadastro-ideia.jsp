@@ -7,9 +7,7 @@
     <title>Cadastro de Ideia</title>
   </head>
   <body class="center-align teal darken-1">
-    <%-- UX-VOLTAR-V2 (2026-07-06, achado real testando): faltava o icone flutuante
-         padrao do resto do app -- so tinha o "Cancelar" dentro do form. Mesmo destino
-         do Cancelar (ver comentario UX-VOLTAR mais abaixo). --%>
+    <%-- UX-VOLTAR-V2: icone flutuante padrao do resto do app. --%>
     <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <div class="white" style="min-height: 90vh" role="main">
       <div class="container">
@@ -54,11 +52,7 @@
                   <label for="descricao">Descrição</label>
                 </div>
                 <br />
-                <%-- UX-VOLTAR: Cancelar reposicionado pra dentro do form, ao lado do
-                     Inserir, e com peso visual de botao de verdade (mesmo padrao dos
-                     "Fechar" de modal -- btn grey lighten-1 -- em vez de btn-flat solto
-                     fora do form, sem contraste). Volta pro hub do modulo (nao pra
-                     minha-ideia.jsp) -- e de onde o card "Cadastrar Nova Ideia" veio. --%>
+                <%-- UX-VOLTAR: Cancelar dentro do form, com peso visual de botao de verdade. --%>
                 <input class="btn orange darken-1" type="submit" value="Inserir" name="Inserir" />
                 <a href="index-colaboracao.jsp" class="btn grey lighten-1 black-text" name="Cancelar" style="margin-left: 8px;">Cancelar</a>
               </div>

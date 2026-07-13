@@ -13,13 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- * MNT-01: classe-base dos servlets "EntrarCanva*". Antes eram 9 servlets quase
- * identicos (~98 linhas cada) que so mudavam o TIPO do elemento e a PAGINA destino.
- * A logica comum (guard de ideiaId, busca, listagem, redirect) vive aqui; cada
- * subclasse so informa o tipo e a pagina. Os nomes das classes / mapeamentos no
- * web.xml e os forms continuam IGUAIS -> zero mudanca de comportamento externo.
- */
+// MNT-01: classe-base dos 9 servlets "EntrarCanva*" (antes, quase identicos e duplicados).
 public abstract class EntrarCanvaBaseServlet extends HttpServlet {
 
     /** Tipo do elemento (3o arg de listarCanvaElement). Ex.: "atividade". */
@@ -42,9 +36,7 @@ public abstract class EntrarCanvaBaseServlet extends HttpServlet {
 
         IdeiaDAO ideiaDAO = new IdeiaDAO();
         Ideia ideia = ideiaDAO.buscar((Long) session.getAttribute("ideiaId"));
-        // BLINDAGEM: ideiaId na sessao pode apontar p/ uma ideia que nao existe mais
-        // (hoje inatingivel, ja que nao ha "excluir ideia", mas evita NPE silencioso
-        // se essa feature existir no futuro).
+        // SRV-NPE-01: ideiaId na sessao pode apontar pra ideia que nao existe mais.
         if (ideia == null) {
             response.sendRedirect(request.getContextPath() + "/lista-canvas.jsp");
             return;

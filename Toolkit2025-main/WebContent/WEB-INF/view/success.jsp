@@ -10,12 +10,7 @@
 	          <div class="white-text center-align" style="text-transform:uppercase;">Exportação finalizada com sucesso!</div>
 	          <div class="white-text center-align">Acesse a área de Retenção do Conhecimento para visualizar os seus dados exportados.</div>
 	          <div class="right-align">
-	          	<%-- REVISAO 2026-07-08 (varredura Toolkit, achado ALTA): ${fallBackURL} era
-	          	     impresso CRU dentro do atributo href (sem <c:out>) -- quebra de atributo
-	          	     (XSS) ou redirecionamento arbitrario se algum dia vier a ser influenciavel
-	          	     por request/sessao. NOTA: esta view esta confirmada morta (TK-ORFAOS,
-	          	     2026-07-01 -- nenhum controller retorna "success", o feedback de export
-	          	     virou toast); o fix abaixo e so precaucao caso a view volte a ser usada. --%>
+	          	<%-- TK-22: fallBackURL escapado com c:out (era impresso cru no href, XSS). View morta (TK-ORFAOS), fix e so precaucao. --%>
 	          	<a class="white-text" href="${pageContext.request.contextPath}<c:out value='${fallBackURL}'/>" style="text-transform:uppercase;">
 	          		<i class="fa fa-angle-double-left" aria-hidden="true"></i> Voltar
 	          	</a>

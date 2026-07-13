@@ -8,10 +8,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-/**
- *
- * @author viniciussdsilva
- */
 
 @SuppressWarnings("serial")
 @Entity

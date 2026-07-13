@@ -3,10 +3,6 @@ package edu.unisc.lic.classes;
 import java.io.File;
 import java.security.SecureRandom;
 
-/**
- *
- * @author Vinicius Santiago
- */
 public class Constantes {
     public static final String CAMINHO_IMAGENS_STORYTELLING = "imagensStorytelling" + File.separator;
     public static final String CAMINHO_FORMAS = "imagens" + File.separator;

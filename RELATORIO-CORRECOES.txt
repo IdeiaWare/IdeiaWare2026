@@ -526,6 +526,20 @@ VERIFICACAO: apos os 9 fixes, 2 greps de auditoria — `request.getParameter("id
 [TK-18] 🟠 PointOfViewController.displayPointOfView: cast (Integer) row[0]/[2]/[6] de native
    query — MySQL via Hibernate pode devolver BigInteger -> ClassCastException dependendo do
    tipo/driver. Trocado por ((Number)...).intValue().
+[TK-VAL] 🟡 Toolkit: validacao client-side (JS) e burlavel via POST direto — 8 pontos sem
+   nenhum backstop server-side (6 QuestionControllers + PersonaController + PointOfViewController)
+   deixavam BindingResult sem checagem, arriscando 400/estado invalido em vez de mensagem
+   amigavel. Fix: validacao server-side reutilizavel (ToolkitValidacao) espelhando as mesmas
+   regras do client, chamada em todos os 8 pontos.
+[TK-ATTR] 🟡 6 QuestionControllers do Toolkit (Gain/Hear/Pain/SayDo/See/ThinkAndFeel): o campo
+   "attribute" (qual quadrante o post-it pertence) vinha 100% de um form:hidden — um POST
+   direto trocando esse valor gravava o atributo no quadrante ERRADO. Fix: cada controller
+   forca o proprio valor no servidor (ex.: "gain"), ignorando o que veio do form.
+[TK-COOKIE-GUARD/TK-EMP-GUARD] 🟡 PointOfViewController.criarPov e EmpathyExportController.
+   visaoDetalhada eram os UNICOS GET dos respectivos controllers sem o guard explicito de
+   cookie (AdminCookies.getCookieIdeiaCodigo()==null) — sem cookie, a JSP explodia (NPE/erro
+   500) em vez de redirecionar pra redirect.jsp como todo o resto do modulo. Fix: guard
+   adicionado nos 2 pontos.
 [LOGOUT-FIX] "Sair" do Toolkit apontava pra /LIC/lista-caixa-de-ferramentas.jsp — so apagava
    cookies, nao deslogava, exigia um 2o clique. Fix: vai pra /LIC/LogOutServlet (invalida
    sessao) num clique so + apaga o cookie ideiaSig tambem.
@@ -539,8 +553,34 @@ VERIFICACAO: apos os 9 fixes, 2 greps de auditoria — `request.getParameter("id
    fallback. Achado por teste manual (nunca foi exercitado por clique real antes — todo teste
    anterior batia direto numa URL real ou via teste automatizado). Fix: redirect direto pra
    "/toolkit/persona/lista", eliminando a dependencia da cadeia intermediaria por completo.
-
---- B.7 EXPORTS DE PDF (saga completa) ---
+[XML-COMMENT-01] 🔴 web.xml do Toolkit: o comentario novo do context-param licBasePath (DRY-
+   LIC) usava "--" como travessao estilistico no meio do texto — XML proibe a sequencia "--"
+   dentro de um comentario em QUALQUER lugar alem do delimitador de abertura/fechamento
+   (<!-- / -->). O parser do Tomcat (Xerces) rejeitou o web.xml INTEIRO com
+   SAXParseException na linha do comentario, e por isso o Toolkit inteiro ficava indisponivel
+   ("Context [/toolkit] startup failed due to previous errors" no log) — TODA rota do modulo,
+   incluindo a raiz e rotas reais como /toolkit/persona/lista, dava 404 (nao era bug de
+   roteamento, era o webapp inteiro nunca subindo). So aparece em deploy real (Tomcat/Docker),
+   nao em build/teste local. Fix: "--" trocado por dois-pontos na frase do comentario. Varredura
+   em TODOS os .xml do repo confirmou ser o UNICO caso.
+[NAV-LOGO-01] 🟠 regressao do proprio fix TK-39 (menu mobile): o `<ul>` do logo tinha
+   id="nav-mobile" duplicado (mesmo id do menu de navegacao de verdade) — mas esse id TAMBEM
+   era o gancho de 4 regras de style.css (#nav-mobile .logo, #nav-mobile .logo img, etc.) que
+   davam o recorte circular de 50px e o tamanho de 62% da imagem do logo. Ao remover o id
+   duplicado (TK-39) sem verificar o CSS, o logo perdeu toda a constrição de tamanho e passou a
+   renderizar no tamanho NATIVO do arquivo de imagem — gigante, ocupando boa parte da tela.
+   Fix: id renomeado pra "nav-logo" (unico, sem duplicar o do menu) em vez de removido, com as
+   4 regras de style.css atualizadas pro mesmo seletor — mantem a correcao de HTML invalido do
+   TK-39 sem perder o estilo. Aplicado em header.tag e no-container-header.tag (as 2 copias).
+[FONT-TITLE-APP-01] 🔵 storytelling-finalizado.jsp (LIC): tela com header PROPRIO (nao usa os
+   includes compartilhados, de proposito, pra nao carregar o JS pesado do Konva que essa tela
+   nao precisa) — nunca carregou a fonte Google 'Condiment' nem a classe .title-app que TODO o
+   resto do sistema usa pro nome "IdeiaWare" no header; caia no fallback padrao do navegador
+   (Arial/sans-serif), inconsistente com as demais ~12 telas. canvas-finalizado.jsp (tela
+   irma) NAO tinha esse problema, por herdar a fonte de headerCookiesCV.jsp. Fix: replicado o
+   mesmo padrao usado em lista-storytelling.jsp (link da fonte + estilo .title-app + estrutura
+   badge-circular/h1 pro nome) direto no arquivo, sem criar dependencia de css/style.css —
+   mantem a tela self-contained.
 Raiz comum: exports eram SCREENSHOT (html2canvas) -> cortavam a direita no Ctrl+P, area
 transparente virava preta, raster (sem nitidez), PNG cru estourava o pacote do MySQL.
 Evolucao: screenshot blindado -> PDF NATIVO (vetorial).
@@ -576,6 +616,11 @@ Evolucao: screenshot blindado -> PDF NATIVO (vetorial).
    reader.onloadend nao checava reader.error antes de usar reader.result. Fix: .catch() no
    html2canvas() (a lib vendorizada 0.5.0-beta3 retorna Promise) + guard de reader.error,
    ambos escondendo o overlay e avisando o usuario.
+[TK-PDF-ERR] 🟡 mesmo padrao do TK-38, na instancia PROPRIA do Toolkit (custom.js
+   exportFile/exportEmpathyMap/exportTable): reader.onloadend nao checava reader.error antes
+   de usar reader.result, e o catch() do html2canvas nao escondia o overlay de loading em
+   falha (ficava visivel pra sempre). Fix identico: guard de reader.error + catch() escondendo
+   o overlay e avisando o usuario.
 (Becos de debug deste tema — ver L.1.)
 
 --- B.8 DAOs / CAMADA DE PERSISTENCIA ---
@@ -621,6 +666,17 @@ Evolucao: screenshot blindado -> PDF NATIVO (vetorial).
    a cadeia de causas). Todos os 7 provados com teste de concorrencia real (threads). 3
    achados de baixo ganho/custo desproporcional (duplo-POST em CadastroIdeiaServlet/
    AddDescricaoServlet/6 servlets mecanicos) documentados, nao corrigidos — ver K.
+[TK-HQL] 🟡 Toolkit: 8 queries HQL (5 arquivos — EmpathyDAOImpl, ExportFileDAOImpl,
+   PersonaDAOImpl, PersonaPointOfViewDAOImpl, PointOfViewDAOImpl) usavam nome de COLUNA fisica
+   do banco em vez do nome de PROPRIEDADE da entidade Java — funciona por coincidencia no
+   parser classico do Hibernate 5, mas nao e garantido e nao sobrevive a uma eventual migracao
+   pro parser estrito do Hibernate 6. Fix: todas as 8 trocadas pro nome de propriedade
+   (ideiaCodigo, personaId, pointOfViewID etc). Ver nota de contagem em M.
+[TK-TXN] 🟡 PointOfViewController/PointOfViewServiceImpl: criar/atualizar POV com personas
+   associadas fazia save() + reassociarPersonas() em chamadas @Transactional SEPARADAS — uma
+   falha no meio (ex.: no meio da reassociacao) deixava o POV salvo mas com associacoes
+   parciais/inconsistentes. Fix: consolidado num unico metodo transacional
+   (criarComPersonas/atualizarComPersonas), tudo committa ou nada committa.
 [SESSION-FIXATION, nao corrigido] LogInServlet nao regenera o ID de sessao apos autenticar —
    decisao explicita de nao mexer.
 
@@ -652,6 +708,16 @@ C. UI / UX
 [TK-LIST] listagem da Caixa (Toolkit) aparece pra TODOS os participantes, nao so o lider (a do
    Canvas continua so-lider, decisao de produto).
 [PERFIL] index-perfil.jsp: logo virou link, "Sair" no nav, labels visiveis nos campos.
+[UX-ID-DUP] 🔵 index-perfil.jsp: id="show-user-form" duplicado em 2 elementos — o
+   getElementById so vinculava o 1o match, o link "Voltar ao perfil" do form de anonimizacao
+   ficava sem handler. Fix: trocado por classe (.show-user-form).
+[UX-03] 🔵 storytelling-show.jsp: jQuery carregado 2x (uma 2a tag <script> depois do
+   controleAdd.js) — a 2a carga reinicializava o jQuery e derrubava handlers ja ligados pela
+   1a. Fix: 2o carregamento removido.
+[UX-ALINHAMENTO] 🔵 gerenciamento-ideia.jsp: tabela de exportacoes do Storytelling na
+   Retencao so tem 2 colunas (sem Data/Excluir como as outras tabelas da timeline) — a celula
+   do botao ficava LARGA e, sem align, o botao "Visualizar PDF" caia colado na esquerda. Fix:
+   text-align:right, alinhando com o padrao visual dos outros passos.
 [FOOTER-2026/FOOTER-STICKY-TK/FOOTER-INLINE] ano corrigido em 10 arquivos; footer fixo no
    rodape (flexbox) em paginas curtas; icone do nome voltou pra cima do texto.
 [A11Y-01/SEMANTIC-01] lang="pt-BR" em todas as paginas; alt em imagens; aria-label = placeholder
@@ -723,6 +789,10 @@ FININHA/UX-TOOLKIT-ACOES/UX-TOOLKIT-ICONE-LIXEIRA] 🔴 regra CSS morta (`body:b
    do Materialize nao gera aria-label a partir de data-tooltip. Fix: 1 linha de JS generica em
    custom.js que deriva aria-label de data-tooltip pra qualquer elemento sem um — cobre todos
    de uma vez, inclusive futuros.
+[TK-A11Y-COR] 🔵 selectColorPicker (post-it de cor nas 6 telas de empatia): os "botoes" de cor
+   sao <div> puros, so respondiam a mouse — inoperaveis via teclado (Tab+Enter/Espaco). Fix:
+   selecao extraida pra funcao nomeada, ligada tambem no keydown (Enter/Espaco), junto com
+   role="button" tabindex="0" adicionado nos 6 JSPs de quadrante.
 [TK-41] 🟡 label vazio do checkbox de selecionar persona (list-personas.jsp) sem pista nenhuma
    pra leitor de tela (o vazio e proposital, e o Materialize que desenha o checkbox via CSS).
    Fix: aria-label no proprio input.
@@ -792,6 +862,10 @@ D. PERFORMANCE / OTIMIZACAO
    condition do get(size-1)).
 [CANM-07] ExportCanvaServlet: query duplicada -> consulta unica.
 [CAN-10] ExportCanvaServlet: le o body antes de validar.
+[PERF-01] 🔵 IdeiaUsuarioDAO: listarTodasIdeiasStorytelling/listarCaixa/listarIdeiasCanva
+   filtravam o status do vinculo (aprovado/pendente/etc.) em Java DEPOIS de carregar a lista
+   inteira do banco. Fix: filtro de status movido pra dentro da propria query HQL/Criteria (WHERE
+   em vez de post-filter), reduzindo linhas trafegadas do banco pro Java.
 [PERF-02] 🟠 N+1 em AutoSalvarStoryServlet: pra cada elemento do Storytelling, o autosave fazia
    1 buscar()+1 editar() cada um abrindo/fechando sua PROPRIA Session (2N conexoes JDBC por
    clique). Fix: buscarPorCodigos (1 SELECT com IN) + salvarLote (1 Session/Transaction, N

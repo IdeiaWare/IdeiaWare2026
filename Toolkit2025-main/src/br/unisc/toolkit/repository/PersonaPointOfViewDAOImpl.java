@@ -28,14 +28,7 @@ public class PersonaPointOfViewDAOImpl implements PersonaPointOfViewDAO {
 		// get the current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 
-		// REVISAO 2026-07-08 (varredura Toolkit, achados BAIXA):
-		// (1) "pov_id" e o nome da COLUNA fisica, nao da propriedade Java (pointOfViewID)
-		//     -- funcionava por coincidencia (fallback do parser HQL classico do
-		//     Hibernate 5.x pra SQL literal quando nao reconhece a propriedade);
-		//     trocado pelo nome de propriedade correto.
-		// (2) sem filtro por ideia -- hoje nao exploravel (o unico caller,
-		//     PointOfViewController, ja confere povPertenceAIdeia antes), mas defesa em
-		//     profundidade (mesmo padrao ja usado em Persona/Empathy).
+		// TK-HQL: pointOfViewID (propriedade, nao coluna) + TK-23: filtro por ideiaCodigo (defesa em profundidade).
 		Query theQuery = currentSession.createQuery("DELETE FROM PersonaPointOfView WHERE pointOfViewID=:povID AND ideiaCodigo=:ideiaCodigo");
 		theQuery.setParameter("povID", povID);
 		theQuery.setParameter("ideiaCodigo", ideiaCodigo);

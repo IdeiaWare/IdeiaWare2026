@@ -208,10 +208,7 @@
             </div>
           </div>
         </div>
-        <%-- RETENCAO-ACESSO: antes so admin tinha acesso a esta tela (o card de
-             colaborador ficava sem link nenhum, so um card-reveal morto). Agora
-             QUALQUER usuario acessa; admin ve todas as ideias, colaborador ve so
-             as que participa (filtro fica em lista-ideia-gerenciamento.jsp). --%>
+        <%-- RETENCAO-ACESSO: qualquer usuario acessa (antes, so admin); filtro por participacao no servlet. --%>
         <div class="col s12">
           <div class="card light-blue darken-1 sticky-action knowledge">
             <a href="lista-ideia-gerenciamento.jsp">

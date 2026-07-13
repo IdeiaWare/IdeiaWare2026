@@ -21,8 +21,7 @@ public class ExportaStoryServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         HttpSession session = request.getSession(true);
 
-        // Lê o body completo — o base64 do PDF é uma string grande,
-        // então acumulamos tudo (não só a primeira linha).
+        // Le o body completo (base64 do PDF e uma string grande, nao so 1 linha).
         BufferedReader reader = request.getReader();
         StringBuilder sb = new StringBuilder();
         String line;
@@ -36,8 +35,7 @@ public class ExportaStoryServlet extends HttpServlet {
             return;
         }
 
-        // BLINDAGEM: sessao sem storytellingId (expirou/acesso direto) gerava NPE no
-        // .toString(); id nao-numerico gerava NumberFormatException -> 500 cru.
+        // BLINDA-01: sessao sem storytellingId ou id invalido dava NPE/500 cru antes.
         Object storyIdAttr = session.getAttribute("storytellingId");
         if (storyIdAttr == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

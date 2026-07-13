@@ -1,20 +1,8 @@
 document.write(unescape("%3Cscript src='js/Bibliotecas/jspdf.js' type='text/javascript'%3E%3C/script%3E"));
 
-/*
- * Gera o PDF do Canvas e envia ao banco (ExportCanvaServlet).
- *
- * CAN-NATIVO (2026-06-23): antes era um SCREENSHOT (html2canvas do #myPDF), que saia
- * empilhado numa coluna e em raster (cortava no Ctrl+P). Agora desenha o QUADRO Business
- * Model Canvas 2D NATIVO (vetorial, paisagem A4): os 9 blocos nas posicoes classicas, com
- * os post-its como retangulos coloridos (cor + texto lidos do DOM do #myPDF). Os cards
- * encolhem a fonte pra caber no bloco, com um PISO de tamanho (nao viram formiga); se
- * ainda assim nao couber tudo, corta o excedente. Print-safe (nada e cortado na direita).
- */
+// EXP-CAN: desenha o Business Model Canvas 2D NATIVO/vetorial (antes era screenshot html2canvas, cortava no Ctrl+P).
 function geraPDF() {
-	// REVISAO 2026-07-08 (varredura JS, achado MEDIA): faltava o confirm() que o
-	// Storytelling ja tem antes de exportar -- CONFIRMADO no ExportCanvaServlet que
-	// exportar o Canva tambem seta ideia.status=FINALIZADO (mesma consequencia
-	// irreversivel do Storytelling), entao merecia o mesmo aviso.
+	// TK-37: confirm() (exportar Canva tambem finaliza a ideia, mesma consequencia irreversivel do Storytelling).
 	var confirmation = confirm("Ao exportar o PDF, seu Canvas não poderá mais ser editado. Tem certeza disso?");
 	if (!confirmation) return;
 
@@ -129,10 +117,7 @@ function geraPDF() {
 			cy += ch + cardGap;
 			desenhados++;
 		}
-		// REVISAO 2026-07-08 (varredura JS, achado MEDIA): post-its que nao coubessem
-		// eram descartados em silencio -- o PDF (documento "nao editavel depois", ver
-		// fix do confirm() acima) podia sair faltando post-it sem o usuario nunca
-		// saber. Indicador minimo de quantos ficaram de fora.
+		// TK-36: indicador de quantos post-its ficaram de fora (antes, descartados em silencio).
 		var faltando = cards.length - desenhados;
 		if (faltando > 0) {
 			pdf.setFontSize(6);

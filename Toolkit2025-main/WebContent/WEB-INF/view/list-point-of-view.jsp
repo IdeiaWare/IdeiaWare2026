@@ -4,9 +4,7 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
-	<%-- UX-VOLTAR-V2: mesmo padrao do resto do app -- icone circular flutuante no
-	     canto superior esquerdo. Tela funda (breadcrumb ja mostra Personas > Point
-	     Of View), so tinha a logo do cabecalho (que pula direto pro /LIC/index.jsp). --%>
+	<%-- UX-VOLTAR-V2: icone circular flutuante (tela funda, so tinha a logo que pula pro /LIC). --%>
 	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
@@ -36,9 +34,7 @@
 		        <tbody>
 					<c:if test="${empty povs}"><tr><td colspan="5" class="center-align grey-text" style="padding: 30px;">Nenhum Point of View criado ainda. Crie uma persona e gere o primeiro POV.</td></tr></c:if>
 					<c:forEach var="tempPOV" items="${povs}">						
-						<%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET):
-						     virou form POST -- mesmo motivo do list-personas.jsp, ver o comentario
-						     la pro detalhe completo. --%>
+						<%-- TK-26: excluir POV virou form POST (mesmo motivo do list-personas.jsp). --%>
 						<form id="deletePOVForm${tempPOV.value.povID}" action="${pageContext.request.contextPath}/point-of-view/deletar" method="POST" style="display:none;">
 							<input type="hidden" name="csrfToken" value="${csrfToken}"/>
 							<input type="hidden" name="povId" value="${tempPOV.value.povID}"/>
@@ -76,10 +72,7 @@
 								</div>
 							</td>
 							<td>
-								<%-- UX: acoes viraram btn-floating (mesmo padrao do Canvas do LIC e
-								     do list-personas.jsp) -- antes eram icones soltos, dificeis de
-								     bater o olho. Separadores "ellipsis-v" removidos: botoes reais
-								     ja tem espacamento proprio, nao precisam de divisor entre eles. --%>
+								<%-- UX: acoes viraram btn-floating (mesmo padrao do list-personas.jsp), separadores removidos. --%>
 								<a class="btn-floating btn-small red darken-1 tooltipped pov-overview" href="${pageContext.request.contextPath}/point-of-view/visao-geral?povId=${tempPOV.value.povID}"
 									data-position="top"
 									data-delay="50"

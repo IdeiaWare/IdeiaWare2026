@@ -24,10 +24,7 @@
                 </div>
 
                 <!-- Os 3 cards lado a lado (col m4 cada = 12 colunas) -->
-                <%-- COL-16: cards com a MESMA altura. Sem isso, "Cadastrar Nova
-                     Ideia" (texto menor) ficava mais baixo que os outros dois.
-                     Flex no row + card-content com flex-grow iguala a altura e
-                     alinha os botoes (Acessar/Explorar/Nova ideia) na base. --%>
+                <%-- COL-16: flexbox iguala a altura dos 3 cards (senao, o de texto menor ficava mais baixo). --%>
                 <style>
                   .colab-cards { display: flex; flex-wrap: wrap; }
                   .colab-cards > .col { display: flex; }

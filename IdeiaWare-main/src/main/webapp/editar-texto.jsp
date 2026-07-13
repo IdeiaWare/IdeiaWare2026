@@ -20,9 +20,7 @@
     </style>
   </head>
   <body class="center-align">
-    <%-- UX-VOLTAR-V2 (2026-07-06, achado real testando): faltava o icone flutuante
-         padrao do resto do app -- so tinha o "Cancelar" no fim do form. Mesmo destino
-         (colaboracao.jsp le tudo de sessao, ver comentario UX-VOLTAR mais abaixo). --%>
+    <%-- UX-VOLTAR-V2: icone flutuante padrao (antes so tinha o "Cancelar" no fim do form). --%>
     <a href="colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <div class="white" style="min-height: 90vh;">
       <div class="container">
@@ -35,20 +33,14 @@
         <div style="padding: 10px" class="white" >
           <form action="SalvarTextoServlet" name="Salvar" method="POST">
             <div id="editor"></div>
-            <%-- A descricao vai num textarea ESCONDIDO e e carregada no Quill via
-                 clipboard (dangerouslyPasteHTML) no fim da pagina. Antes ela ficava
-                 com <c:out> DENTRO do #editor -> o HTML vinha ESCAPADO e o Quill
-                 mostrava as tags (<p>, <b>...) como TEXTO literal no editor. --%>
+            <%-- UX-EDITAR-TEXTO: textarea escondido, carregado no Quill via dangerouslyPasteHTML (c:out direto mostrava tags como texto literal). --%>
             <textarea id="descricao-inicial" style="display:none;"><c:out value="${sessionScope.ideiaDescricao}"/></textarea>
             <div>
               <br/>
               <input hidden="true" name="idUsuario" value="${idUsuario}">
               <input hidden="true" name="ideiaId" value="${ideiaId}">
               <input hidden="true" id="texto" name="texto">
-              <%-- UX-VOLTAR: editor nao tinha cancelar -- so dava pra sair perdendo o
-                   contexto (voltando pelo logo). colaboracao.jsp le tudo de sessao
-                   (ideiaId/lider/isRetencao ja setados por EntrarColaboracaoServlet),
-                   entao um link direto reconstroi a tela certa sem precisar de servlet. --%>
+              <%-- UX-VOLTAR: botao Cancelar (antes so dava pra sair pelo logo, perdendo o contexto). --%>
               <input class="btn-large orange darken-1 right" name="conluir" type="submit" value="Concluir" onclick="document.getElementById('texto').value = quill.root.innerHTML;">
               <a href="colaboracao.jsp" class="btn-large btn-flat grey-text text-darken-1 right" style="margin-right: 8px;">Cancelar</a>
             </div>

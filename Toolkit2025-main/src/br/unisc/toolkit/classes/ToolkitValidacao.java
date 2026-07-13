@@ -1,10 +1,6 @@
 package br.unisc.toolkit.classes;
 
-/**
- * TK-VAL: validacoes server-side reutilizaveis. Backstop da validacao client-side
- * (custom.js), que e burlavel por POST direto / curl. Centraliza as regras simples
- * para os controllers nao repetirem logica de checagem de campo.
- */
+// TK-VAL: validacoes server-side reutilizaveis (backstop da validacao client-side, burlavel por POST direto).
 public class ToolkitValidacao {
 
 	/** true se a string nao for nula/vazia (apos trim) e couber em maxLen. */

@@ -19,12 +19,7 @@
 		<script src="${pageContext.request.contextPath}/resources/js/corejs-typeahead.bundle.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/materialize-tags/js/materialize-tags.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/masonry.pkgd.min.js"></script>
-		<%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): este tag NAO tinha o
-		     cache-busting que footer.tag ja tem pros mesmos 2 arquivos -- reabria o
-		     mesmo bug que o comentario de footer.tag diz ter corrigido (navegador
-		     servindo html2canvas.min.js/custom.js velho do cache), e este tag e usado
-		     justamente pelas paginas de export/overview, onde esse JS foi reescrito
-		     mais recentemente. --%>
+		<%-- TK-44: cache-busting (?v=timestamp) -- este tag nao tinha, reabria o bug do footer.tag. --%>
 		<script src="${pageContext.request.contextPath}/resources/js/html2canvas.min.js?v=<%= System.currentTimeMillis() %>"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/jspdf.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/base64.js"></script>

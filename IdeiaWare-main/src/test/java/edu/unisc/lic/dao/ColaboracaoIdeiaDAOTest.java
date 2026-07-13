@@ -82,8 +82,7 @@ public class ColaboracaoIdeiaDAOTest {
 
 	@Test
 	public void quantidadeTotal_contaSoAsColaboracoesDaIdeiaFiltrada() {
-		// REVISAO 2026-07-07: renomeado de quantidadeMes -- o metodo nunca filtrou por
-		// data, so por ideia; o nome antigo prometia algo que o codigo nao fazia.
+		// Renomeado de quantidadeMes -- o metodo nunca filtrou por data, so por ideia.
 		Ideia ideiaA = novaIdeiaSalva();
 		Ideia ideiaB = novaIdeiaSalva();
 

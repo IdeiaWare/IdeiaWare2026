@@ -21,12 +21,6 @@ public class GenericDAO<Entidade> {
                 .getActualTypeArguments()[0];
     }
 
-    /**
-     * Método genérico que vai inserir no banco qualquer objeto que for passado
-     * para ele. A classe deve ser igual a tabela.
-     *
-     * @param entidade (qualquer objeto)
-     */
     public void salvar(Entidade entidade) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
         Transaction transacao = null;
@@ -34,29 +28,18 @@ public class GenericDAO<Entidade> {
         try {
             transacao = sessao.beginTransaction();
             sessao.save(entidade);
-
-            transacao.commit(); // vê se deu tudo certo na inserção
-
+            transacao.commit();
         } catch (RuntimeException erro) {
-            if (transacao != null) { // se algo deu errado, desfaz
+            if (transacao != null) {
                 transacao.rollback();
             }
-
             System.err.println(erro);
-
             throw erro;
         } finally {
-            sessao.close(); // finaliza a sessão (TEM QUE COLOCAR)
+            sessao.close();
         }
-
     }
 
-    /**
-     * Método genérico que vai listar todos os registros do banco de determinada
-     * tabela.
-     *
-     * @return lista de objetos
-     */
     public List<Entidade> listar() {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
@@ -72,41 +55,24 @@ public class GenericDAO<Entidade> {
         } catch (RuntimeException erro) {
             throw erro;
         } finally {
-            sessao.close(); // finaliza a sessão (TEM QUE COLOCAR)
+            sessao.close();
         }
-
     }
 
-    /**
-     * Método genérico que vai retornar um único objeto de uma determinada
-     * tabela.
-     *
-     * @param codigo
-     * @return
-     */
     public Entidade buscar(Long codigo) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
         Entidade resultado = null;
 
         try {
             resultado = sessao.find(classe, codigo);
-
             return resultado;
-
         } catch (RuntimeException erro) {
             throw erro;
         } finally {
-            sessao.close(); // finaliza a sessão (TEM QUE COLOCAR)
+            sessao.close();
         }
-
     }
 
-    /**
-     * Método genérico que vai excluir um registro da tabela do banco assim como
-     * ele foi passado por parâmetro.
-     *
-     * @param entidade (objeto)
-     */
     public void excluir(Entidade entidade) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
         Transaction transacao = null;
@@ -114,25 +80,17 @@ public class GenericDAO<Entidade> {
         try {
             transacao = sessao.beginTransaction();
             sessao.delete(entidade);
-
-            transacao.commit(); // vê se deu tudo certo na inserção
-
+            transacao.commit();
         } catch (RuntimeException erro) {
-            if (transacao != null) { // se algo deu errado, desfaz
+            if (transacao != null) {
                 transacao.rollback();
             }
-
             throw erro;
         } finally {
-            sessao.close(); // finaliza a sessão (TEM QUE COLOCAR)
+            sessao.close();
         }
-
     }
 
-    /**
-     * Método genérico que vai editar tudo em um registro do banco de dados.
-     * @param entidade 
-     */
     public void editar(Entidade entidade) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
         Transaction transacao = null;
@@ -140,19 +98,15 @@ public class GenericDAO<Entidade> {
         try {
             transacao = sessao.beginTransaction();
             sessao.update(entidade);
-
-            transacao.commit(); // vê se deu tudo certo na inserção
-
+            transacao.commit();
         } catch (RuntimeException erro) {
-            if (transacao != null) { // se algo deu errado, desfaz
+            if (transacao != null) {
                 transacao.rollback();
             }
-
             throw erro;
         } finally {
-            sessao.close(); // finaliza a sessão (TEM QUE COLOCAR)
+            sessao.close();
         }
-
     }
 
 }

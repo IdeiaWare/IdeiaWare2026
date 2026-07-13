@@ -3,8 +3,7 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
-	<%-- UX-VOLTAR-V2: mesmo padrao do resto do app -- icone circular flutuante no
-	     canto superior esquerdo, volta pro Mapa de Empatia (pai imediato). --%>
+	<%-- UX-VOLTAR-V2: icone circular flutuante, volta pro Mapa de Empatia (pai imediato). --%>
 	<a href="${pageContext.request.contextPath}/persona/empatia/mapa?personaId=${personaId}" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
@@ -60,11 +59,7 @@
 			<div class="row">
 				<c:if test="${empty attributes}"><div class="col s12 center-align grey-text" style="padding: 30px 20px;">Nenhum item adicionado ainda.</div></c:if>
 				<c:forEach var="tempAttribute" items="${attributes}">
-					<%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET):
-					     virou form POST. O <a> continua IDENTICO (sem class, mesmo lugar no DOM)
-					     -- so o href virou javascript:; e o onclick agora envia o form escondido
-					     em vez de navegar, pra nao arriscar quebrar o CSS do Materialize trocando
-					     de <a> pra <button>. --%>
+					<%-- TK-26: excluir atributo virou form POST (era link GET com token na query). --%>
 					<form id="deleteAttributeForm${tempAttribute.id}" action="${pageContext.request.contextPath}/persona/empatia/quais-sao-os-ganhos/delete" method="POST" style="display:none;">
 						<input type="hidden" name="csrfToken" value="${csrfToken}"/>
 						<input type="hidden" name="personaId" value="${tempAttribute.personaId}"/>

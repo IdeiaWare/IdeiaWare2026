@@ -10,25 +10,14 @@ import javax.persistence.Entity;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-/**
- *
- * @author m78208
- */
 @SuppressWarnings("serial")
 @Entity
 public class Usuario extends GenericDomain implements Serializable{
 
-    //Atributos
     @Column(length = 64, nullable = false)
     private String nome;
 
-    // RACE-01: unique=true trava no BANCO (nao so em Java) que dois usuarios tenham o
-    // mesmo login. Antes, CadastroUsuarioServlet fazia "verifica se existe -> insere" em
-    // 2 passos sem nenhuma trava real: 2 cadastros simultaneos com o mesmo login passavam
-    // os 2 pela verificacao e os 2 inseriam -> 2 contas com o mesmo login -> LogInServlet
-    // exige lista.size()==1 pra deixar logar, entao as 2 contas ficavam trancadas pra
-    // sempre (sem erro visivel, so "login e/ou senha invalido"), so recuperavel com
-    // intervencao manual no banco.
+    // RACE-01: unique=true trava no BANCO (antes, so em Java = 2 cadastros simultaneos travavam 2 contas).
     @Column(length = 32, nullable = false, unique = true)
     private String usuario;
 
@@ -38,12 +27,7 @@ public class Usuario extends GenericDomain implements Serializable{
     @Column(length = 3, nullable = false)
     private String permissao;
 
-    // RACE-01: mesma razao do campo usuario acima -- CadastroUsuarioServlet tambem
-    // checava email duplicado em Java sem trava no banco.
-    // MODELAGEM-01 (2026-07-03): estava length=100 aqui, mas o banco real (estrutura-
-    // lic_bd.sql) sempre foi varchar(50) -- alinhado pro numero que ja esta em producao
-    // (mudar a anotacao Java, NAO o banco, evita ALTER TABLE numa coluna que pode ja ter
-    // dados reais).
+    // RACE-01/MODELAGEM-01: unique=true (mesma razao); length=50 alinhado ao banco real (era 100).
     @Column(length = 50, nullable = true, unique = true)
     private String email;
     
@@ -54,11 +38,9 @@ public class Usuario extends GenericDomain implements Serializable{
     @Temporal(TemporalType.TIMESTAMP)
     private Date DataAnonimizado;
   
-    //Métodos Construtores
     public Usuario() {
     }
-    
-    // LucasFreitag 2024
+
     public Usuario(String usuario, String senha) {
         this.usuario = usuario;
         this.senha = CriptografaSenha(senha);   // SEC-22: bcrypt (era SHA-256)
@@ -69,22 +51,16 @@ public class Usuario extends GenericDomain implements Serializable{
         this.usuario = usuario;
         this.senha = senha;
         this.permissao = permissao;
-        this.email = email; // LucasFreitag 2024
+        this.email = email;
         this.anonimizado = "N";
     }
 
-//	@Column(precision = 7, scale = 2, nullable = false) // precision são quantos números ao total, scale é quantos números após a vírgula
-//	private BigDecimal salario;                         // xxxxx,xx
-    
-    //Métodos
     @Override
     public String toString() {
         return "Usuario{" + "nome(" + nome + "), usuario(" + usuario + "), senha(" + senha + "), "
                           + "email(" + email + "), permissao(" + permissao + ")}";
     }
     
-    // LucasFreitag 2024
-    //Retorna informações pessoais
     public String getDadosPessoais(String delimitador) {
         return "Usuário: " + usuario + delimitador +
                "Nome: " + nome + delimitador +
@@ -118,7 +94,6 @@ public class Usuario extends GenericDomain implements Serializable{
         return getDadosPessoais("\n");
     }
     
-    //Gera senha aleatória de 10 dígitos
     public String ResetaSenha() {
         int tamSenha = 10;
         StringBuilder senha = new StringBuilder(tamSenha);
@@ -136,7 +111,6 @@ public class Usuario extends GenericDomain implements Serializable{
         return senhaNova;
     }
         
-    //Embaralha senha aleatória
     private static String EmbaralharString(String str){
         char[] caracteres = str.toCharArray();
         for (int i = caracteres.length - 1; i > 0; i--) {
@@ -148,9 +122,7 @@ public class Usuario extends GenericDomain implements Serializable{
         return new String(caracteres);
     }
     
-    // SEC-22: hashing de senha com bcrypt (era SHA-256 salgado com o usuario). O bcrypt
-    // ja gera salt aleatorio por hash (nao precisa concatenar o usuario) e tem custo
-    // ajustavel -> resistente a brute-force/GPU. A verificacao e via checaSenha().
+    // SEC-22: bcrypt (era SHA-256+usuario); ja gera salt aleatorio, verificacao via checaSenha().
     private static String CriptografaSenha(String senha) {
         return BCrypt.hashpw(senha, BCrypt.gensalt());
     }
@@ -168,7 +140,6 @@ public class Usuario extends GenericDomain implements Serializable{
         }
     }
     
-    //Getters and Setters
     public String getNome() {
         return nome;
     }
@@ -193,7 +164,6 @@ public class Usuario extends GenericDomain implements Serializable{
         this.senha = senha;
     }
     
-    // LucasFreitag 2024
     public void setSenha(String senha, Boolean crip) {
         if (crip){
             this.senha = CriptografaSenha(senha);   // SEC-22: bcrypt (era SHA-256+usuario)
@@ -209,7 +179,6 @@ public class Usuario extends GenericDomain implements Serializable{
     public void setPermissao(String permissao) {
         this.permissao = permissao;
     }
-    // LucasFreitag 2024 
     public String getEmail() {
         return email;
     }

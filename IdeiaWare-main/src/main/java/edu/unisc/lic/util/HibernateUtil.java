@@ -19,14 +19,7 @@ public class HibernateUtil {
         try {
             Configuration configuracao = new Configuration().configure();
 
-            // LEGADO-CFGBANCO removido: existia um mecanismo de override via
-            // cfgbanco.txt (ManipulaTxt + CriptografaDados, AES em modo ECB) que
-            // nunca chegou a ser usado em nenhum deploy real (Docker ou manual) --
-            // confirmado ausente em todos os scripts/config do projeto. A config
-            // do banco hoje vem so do hibernate.cfg.xml (patchado por variavel de
-            // ambiente no entrypoint.sh do Docker, ou editado direto no deploy
-            // manual). Codigo morto removido em vez de corrigir o modo AES fraco
-            // de algo que nunca era exercitado.
+            // CFGBANCO-REMOVIDO: mecanismo de override via cfgbanco.txt (AES ECB) era codigo morto, removido.
             SessionFactory fabrica = configuracao.buildSessionFactory();
             return fabrica;
 

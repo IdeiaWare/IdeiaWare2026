@@ -28,11 +28,7 @@ public class ExportFileDAOImpl implements ExportFileDAO {
 		// get the current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 		
-		// create a query ... sort by name
-		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): HQL usava nome de
-		// COLUNA (ideia_codigo, file_name) em vez de nome de PROPRIEDADE Java
-		// (ideiaCodigo, fileName) -- funcionava por coincidencia, mesmo motivo
-		// documentado em EmpathyDAOImpl.
+		// TK-HQL: nome de propriedade Java, nao de coluna (mesmo motivo do EmpathyDAOImpl).
 		Query<ExportFile> theQuery =
 				currentSession.createQuery("from ExportFile where ideiaCodigo=:IdeiaCodigo order by fileName", ExportFile.class);
 		theQuery.setParameter("IdeiaCodigo", ideiaCodigo);

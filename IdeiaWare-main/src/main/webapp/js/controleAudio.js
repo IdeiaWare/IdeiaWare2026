@@ -1,13 +1,9 @@
-// Expose globally your audio_context, the recorder instance and audio_stream
 var audio_context;
 var recorder;
 var audio_stream;
 
-
 function Initialize() {
-
   try {
-    // Monkeypatch for AudioContext, getUserMedia and URL
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
     navigator.getUserMedia = (navigator.getUserMedia ||
             navigator.webkitGetUserMedia ||
@@ -15,7 +11,6 @@ function Initialize() {
             navigator.msGetUserMedia);
     window.URL = window.URL || window.webkitURL;
 
-    // Store the instance of AudioContext globally
     audio_context = new AudioContext;
     console.log('Audio context is ready !');
     console.log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
@@ -24,109 +19,48 @@ function Initialize() {
   }
 }
 
-/**
- * Starts the recording process by requesting the access to the microphone.
- * Then, if granted proceed to initialize the library and store the stream.
- *
- * It only stops when the method stopRecording is triggered.
- */
 function startRecording() {
-  // UX/BUG: navigator.getUserMedia (API antiga, baseada em callback) foi REMOVIDA
-  // de todos os navegadores modernos (Chrome/Firefox/Edge) ha anos -- o botao
-  // "Gravar" simplesmente nao fazia nada (TypeError silencioso no console). A API
-  // atual e navigator.mediaDevices.getUserMedia, baseada em Promise.
-  // OBS: exige contexto seguro (HTTPS ou localhost); em producao sem HTTPS o
-  // microfone continua bloqueado pelo proprio navegador, independente do JS.
+  // UX-STORYTELLING-AUDIO-API: navigator.mediaDevices.getUserMedia (Promise), a antiga navigator.getUserMedia
+  // foi removida dos navegadores modernos. Exige contexto seguro (HTTPS ou localhost).
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     alert('Este navegador não suporta gravação de áudio, ou a página não está em um contexto seguro (HTTPS).');
     return;
   }
-  // REVISAO 2026-07-08 (varredura JS, achado MEDIA): audio_context e criado em
-  // Initialize() no window.onload (fora de qualquer gesto de clique) -- a politica de
-  // autoplay dos navegadores modernos pode deixar ele "suspended" ate um gesto do
-  // usuario, e nesse estado a gravacao roda inteira SEM ERRO NENHUM mas fica vazia/
-  // silenciosa (nada acusa o problema pro usuario). resume() aqui, dentro do clique em
-  // "Gravar", garante o estado "running" antes de comecar. Chamada e segura mesmo se o
-  // contexto ja estiver rodando (vira no-op).
+  // TK-31: resume() do audio_context aqui dentro do clique (autoplay policy pode deixa-lo "suspended").
   if (audio_context && audio_context.state === 'suspended') {
     audio_context.resume();
   }
-  // REVISAO 2026-07-08 (varredura JS, achado BAIXA): antes o start-btn so era
-  // desabilitado DENTRO do .then() (depois do usuario responder o prompt de
-  // permissao do navegador) -- um clique duplo nesse intervalo podia disparar 2
-  // getUserMedia concorrentes, o 2o sobrescrevendo audio_stream/recorder do 1o sem
-  // parar as tracks dele (microfone ficava "vazado"). Desabilita JA, sincrono, antes
-  // da Promise.
+  // TK-30b: desabilita o start-btn JA, sincrono, antes da Promise (evita 2 getUserMedia concorrentes).
   document.getElementById("start-btn").disabled = true;
   navigator.mediaDevices.getUserMedia({audio: true}).then(function (stream) {
-    // Expose the stream to be accessible globally
     audio_stream = stream;
-    // Create the MediaStreamSource for the Recorder library
     var input = audio_context.createMediaStreamSource(stream);
-//         console.log('Media stream succesfully created');
-
-    // Initialize the Recorder Library
     recorder = new Recorder(input);
-//         console.log('Recorder initialised');
-
-    // Start recording !
     recorder && recorder.record();
-//         console.log('Recording...');
-
-    // Disable Record button and enable stop button !
     document.getElementById("start-btn").disabled = true;
     document.getElementById("stop-btn").disabled = false;
   }).catch(function (e) {
-    // REVISAO 2026-07-08: reabilita o start-btn se a permissao for negada/falhar --
-    // senao, como agora ele e desabilitado ANTES da Promise (fix acima), uma negacao
-    // deixaria o botao travado pra sempre (sem chegar no .then() que reabilitaria).
+    // TK-30b: reabilita o start-btn se a permissao for negada (senao ficaria travado pra sempre).
     document.getElementById("start-btn").disabled = false;
     console.error('No live audio input: ' + e);
     alert('Não foi possível acessar o microfone. Verifique as permissões do navegador.');
   });
 }
 
-/**
- * Stops the recording process. The method expects a callback as first
- * argument (function) executed once the AudioBlob is generated and it
- * receives the same Blob as first argument. The second argument is
- * optional and specifies the format to export the blob either wav or mp3
- */
 function stopRecording(callback, AudioFormat) {
-  // Stop the recorder instance
   recorder && recorder.stop();
-//     console.log('Stopped recording.');
 
-  // REVISAO 2026-07-08 (varredura JS, achado ALTA): audio_stream nao tinha guard
-  // (diferente da linha anterior, recorder && recorder.stop()). CONFIRMADO no JSP que
-  // nem #start-btn nem #stop-btn tem disabled por padrao -- os 2 nascem clicaveis.
-  // Clicar "Parar" antes de "Gravar" (ou 2x seguidas) fazia audio_stream ser undefined
-  // -> TypeError nao tratado, que travava a funcao ANTES do reset dos botoes abaixo.
+  // TK-30: audio_stream sem guard -- clicar "Parar" antes de "Gravar" dava TypeError nao tratado.
   if (audio_stream) {
-    // Stop the getUserMedia Audio Stream !
     audio_stream.getAudioTracks()[0].stop();
   }
 
-  // Disable Stop button and enable Record button !
   document.getElementById("start-btn").disabled = false;
   document.getElementById("stop-btn").disabled = true;
 
-  // Use the Recorder Library to export the recorder Audio as a .wav file
-  // The callback providen in the stop recording method receives the blob
   if (typeof (callback) == "function") {
-
-    /**
-     * Export the AudioBLOB using the exportWAV method.
-     * Note that this method exports too with mp3 if
-     * you provide the second argument of the function
-     */
     recorder && recorder.exportWAV(function (blob) {
       callback(blob);
-
-      // create WAV download link using audio data blob
-      // createDownloadLink();
-
-      // Clear the Recorder to start again !
       recorder.clear();
     }, (AudioFormat || "audio/wav"));
   }

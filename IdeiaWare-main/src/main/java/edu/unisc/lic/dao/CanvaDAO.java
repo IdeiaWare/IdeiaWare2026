@@ -7,18 +7,8 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
-/**
- *
- * @author yanrodrigues
- */
 public class CanvaDAO extends GenericDAO<Canva> {
 
-    /**
-     * Esse método busca e retorna
-     *
-     * @param canva - Canva
-     * @return
-     */
     public List<Canva> listarParametro(Canva canva) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 

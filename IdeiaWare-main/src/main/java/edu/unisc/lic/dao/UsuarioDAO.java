@@ -9,14 +9,6 @@ import org.hibernate.criterion.Restrictions;
 
 public class UsuarioDAO extends GenericDAO<Usuario> {
 
-    /**
-     * Esse método busca e retorna resultados referentes ao nome, usuario,
-     * senha, permissão e código do usuario.
-     *
-     * @param usuario
-     * @param like (true: parecido; false: idêntico)
-     * @return
-     */
     public List<Usuario> listarParametro(Usuario usuario, boolean like) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
@@ -43,7 +35,6 @@ public class UsuarioDAO extends GenericDAO<Usuario> {
             if (usuario.getPermissao() != null) {
                 filtro.add(Restrictions.eq("permissao", usuario.getPermissao()));
             }
-            // LucasFreitag 2024
             if (usuario.getEmail() != null){
                 filtro.add(Restrictions.eq("email", usuario.getEmail()));
             }

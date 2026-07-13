@@ -33,8 +33,7 @@ public class SalvarAudioServlet extends HttpServlet {
             return;
         }
 
-        // BLINDAGEM: sessao sem storytellingId gerava NPE no .toString(); id
-        // nao-numerico gerava NumberFormatException -> 500 cru.
+        // BLINDA-02: sessao sem storytellingId ou id invalido dava NPE/500 cru antes.
         Object storyIdAttr = session.getAttribute("storytellingId");
         if (storyIdAttr == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -65,9 +64,7 @@ public class SalvarAudioServlet extends HttpServlet {
         est.setCaminho(fileData);
         est.setTipo("AUD");
 
-        // K.8 #7: apaga o(s) audio(s) antigo(s) e salva o novo NUMA SO transacao (antes
-        // eram excluirTodos() + salvar() em transacoes separadas -- uma falha no meio
-        // perdia o audio de vez, sem o antigo nem o novo sobrarem).
+        // K.8 #7: apaga o antigo e salva o novo NUMA SO transacao (antes, falha no meio perdia o audio).
         new ElementosStorytellingDAO().substituirAudio(estList, est);
     }
 

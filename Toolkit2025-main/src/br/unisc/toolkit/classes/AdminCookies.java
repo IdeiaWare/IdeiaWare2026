@@ -21,9 +21,7 @@ public class AdminCookies {
 		}
 
 		if (valor != null && !valor.trim().isEmpty()) {
-		    // SEC-23: so aceita o ideiaId se a ASSINATURA (HMAC, posta pelo LIC ao entrar
-		    // na Caixa) bater -> o cookie ideiaId deixa de ser forjavel. Sem assinatura
-		    // valida = sem acesso (retorna null -> os controllers caem no "redirect").
+		    // SEC-23: so aceita o ideiaId se a ASSINATURA (HMAC do LIC) bater (senao, cookie forjavel).
 		    if (!AssinaturaCaixa.valida(valor.trim(), sig)) {
 		        return null;
 		    }

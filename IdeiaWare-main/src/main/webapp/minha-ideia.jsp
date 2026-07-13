@@ -64,12 +64,7 @@
                     <td class="name">
                         <div class="ellipsis"><c:out value="${ideia.ideia.usuario.nome}"/></div>
                     </td>
-                    <%-- M.5 (2026-07-06): fix inline (nao via colaboracao.css) -- o CSS
-                         externo fica em cache no navegador e o F5 normal nao rebaixa, entao
-                         o titulo continuava cortado aqui mesmo com a regra nova no .css.
-                         Inline vem junto do HTML (a prova de cache), igual ja foi feito em
-                         lista-ideia.jsp/lista-ideia-gerenciamento.jsp. Sem a classe
-                         "ellipsis" (que corta); mostra o titulo completo (max 50). --%>
+                    <%-- M.5: estilo INLINE, nao via colaboracao.css (CSS externo fica em cache, F5 nao rebaixa). --%>
                     <td class="title" style="white-space: normal; word-break: break-word;">
                         <div><c:out value="${ideia.ideia.titulo}"/></div>
                     </td>
@@ -94,22 +89,11 @@
                     <td>
                       <c:choose>
                           <c:when test="${ideia.ideia.status eq 'VA' or ideia.ideia.status eq 'DE'}">
-                              <%-- M.2 (2026-07-06): participante na lista de espera ("Aguardando
-                                   aprovação") ou rejeitado do grupo ("Não aprovado" + motivo, M.3)
-                                   ve o status em vez de "Entrar". Aprovado/lider seguem o fluxo
-                                   normal (flStatusVinculo null = vinculo legado = aprovado). --%>
+                              <%-- M.2: pendente/rejeitado ve o status em vez de "Entrar" (aprovado/legado segue normal). --%>
                               <c:choose>
                                   <c:when test="${ideia.flStatusVinculo eq 'P'}">
-                                      <%-- M.2: mesmo padrao de botao desabilitado do resto da tela
-                                           (input.btn.disabled). REVISAO 2026-07-07: "Pendente"
-                                           colidia com o "Pendente" ja usado na coluna Status
-                                           (ideia aguardando validacao do admin -- significado
-                                           diferente). "Em análise" e curto o bastante pra nao
-                                           estourar o botao e nao ambiguo.
-                                           REVISAO 2026-07-07 (2): faltava type="button" -- sem
-                                           type, o Materialize trata o <input> como campo de texto
-                                           (input:not([type]):disabled ganha border-bottom:1px
-                                           dotted, o "risquinho" estranho embaixo do botao). --%>
+                                      <%-- GT-10: "Em análise" (nao "Pendente", que colide com a coluna Status); type="button" evita o
+                                           input:not([type]):disabled do Materialize desenhar sublinhado pontilhado de campo de texto. --%>
                                       <input type="button" class="btn disabled" disabled="true" value="Em análise" />
                                   </c:when>
                                   <c:when test="${ideia.flStatusVinculo eq 'R'}">
@@ -153,30 +137,22 @@
                               </form>
                           </c:when>
                           <c:when test="${ideia.ideia.status eq 'CV'}">
-                              <%-- CAN-ACESSO: liberado p/ TODOS os participantes (antes so o lider).
-                                   O EntrarCanvaServlet agora exige participacao no SERVIDOR, entao
-                                   nao depende mais so deste botao pra restringir o acesso. --%>
+                              <%-- CAN-ACESSO-V2: liberado p/ TODOS os participantes (antes so o lider); acesso real reforcado no servlet. --%>
                               <form name="entrarCanva" action="EntrarCanvaServlet" method="POST">
                                 <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
-                                <%-- XSS: nome de sessao e texto livre de cadastro -- escapado
-                                     dentro do atributo (mesmo padrao ja usado em validar-ideia.jsp). --%>
                                 <input hidden="true" value="<c:out value='${nome}'/>" name="usuarioNome" />
                                 <input class="btn blue darken-4" type="submit" value="Entrar"  name="Canva" />
                               </form>
                           </c:when>
                           <c:when test="${ideia.ideia.status eq 'FN'}">
-                              <%-- M.13 (2026-07-06): ideia finalizada -- botao "Detalhes" abre a
-                                   tela de processo (retencao) via GerenciarIdeiaServlet, que ja
-                                   autoriza participante (o colaborador da ideia finalizada e
-                                   participante). Antes caia no otherwise = botao "Entrar" morto. --%>
+                              <%-- M.13: ideia finalizada abre a Retencao via GerenciarIdeiaServlet (antes, botao "Entrar" morto). --%>
                               <form name="entrarGerenciamento" action="GerenciarIdeiaServlet" method="POST">
                                 <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
                                 <input class="btn deep-orange lighten-2" type="submit" value="Detalhes" name="Detalhes" />
                               </form>
                           </c:when>
                           <c:otherwise>
-                              <%-- REVISAO 2026-07-07: mesmo fix do "Em análise" acima -- faltava
-                                   type="button" (pre-existente, nao introduzido nesta sessao). --%>
+                            <%-- GT-10: mesmo botao de vinculo do rotulo "Em análise" acima. --%>
                               <input type="button" class="btn disabled" disabled="true" value="Entrar" />
                           </c:otherwise>
                       </c:choose>
@@ -265,18 +241,11 @@
       $(document).ready(function () {
         $('.modal').modal({
           ready: function (modal, trigger) {
-            // REVISAO 2026-07-07: este ready() e compartilhado por TODOS os .modal da
-            // pagina, mas #modal-detalhe-ideia (aberto pelo .info-icon, ver abaixo) chama
-            // .modal('open') SEM passar trigger -> trigger vinha undefined e
-            // trigger.data(...) estourava TypeError a cada clique no icone (inofensivo --
-            // o conteudo desse modal ja e preenchido por outro caminho antes do open --
-            // mas sujava o console). So roda o preenchimento (que depende de trigger)
-            // quando trigger realmente existe.
+            // GT-09: modal-detalhe-ideia abre sem trigger -- so roda o preenchimento quando trigger existe.
             if (!trigger) { return; }
 
             modal.find('input[name="codigo"]').val(trigger.data('codigo'));
 
-            //                        aqui é onde tudo é inserido na div, dá pra criar divs depois do igual
             // SEC-05: escapa dado do usuario (trigger.data() decodifica entidades -> innerHTML re-parseia = XSS).
             function escapeHtml(s){if(s==null)return '';return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
             document.getElementById('divTitulo').innerHTML = "<b>Ideia:</b> " + escapeHtml(trigger.data('titulo'));

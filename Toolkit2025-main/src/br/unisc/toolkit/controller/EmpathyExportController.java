@@ -41,12 +41,7 @@ public class EmpathyExportController {
 	
 	AdminCookies cookie = new AdminCookies();
 	
-	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): os 2 GETs abaixo sempre
-	// retornavam a view, mesmo sem cookie valido (diferente de todos os outros
-	// controllers) -- personaView() ja checava o cookie por dentro, mas so pra decidir
-	// se populava o model; se nao populasse, a JSP (<form:form modelAttribute="overview">)
-	// explodia com excecao generica em vez do redirect limpo padrao. Guard adicionado
-	// aqui, mesmo padrao usado no resto do app.
+	// TK-EMP-GUARD: guard de cookie explicito (antes, sem cookie a JSP explodia em vez de redirecionar).
 	@GetMapping("/visao-geral")
 	public String showFilledEmpathyMapOverview(@RequestParam("personaId") int theId, Model theModel,  HttpServletRequest request){
 		if (cookie.getCookieIdeiaCodigo(request) == null || !personaView(theId, theModel, "overview", request)) {
@@ -100,11 +95,7 @@ public class EmpathyExportController {
 		}		
 	}
 	
-	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): getPersona() pode voltar
-	// null (uniqueResult, ex.: persona deletada/id invalido) -- sem o guard abaixo o
-	// model era populado com persona=null e os callers retornavam a view normalmente,
-	// renderizando pagina "quebrada" (campos em branco) em vez de redirecionar com
-	// erro. void virou boolean pra callers saberem quando cair pro redirect.
+	// TK-02: getPersona() pode voltar null; boolean permite ao caller redirecionar em vez de renderizar quebrado.
 	private boolean personaView(int theId, Model theModel, String viewType, HttpServletRequest request){
 		Long ideiaCodigo = Long.valueOf(0);
 

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.domain.Usuario;
@@ -15,21 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hibernate.exception.ConstraintViolationException;
 
-/**
- *
- * @author Rafael
- */
 public class CadastroUsuarioServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
@@ -41,9 +23,7 @@ public class CadastroUsuarioServlet extends HttpServlet {
         UsuarioDAO usuarioDAO = new UsuarioDAO();
         List<Usuario> lista = usuarioDAO.listarParametro(usuario, false);
         
-        // LucasFreitag 2024 :: email
-        // INFRA-07: usa "".equals(...) (null-safe) — um POST sem algum dos campos
-        // gerava NullPointerException em getParameter(...).equals("").
+        // INFRA-07: "".equals(...) e null-safe (POST sem algum campo dava NPE antes).
         if ("".equals(request.getParameter("nome")) || "".equals(request.getParameter("senha")) ||
             "".equals(request.getParameter("usuario")) || "".equals(request.getParameter("senha2")) ||
             "".equals(request.getParameter("email")) ||
@@ -67,7 +47,6 @@ public class CadastroUsuarioServlet extends HttpServlet {
             return;
         }
         
-        // LucasFreitag 2024 :: email já cadastrado
         Usuario usuarioE = new Usuario();
         usuarioE.setEmail(request.getParameter("email"));
         List<Usuario> listaE = usuarioDAO.listarParametro(usuarioE, false);
@@ -91,18 +70,12 @@ public class CadastroUsuarioServlet extends HttpServlet {
         }
         
         usuario.setNome(request.getParameter("nome"));
-        // LucasFreitag 2024
-        //usuario.setSenha(request.getParameter("senha"));
         usuario.setSenha(request.getParameter("senha"),true);
         usuario.setPermissao("col");
-        usuario.setEmail(request.getParameter("email")); // LucasFreitag 2024
+        usuario.setEmail(request.getParameter("email"));
         usuario.setAnonimizado("N");
 
-        // RACE-01: as checagens acima (lista/listaE) tem uma janela de corrida -- 2
-        // cadastros simultaneos com o mesmo login/email podem passar os 2 pela checagem.
-        // A trava de verdade agora e a UNIQUE do banco (Usuario.usuario/email); se a
-        // corrida acontecer, o PERDEDOR cai aqui em vez de criar uma 2a conta travada.
-        // Mesma resposta amigavel de "ja existe" que a checagem em Java ja mostrava.
+        // RACE-01: checagens acima tem janela de corrida; a UNIQUE do banco e a trava real.
         try {
             usuarioDAO.salvar(usuario);
         } catch (ConstraintViolationException ex) {
@@ -113,15 +86,6 @@ public class CadastroUsuarioServlet extends HttpServlet {
         request.getRequestDispatcher("LogInServlet").forward(request, response);
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -129,28 +93,15 @@ public class CadastroUsuarioServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

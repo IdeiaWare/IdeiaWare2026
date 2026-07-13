@@ -12,18 +12,8 @@ import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 
-/**
- *
- * @author viniciussdsilva
- */
 public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
 
-    /**
-     * Esse método busca e retorna
-     *
-     * @param iu - IdeiaUsuario
-     * @return
-     */
     public List<IdeiaUsuario> listarParametro(IdeiaUsuario iu) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
@@ -40,10 +30,7 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
                 filtro.add(Restrictions.eq("flLider", iu.getFlLider()));
             }
 
-            // Ordena a listagem das "Minhas Ideias" do mais NOVO para o mais antigo
-            // (ideia recem-cadastrada aparece em cima). So afeta este caso (filtro por
-            // usuario, varias ideias); os callers que filtram por uma unica ideia
-            // (membros de um grupo) nao mudam, pois todos tem o mesmo valor de "ideia".
+            // Ordena "Minhas Ideias" do mais NOVO pro mais antigo.
             filtro.addOrder(Order.desc("ideia"));
 
             return filtro.list();
@@ -53,16 +40,7 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
         }
     }
 
-    /**
-     * Retorna todas as ideias em status ST para o usuário — líderes e participantes.
-     * Corrige STR-09: lista-storytelling.jsp só mostrava para líderes.
-     */
-    // PERF-01: as 3 listagens abaixo (Storytelling/Caixa/Canva) carregavam TODAS as
-    // ideias do usuario e filtravam por status DEPOIS, em Java (loop + lista auxiliar).
-    // O filtro de status agora vai pra dentro da propria query via createAlias("ideia",
-    // "i") -- uma unica consulta ao banco, sem trazer linhas que vao ser descartadas.
-    // Mesmo padrao ja usado em IdeiaDAO.listarIdeiasDisponiveis (HQL com filtro no banco).
-
+    // STR-09/PERF-01: lider+participantes, com filtro de status na propria query (nao em Java).
     public List<IdeiaUsuario> listarTodasIdeiasStorytelling(IdeiaUsuario iu) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
@@ -88,8 +66,7 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
             filtro.createAlias("ideia", "i");
 
             filtro.add(Restrictions.eq("usuario", iu.getUsuario()));
-            // TK-LIST: a Caixa aparece p/ TODOS os participantes da ideia (nao so o lider).
-            // Se da p/ entrar pelo "Minhas Ideias", tem que aparecer nesta listagem tambem.
+            // TK-LIST: a Caixa aparece p/ TODOS os participantes, nao so o lider.
             filtro.add(Restrictions.eq("i.status", StatusIdeia.CAIXA_FERRAMENTAS));
             filtro.addOrder(Order.desc("ideia")); // listagem com as ideias mais novas em cima
 
@@ -107,9 +84,7 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
             Criteria filtro = sessao.createCriteria(IdeiaUsuario.class);
             filtro.createAlias("ideia", "i");
 
-            // CAN-PARTICIPANTE: antes so o LIDER (flLider='S') via a ideia na listagem
-            // do Canvas. Agora TODOS os participantes veem -- o acesso real e reforcado
-            // no EntrarCanvaServlet (que agora exige participacao), nao mais so aqui.
+            // CAN-ACESSO-V2: antes so o LIDER via a ideia na listagem do Canvas, agora todos.
             filtro.add(Restrictions.eq("usuario", iu.getUsuario()));
             // Status "CV" é definido pelo projeto Toolkit2025 (Caixa de Ferramentas) no
             // método IdeiaDAOImpl.finalize() quando a ideia sai da caixa. É o status
@@ -124,13 +99,7 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
         }
     }
 
-    /**
-     * K.8 #1 (2026-07-06): fecha o grupo, atualiza a lideranca (se houve transferencia) e
-     * grava o log inicial de colaboracao NUMA UNICA Session/Transaction. Antes, FecharGrupoServlet
-     * fazia isso em 2 a 4 transacoes separadas (ideia.editar, ate 2x ideiaUsuario.editar, log.salvar)
-     * -- uma falha exatamente entre rebaixar o lider antigo e promover o novo podia deixar a
-     * ideia SEM NENHUM lider. Agora tudo commita junto ou nada commita (rollback).
-     */
+    // K.8 #1: fecha grupo + lideranca + log NUMA UNICA transacao (antes, falha no meio deixava sem lider).
     public void fecharGrupoAtomico(Ideia ideia, List<IdeiaUsuario> vinculosParaAtualizar,
             List<IdeiaUsuario> vinculosParaRemover, LogColaboracao logInicial) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
@@ -144,18 +113,7 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
                     sessao.update(iu);
                 }
             }
-            // M.2 (2026-07-06): ao fechar o grupo, os vinculos PENDENTES/REJEITADOS (quem
-            // nao foi aprovado) sao removidos na MESMA transacao -- assim sobram so os
-            // aprovados e todas as checagens de participacao ja existentes (Canva/Caixa/
-            // Storytelling/etc.) continuam valendo sem precisar filtrar por status.
-            //
-            // REVISAO 2026-07-07: os objetos em vinculosParaRemover foram lidos numa
-            // Session ANTERIOR (fora desta transacao) -- se AprovarMembroServlet aprovar
-            // (P->A) e commitar EXATAMENTE entre essa leitura antiga e este delete, o
-            // objeto em memoria ainda diz "P", e o codigo antigo apagava o vinculo mesmo
-            // assim (um membro recem-aprovado sumia do grupo sem nunca ter sido rejeitado).
-            // Fix: re-busca cada um FRESCO dentro desta transacao e SO apaga se o status
-            // ainda for P/R no exato momento do commit -- fecha a corrida.
+            // M.2/GT-03: re-busca cada vinculo FRESCO na transacao e so apaga se ainda P/R (fecha a corrida com AprovarMembroServlet).
             if (vinculosParaRemover != null) {
                 for (IdeiaUsuario iuAntigo : vinculosParaRemover) {
                     IdeiaUsuario iuFresco = sessao.get(IdeiaUsuario.class, iuAntigo.getCodigo());

@@ -85,11 +85,7 @@
       </a>
 
       <ul id="nav-mobile" class="right hide-on-med-and-down">
-        <%-- O dropdown "Ideias" (Minhas/Outras/Cadastrar) foi removido: e redundante
-             com os 3 cards do index-colaboracao.jsp. Os botoes exclusivos de admin
-             (antes escondidos no menu flutuante) subiram p/ ca, ao lado do "Sair".
-             "Gerenciar Usuarios" foi p/ a tela inicial (index.jsp) -- nao e uma acao
-             do modulo colaborativo, e uma tela isolada sem modulo proprio. --%>
+        <%-- UX-GERENCIAR-USUARIOS: acoes de admin subiram pra ca (dropdown "Ideias" era redundante com os cards). --%>
         <c:if test="${permicao eq 'adm'}">
           <li><a href="validar-ideia.jsp"><i class="material-icons left">done</i>Validar Ideias</a></li>
           <li><a href="lista-ideia-gerenciamento.jsp"><i class="material-icons left">assessment</i>Gerenciar Ideias</a></li>

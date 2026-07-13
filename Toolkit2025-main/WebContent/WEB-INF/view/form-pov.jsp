@@ -4,8 +4,7 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
-	<%-- UX-VOLTAR-V2: mesmo padrao do resto do app -- icone circular flutuante no
-	     canto superior esquerdo. --%>
+	<%-- UX-VOLTAR-V2: icone circular flutuante, volta pra lista de personas. --%>
 	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
@@ -23,12 +22,7 @@
 	<div class="pov-form-wrapper">
 		<div class="persona-names">
 			<strong><em>Persona(s)</em>:</strong> 
-			<%-- REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): fn:split(tempPersona,'+')
-			     quebrava em cada ocorrencia de "+" -- persona com "+" no nome (ex.: "Joao +
-			     Maria") virava 3+ pedacos em vez de 2, embaralhando id/nome ou perdendo o id.
-			     Value agora vem
-			     "Id+Nome" (id nunca tem "+"); indexOf+substring corta so no PRIMEIRO "+", o
-			     resto (mesmo com mais "+") fica inteiro no nome. --%>
+			<%-- TK-45b: fn:split(tempPersona,'+') quebrava com "+" no nome; agora indexOf+substring corta so no 1o "+". --%>
 			<c:forEach var="tempPersona" items="${personas}">
 				<c:set var="separatorIdx" value="${fn:indexOf(tempPersona, '+')}" />
 				<c:set var="personaId" value="${fn:substring(tempPersona, 0, separatorIdx)}" />
@@ -62,8 +56,7 @@
 							<td class="need-tour">
 								<div class="input-field col s12">
 						          <form:textarea id="need-text" class="materialize-textarea" path="needText" />
-						          <%-- M.12 (2026-07-06): for apontava pra "necessity-text" (id inexistente);
-						               o textarea e id="need-text". Label estava quebrado. --%>
+						          <%-- M.12: label for apontava pra "necessity-text" (id inexistente, era "need-text"). --%>
 						          <label for="need-text">Descrição</label>
 						          <div class="need-error"></div>
 						        </div>

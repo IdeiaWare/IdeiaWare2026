@@ -7,9 +7,7 @@
         <title>IdeiaWare - Detalhes da Ideia</title>
     </head>
     <body class="center-align teal darken-1">
-        <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- substitui
-             o botao inline "Voltar" que ficava no meio da pagina (facil de perder,
-             exigia rolar) pelo icone flutuante padrao. Mesmo destino condicional. --%>
+        <%-- UX-VOLTAR-V2: icone flutuante padrao (antes era um botao inline facil de perder). --%>
         <c:choose>
             <c:when test="${sessionScope.lider eq 'S'}">
                 <a href="minha-ideia.jsp" class="btn-floating btn-large teal darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
@@ -74,9 +72,7 @@
                                 Ainda não há colaboradores neste grupo.
                             </div>
                         </c:if>
-                        <%-- M.2 (2026-07-06): o grupo mostra so MEMBROS APROVADOS. Pendentes/
-                             rejeitados nao aparecem como membros (flStatusVinculo null = vinculo
-                             legado = aprovado). --%>
+                        <%-- M.2: o grupo mostra so MEMBROS APROVADOS (pendentes/rejeitados nao aparecem). --%>
                         <c:forEach var="usuario" items="${grupoIdeia}" varStatus="id" >
                             <c:if test="${usuario.flStatusVinculo ne 'P' and usuario.flStatusVinculo ne 'R'}">
                                 <c:choose>
@@ -94,17 +90,13 @@
                             </c:if>
                         </c:forEach>
 
-                        <%-- M.2/M.3 (2026-07-06): LISTA DE ESPERA -- so o lider ve. Quem clicou
-                             "Participar" cai aqui (pendente) ate o lider Aprovar (+) ou Rejeitar
-                             (com motivo obrigatorio). So aprovados viram membros do grupo. --%>
+                        <%-- M.2/M.3: lista de espera, so o lider ve -- Aprovar/Rejeitar (com motivo). --%>
                         <c:if test="${sessionScope.lider eq 'S'}" >
                             <c:set var="temPendente" value="false" />
                             <c:forEach var="pend" items="${grupoIdeia}"><c:if test="${pend.flStatusVinculo eq 'P'}"><c:set var="temPendente" value="true" /></c:if></c:forEach>
                             <c:if test="${temPendente}">
                                 <h6 style="margin-top:20px;">Solicitações de entrada</h6>
-                                <%-- REVISAO 2026-07-07: thead adicionado -- faltava (as demais
-                                     listagens tabulares do projeto sempre tem), perdia contexto
-                                     de coluna pra quem navega via leitor de tela. --%>
+                                <%-- GT-11: thead adicionado (faltava contexto de coluna pra leitor de tela). --%>
                                 <table class="highlight" style="max-width:520px; margin:0 auto;">
                                     <thead>
                                       <tr style="font-weight: bold">

@@ -15,11 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- * M.2/M.3 (2026-07-06): o LIDER rejeita a entrada de alguem no grupo (vinculo P -> R) COM
- * MOTIVO obrigatorio (mesmo padrao de rejeitar uma ideia). So o lider da ideia rejeita, e
- * so vinculos PENDENTES. O rejeitado passa a ver o motivo (em minha-ideia.jsp).
- */
+// M.2/M.3: o LIDER rejeita a entrada de alguem no grupo (P -> R) com motivo obrigatorio.
 @WebServlet(name = "RejeitarMembroServlet", urlPatterns = {"/RejeitarMembroServlet"})
 public class RejeitarMembroServlet extends HttpServlet {
 
@@ -60,11 +56,7 @@ public class RejeitarMembroServlet extends HttpServlet {
             return;
         }
 
-        // REVISAO 2026-07-07: motivo era exigido so no client (onsubmit do modal em
-        // detalhes-ideia.jsp) -- um POST forjado sem "motivo" gravava motivoRejeicaoMembro
-        // vazio, contrariando a garantia que minha-ideia.jsp depende (mostrar o motivo ao
-        // rejeitado). Exige tambem no servidor, mesmo padrao do EditarColaboracaoServlet
-        // pra descricao vazia.
+        // GT-04: motivo era exigido so no client -- exige tambem no servidor.
         String motivo = request.getParameter("motivo");
         if (motivo == null || motivo.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + File.separator + "detalhes-ideia.jsp");

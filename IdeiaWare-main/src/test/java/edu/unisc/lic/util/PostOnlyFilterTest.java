@@ -45,9 +45,7 @@ public class PostOnlyFilterTest {
 		FilterChain chain = mock(FilterChain.class);
 
 		when(request.getMethod()).thenReturn("GET");
-		// REVISAO 2026-07-07: era "/EntrarIdeiaServlet" -- entrou pra lista de escrita
-		// nesta mesma revisao (CSRF-GET, ver get_todosOsPathsDaLista_saoBloqueados).
-		// GerenciarIdeiaServlet e so-leitura (nao insere/edita nada), continua fora.
+		// GT-05: EntrarIdeiaServlet entrou pra lista de escrita; GerenciarIdeiaServlet e so-leitura, continua fora.
 		when(request.getServletPath()).thenReturn("/GerenciarIdeiaServlet");
 
 		filtro.doFilter(request, response, chain);
@@ -79,8 +77,7 @@ public class PostOnlyFilterTest {
 			"/SalvarTextoServlet", "/AddDescricaoServlet", "/FecharGrupoServlet",
 			"/FinalizarColaboracaoServlet", "/EnviarColaboracaoServlet",
 			"/AutoSalvarStoryServlet", "/ExportaStoryServlet", "/SalvarAudioServlet",
-			// REVISAO 2026-07-07 (varredura de servlets): mesmo padrao "doGet chama
-			// processRequest direto" achado nestes 8 -- adicionados a lista.
+			// GT-05/GT-06: mesmo padrao "doGet chama processRequest direto" achado nestes 8.
 			"/EditarColaboracaoServlet", "/CadastroIdeiaServlet", "/EntrarIdeiaServlet",
 			"/AprovarMembroServlet", "/RejeitarMembroServlet",
 			"/UploadArquivoServlet", "/DeletarExportedFileServlet", "/DeletarCanvaexportServlet"

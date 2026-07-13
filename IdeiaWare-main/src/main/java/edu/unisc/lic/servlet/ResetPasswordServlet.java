@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.classes.EnvioEmail;
@@ -16,22 +12,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- *
- * @author lucas
- */
 @WebServlet(name = "ResetPasswordServlet", urlPatterns = {"/ResetPasswordServlet"})
 public class ResetPasswordServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
@@ -57,11 +40,7 @@ public class ResetPasswordServlet extends HttpServlet {
                              "IMPORTANTE: Por motivos de segurança, recomendamos que você altere essa senha temporária assim que fizer o login.\n\n"+
                              "Se você não solicitou essa alteração, por favor, entre em contato imediatamente com o administrador.";
 
-                // RET-14: a senha JA foi trocada no banco (linha acima) antes do envio do
-                // e-mail. Sem este try/catch, uma IOException de rede no SendGrid (nao so
-                // um status de erro, que ja era tratado abaixo) subia sem tratamento ->
-                // pagina de erro generica E o usuario ficava trancado fora da conta, sem
-                // saber a senha nova. Mesma resposta anti-enumeracao (SEC-19) nos dois casos.
+                // RET-14-EMAIL: IOException de rede no SendGrid agora cai na mesma resposta anti-enumeracao.
                 boolean enviado;
                 try {
                     enviado = EnvioEmail.EnviaEmail(usuario.getEmail(), "Redefinição de senha - IdeiaWare", textoEmail);
@@ -69,33 +48,17 @@ public class ResetPasswordServlet extends HttpServlet {
                     enviado = false;
                 }
                 if (!enviado) {
-                    // SEC-19: a resposta ao usuario NAO muda (anti-enumeracao) mesmo se o
-                    // envio falhar -- so registra no log do servidor, ja que a senha ja foi
-                    // trocada no banco e o usuario ficaria sem saber a senha nova.
+                    // SEC-19: resposta ao usuario nao muda (anti-enumeracao); so loga no servidor.
                     System.err.println("ResetPasswordServlet: falha ao enviar e-mail de redefinicao para usuario codigo=" + usuario.getCodigo());
                 }
             }
 
-            // SEC-19 (anti-enumeracao): a resposta e SEMPRE a mesma, exista ou nao o
-            // e-mail -> nao da p/ descobrir quais e-mails estao cadastrados. Antes,
-            // e-mail inexistente mostrava "E-mail nao cadastrado" = vazamento.
-            // PENDENTE (fila de auth/bcrypt): trocar o RESET IMEDIATO por um LINK com
-            // token de expiracao (hoje qualquer um reseta a senha de quem souber o
-            // e-mail = lockout da conta) + rate-limit (anti email-bombing).
+            // SEC-19/K.1: resposta sempre igual (anti-enumeracao); reset por token/link fica pendente.
             request.setAttribute("SucessoRedefinicaoSenha", true);
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -103,28 +66,15 @@ public class ResetPasswordServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

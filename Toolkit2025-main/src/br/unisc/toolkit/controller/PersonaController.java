@@ -78,10 +78,7 @@ public class PersonaController {
 		}	
 	}
 	
-	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET): virou
-	// POST -- token vinha na query string (historico do navegador, logs de proxy,
-	// header Referer; GET tambem e vulneravel a prefetch/crawler). CsrfInterceptor ja
-	// valida qualquer POST incondicionalmente.
+	// TK-26: virou POST (antes, GET com token na query string).
 	@PostMapping("/deletar")
 	public String deletePersona(@RequestParam("personaId") int theId, Model theModel, HttpServletRequest request){
 		// TK-03: exige cookie de ideia; o filtro por ideia_codigo no DAO impede IDOR
@@ -102,11 +99,7 @@ public class PersonaController {
 			// get the customer from our service
 			Persona thePersona = personaService.getPersona(theId, ideiaCodigo);
 
-			// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): getPersona() pode
-			// voltar null (uniqueResult, ex.: persona deletada/id invalido) -- sem este
-			// guard a pagina renderizava "quebrada" (campos em branco) em vez de
-			// redirecionar com erro. Mesmo padrao ja usado em IdeiaController (TK-02)
-			// pro caso analogo.
+			// TK-02: getPersona() pode voltar null (senao, pagina renderizava quebrada em vez de redirecionar).
 			if (thePersona == null) {
 				theModel.addAttribute("pageTitle", "Erro");
 				return "redirect";

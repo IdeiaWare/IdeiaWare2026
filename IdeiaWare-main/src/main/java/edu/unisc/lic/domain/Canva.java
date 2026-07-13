@@ -5,10 +5,6 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-/**
- *
- * @author yanrodrigues
- */
 @SuppressWarnings("serial")
 @Entity
 public class Canva extends GenericDomain {

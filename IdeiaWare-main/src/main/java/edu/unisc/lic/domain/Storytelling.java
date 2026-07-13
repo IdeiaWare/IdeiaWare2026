@@ -10,31 +10,20 @@ import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-/**
- *
- * @author viniciussdsilva
- */
 @SuppressWarnings("serial")
 @Entity
 public class Storytelling extends GenericDomain {
 
-    // Chaves estrangeiras
-    // REVISAO 2026-07-07: era @OneToOne, mas 1 usuario (lider) tem N storytellings (1 por
-    // ideia que ele lidera) -- a relacao e N:1. O DB real ja tem usuario_codigo como KEY
-    // (nao UNIQUE), entao funcionava; mas @OneToOne geraria UNIQUE em create-mode e barraria
-    // o 2o storytelling do mesmo lider. Corrigido p/ @ManyToOne. (O @OneToOne correto e so o
-    // de 'ideia', com unique=true -- 1 storytelling por ideia, K.8 #3.)
+    // GT-07: @ManyToOne (era @OneToOne, mas 1 lider tem N storytellings -- 1 por ideia).
     @ManyToOne
     @JoinColumn(nullable = false)
     private Usuario usuario;
 
-    // K.8 #3 (2026-07-06): unique=true trava no BANCO que uma ideia tenha mais de 1
-    // storytelling -- antes so o @OneToOne em Java "sugeria" isso, sem constraint real.
+    // K.8 #3: unique=true trava no BANCO que uma ideia tenha mais de 1 storytelling.
     @OneToOne
     @JoinColumn(name = "ideia_codigo", nullable = false, unique = true)
     private Ideia ideia;
 
-    // Atributos
     @Column
     @Temporal(TemporalType.TIMESTAMP)
     private Date dtCriacao;
@@ -48,7 +37,6 @@ public class Storytelling extends GenericDomain {
     @Column(columnDefinition = "longtext")
     private String caminhoFinalizado;
 
-    // Construtores
     public Storytelling() {
         usuario = new Usuario();
         ideia = new Ideia();
@@ -60,15 +48,12 @@ public class Storytelling extends GenericDomain {
         this.dtCriacao = dtCriacao;
         this.status = status;
     }
-    
-    // Métodos
 
     @Override
     public String toString() {
         return "Storytelling{" + "usuario=" + usuario + ", ideia=" + ideia + ", dtCriacao=" + dtCriacao + ", dtFinalizacao=" + dtFinalizacao + ", status=" + status + ", caminhoFinalizado=" + caminhoFinalizado + '}';
     }
 
-    // Getters e Setters
     public Usuario getUsuario() {
         return usuario;
     }

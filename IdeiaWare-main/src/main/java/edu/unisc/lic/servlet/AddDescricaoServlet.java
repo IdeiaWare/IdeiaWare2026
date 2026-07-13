@@ -49,10 +49,7 @@ public class AddDescricaoServlet extends HttpServlet {
 
         Ideia ideiaDaColab = colaboracaoIdeia.getIdeia();
 
-        // AUTORIZACAO: so o LIDER da ideia pode "adicionar a descricao" -- essa
-        // restricao so existia na UI (colaboracao.jsp escondia o botao pra quem nao
-        // era lider); o servlet aceitava de qualquer usuario logado, mesmo sem
-        // nenhum vinculo com a ideia.
+        // SRV-IDOR-04: so o LIDER pode "adicionar a descricao" (antes so era restrito na UI).
         Usuario sessionUser = new Usuario();
         sessionUser.setCodigo((Long) codigoUsuarioObj);
         List<IdeiaUsuario> souLider = new IdeiaUsuarioDAO()
@@ -66,11 +63,7 @@ public class AddDescricaoServlet extends HttpServlet {
         Ideia ideia = colaboracaoIdeia.getIdeia();
         LogColaboracaoDAO logColaboracaoDAO = new LogColaboracaoDAO();
 
-        // K.8 #8: "ad" so e setado por ESTE servlet e nunca e lido em nenhum outro lugar
-        // do sistema -- serve como marcador de idempotencia. Sem esta checagem, um
-        // duplo-POST (duplo-clique, retry de rede) na MESMA colaboracao reaplicava o
-        // texto 2x na descricao oficial da ideia. Se ja processada, devolve a descricao
-        // atual (calculada na 1a chamada) em vez de acrescentar de novo.
+        // K.8 #8: flag "ad" evita duplo-POST reaplicar o texto 2x na descricao oficial.
         if ("ad".equals(colaboracaoIdeia.getFlSalvado())) {
             LogColaboracao jaProcessada = logColaboracaoDAO
                     .buscarDescricaoFinal(new LogColaboracao(ideia, new Usuario(), null, null));
@@ -108,10 +101,7 @@ public class AddDescricaoServlet extends HttpServlet {
                 + (descricaoBase.isEmpty() ? "" : " ")
                 + colaboracaoIdeia.getDescricaoIdeiaAtual().trim();
 
-        // SEC-20: a coluna descricao (LogColaboracao/Ideia) e varchar(1500). Cada
-        // "adicionar a descricao" concatenava sem limite -> em colaboracao longa
-        // estourava a coluna (trunca silencioso no MySQL nao-strict / erro no strict).
-        // Limita em 1500 p/ caber sempre.
+        // SEC-20: limita em 1500 (= tamanho da coluna) pra nunca estourar em colaboracao longa.
         if (novaDescricao.length() > 1500) {
             novaDescricao = novaDescricao.substring(0, 1500);
         }

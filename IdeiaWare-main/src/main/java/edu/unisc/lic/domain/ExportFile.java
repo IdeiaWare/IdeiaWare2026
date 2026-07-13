@@ -30,21 +30,17 @@ public class ExportFile {
     @Temporal(TemporalType.TIMESTAMP)
     private java.util.Date created;
 
-    // E1: longtext - o PDF exportado (Persona/POV) é salvo em base64, que ultrapassa
-    // os 255 chars do VARCHAR padrão. Sem isso o base64 era truncado e o PDF
-    // abria corrompido. Alinha com Storytelling.caminhoFinalizado e Canvaexport.file.
+    // E1: longtext -- o PDF exportado (base64) ultrapassa os 255 chars do VARCHAR padrao.
     @Column(name = "file_location", columnDefinition = "longtext", nullable = false)
     private String fileLocation;
 
     @Column(name = "file_type_identification", length = 14, nullable = false)
     private String fileTypeIdentification;
 
-    //Chave estrangeira
     @ManyToOne
-    @JoinColumn(nullable = false) // chave estrangeira é obrigatória
+    @JoinColumn(nullable = false)
     private Ideia ideia;
 
-    //Construtores
     public ExportFile() {
         ideia = new Ideia();
     }
@@ -54,13 +50,11 @@ public class ExportFile {
         this.fileLocation = caminho;
     }
 
-    // Métodos
     @Override
     public String toString() {
         return "ExportedFile{" + "ideia=" + ideia + ", caminho=" + fileLocation + ", tipo=" + fileTypeIdentification + '}';
     }
 
-    // Getters e Setters
     public Ideia getIdeia() {
         return ideia;
     }

@@ -7,7 +7,6 @@ import javax.persistence.Entity;
 
 @Entity
 public class Usuario  extends GenericDomain implements Serializable{
-	//Atributos
     @Column(length = 64, nullable = false)
     private String nome;
 
@@ -20,7 +19,6 @@ public class Usuario  extends GenericDomain implements Serializable{
     @Column(length = 3, nullable = false)
     private String permissao;
 
-    //Métodos Construtores
     public Usuario() {
     }
 
@@ -31,17 +29,11 @@ public class Usuario  extends GenericDomain implements Serializable{
         this.permissao = permissao;
     }
 
-//	@Column(precision = 7, scale = 2, nullable = false) // precision são quantos números ao total, scale é quantos números após a vírgula
-//	private BigDecimal salario;                         // xxxxx,xx
-    
-    //Métodos
     @Override
     public String toString() {
         return "Usuario{" + "nome(" + nome + "), usuario(" + usuario + "), senha(" + senha + "), permissao(" + permissao + ")}";
     }
-    
-    
-    //Getters and Setters
+
     public String getNome() {
         return nome;
     }

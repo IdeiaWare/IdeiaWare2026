@@ -20,15 +20,12 @@
 		<script src="${pageContext.request.contextPath}/resources/js/corejs-typeahead.bundle.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/materialize-tags/js/materialize-tags.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/masonry.pkgd.min.js"></script>
-		<%-- cache-busting: a lib foi trocada (1.2.4 -> 0.5.0-beta3) e o navegador
-		     serviria a antiga do cache. O timestamp forca o download da nova. --%>
+		<%-- EXPORT-CORTADO: cache-busting (?v=timestamp) -- navegador servia lib velha do cache. --%>
 		<script src="${pageContext.request.contextPath}/resources/js/html2canvas.min.js?v=<%= System.currentTimeMillis() %>"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/jspdf.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/enjoyhint.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/custom.tour.js"></script>
-		<%-- cache-busting: o navegador estava servindo o custom.js do CACHE, ignorando
-		     os deploys novos ("altero e nao muda"). O timestamp forca o fetch da versao
-		     atual a cada carga. --%>
+		<%-- TK-44: cache-busting no custom.js tambem (mesmo motivo). --%>
 		<script src="${pageContext.request.contextPath}/resources/js/custom.js?v=<%= System.currentTimeMillis() %>"></script>
 	</body>
 </html>

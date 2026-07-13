@@ -29,16 +29,10 @@ window.onload = function () {
     name: "camadaImagens"
   });
 
-  // STM-09: adiciona a layer ao stage UMA vez aqui (antes era adicionada dentro
-  // de cada drawImage/drawText, com getStage() que nao e confiavel em todas as
-  // versoes do Konva). Garante estado consistente para o drag e para a
-  // exportacao (stage.toDataURL).
+  // STM-09: layer adicionada ao stage UMA vez aqui (antes era por-draw, com getStage() instavel no Konva).
   stage.add(layer);
 
-  // STM-16: cada figura nova nasce numa celula de uma GRADE (em vez de todas no
-  // centro, empilhadas). O contador idxPos e sincrono, entao cliques rapidos nao
-  // caem na mesma posicao. posOcupadas guarda as posicoes ja usadas (carregadas
-  // do banco + adicionadas) para a proxima figura desviar e nao nascer por cima.
+  // STM-16: figuras nascem em GRADE (idxPos sincrono evita 2 cliques rapidos na mesma celula).
   var idxPos = 0;
   var posOcupadas = [];
   function proximaPosicao() {
@@ -55,7 +49,7 @@ window.onload = function () {
       return Math.abs(p.x - px) < 130 && Math.abs(p.y - py) < 130;
     });
   }
-  // STM-21: pega a proxima celula da grade que esteja realmente livre.
+  // STM-21: pega a proxima celula livre (desvia das ja ocupadas).
   function proximaPosicaoLivre() {
     var p, tentativas = 0;
     do {
@@ -74,9 +68,7 @@ window.onload = function () {
       if (elemento.tipo === "IMG") {
         var imageObj = new Image();
         imageObj.onload = function () {
-          // STM-19: usa a posicao salva diretamente (nao reorganiza o layout).
-          // STM-21: registra a posicao ocupada para que figuras NOVAS adicionadas
-          // depois desviem dela (proximaPosicaoLivre) em vez de nascer por cima.
+          // STM-21: registra a posicao ocupada pra figuras novas desviarem dela.
           posOcupadas.push({ x: elemento.x, y: elemento.y });
           drawImage(this, stage, {
             layer: layer,
@@ -120,9 +112,7 @@ window.onload = function () {
       hf.innerHTML = hf.download;
       li.appendChild(au);
       li.appendChild(hf);
-      // REVISAO 2026-07-08 (varredura JS, achado BAIXA): era acesso implicito global
-      // (window.recordingslist, valido por "named access" do id no HTML, mas fragil/
-      // nao-idiomatico) -- trocado por getElementById explicito.
+      // JS-AJAX-ERR: getElementById explicito (era acesso implicito global fragil).
       document.getElementById('recordingslist').appendChild(li);
     });
   }).fail(function () {
@@ -180,13 +170,8 @@ window.onload = function () {
   // STR-11: expõe salvarProgresso globalmente para que controleAdd.js possa chamá-la
   window.salvarProgresso = salvarProgresso;
 
-  // (proximaPosicao foi movida para o topo do onload — STM-16 — com contador
-  //  sincrono, para nao depender de layer.getChildren().length que tinha race.)
-
   // -------FORMAS--------
   function adicionaForma(forma, corForma) {
-    // STM-21: pega a proxima celula livre (desviando das figuras ja existentes),
-    // para a nova forma nao nascer por cima das que ja estao no quadro.
     var pos = proximaPosicaoLivre();
     var dadosCompletos = {
       tipo: forma + corForma,
@@ -242,12 +227,7 @@ window.onload = function () {
   // -------RESIZE--------
   $('#btnModificar').click(function () {
     var id = $('#imgaemIdResize').val();
-    // REVISAO 2026-07-08 (varredura JS, achado ALTA): sem validacao nenhuma antes.
-    // Campo vazio -> Number('')===0 -> figura virava 0x0 (invisivel) E ISSO ERA SALVO
-    // AUTOMATICO no servidor -- como fica invisivel, nao da pra clicar de novo pra
-    // corrigir (dado corrompido de forma NAO RECUPERAVEL pela UI). Campo com letra ->
-    // NaN, quebrava o desenho. Valida >0 e !isNaN ANTES de aplicar/salvar; type="number"
-    // min="10" no JSP (storytelling.jsp) como 1a barreira.
+    // TK-33: valida >0 e !isNaN ANTES de aplicar/salvar (antes, campo vazio salvava figura 0x0 invisivel e irrecuperavel).
     var novaLargura = Number($('#LarguraId').val());
     var novaAltura = Number($('#AlturaId').val());
     if (!novaLargura || !novaAltura || isNaN(novaLargura) || isNaN(novaAltura) || novaLargura <= 0 || novaAltura <= 0) {
@@ -258,8 +238,7 @@ window.onload = function () {
       for (var j = 0; j < stage.children[i].children.length; j++) {
         var node = stage.children[i].children[j];
         if (node.attrs.id == id) {
-          // STM-23: usa os setters width()/height() com Number (antes atribuia a
-          // string do input direto em attrs, que nao redimensionava de fato).
+          // STM-23: setters width()/height() com Number (antes atribuia string direto em attrs, sem efeito).
           node.width(novaLargura);
           node.height(novaAltura);
           stage.draw();
@@ -285,13 +264,7 @@ window.onload = function () {
     salvarProgresso();
   });
 
-  // STR-15: removido o salvarProgresso() daqui (rodava a CADA clique em "inserir
-  // arquivo", mesmo SEM nenhum arquivo escolhido -- overlay bloqueante + alert
-  // "Salvo com sucesso!" toda vez, sem relacao com o upload em si). Nao precisa:
-  // toda mudanca no quadro ja persiste sozinha na hora que acontece (InserirForma/
-  // InserirTexto ao criar, AutoSalvarStoryServlet no dragend e no resize -- mesmo
-  // raciocinio do STM-22/STR-11 em controleAdd.js). O upload em si (form normal,
-  // #b1_1 e type="submit") continua funcionando igual.
+  // STR-15: salvarProgresso() removido do fluxo de upload (rodava a CADA clique, mesmo sem arquivo escolhido).
 
   // -------FORMAS (botões)--------
   // STR-14: removido handler morto #b2_00 (id não existe no JSP)
@@ -373,9 +346,7 @@ window.onload = function () {
       hf.innerHTML = hf.download;
       li.appendChild(au);
       li.appendChild(hf);
-      // REVISAO 2026-07-08 (varredura JS, achado BAIXA): era acesso implicito global
-      // (window.recordingslist, valido por "named access" do id no HTML, mas fragil/
-      // nao-idiomatico) -- trocado por getElementById explicito.
+      // JS-AJAX-ERR: getElementById explicito (era acesso implicito global fragil).
       document.getElementById('recordingslist').appendChild(li);
     }, "audio/wav");
   }, false);
@@ -385,9 +356,6 @@ window.onload = function () {
   });
 
   // -------ÁUDIO INIT----
-  // REVISAO 2026-07-08 (varredura JS, achado BAIXA): as 3 var abaixo sombreavam sem
-  // nenhum efeito real as globais de mesmo nome em controleAudio.js (Initialize/
-  // startRecording/stopRecording fecham sobre AS GLOBAIS, nao sobre estas locais) --
-  // codigo morto confuso, removido.
+  // TK-32b: 3 variaveis que sombreavam sem efeito as globais de controleAudio.js foram removidas daqui.
   Initialize();
 };

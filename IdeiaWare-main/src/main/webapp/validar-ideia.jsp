@@ -99,10 +99,7 @@
           </ul>
         </a>
         <ul id="nav-mobile" class="right hide-on-med-and-down" >
-          <%-- UX (2026-07-06, pedido do usuario): dropdown "Gestor" removido -- os 2
-               links (Gerenciar Ideias / Validar Ideias) eram redundantes aqui: a pagina
-               ja E "Validar Ideias" (o icone flutuante de Voltar cobre a navegacao) e
-               "Gerenciar Ideias" ja fica acessivel a partir de la. --%>
+          <%-- UX-COLAB-HEADER: dropdown "Gestor" removido (links redundantes com a propria pagina). --%>
           <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
         </ul>
 
@@ -116,9 +113,6 @@
         <li><a class="btn-floating tooltipped teal lighten-1" href="cadastro-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Cadastrar nova ideia" aria-label="Cadastrar nova ideia"><i class="material-icons">add</i></a></li>
         <li><a class="btn-floating tooltipped teal lighten-1" href="minha-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Minhas ideias" aria-label="Minhas ideias"><i class="material-icons">account_box</i></a></li>
         <li><a class="btn-floating tooltipped  teal lighten-1" href="lista-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Outras ideias" aria-label="Outras ideias"><i class="material-icons">web_asset</i></a></li>
-          <%-- UX (2026-07-06, pedido do usuario): "Validar ideias"/"Gerenciar ideias"
-               removidos daqui pelo mesmo motivo do dropdown "Gestor" acima -- redundante
-               (a pagina ja E Validar Ideias, e o Voltar cobre a navegacao). --%>
       </ul>
     </div>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -140,9 +134,7 @@
           <jsp:setProperty name="ideiaRej" property="status" value="RE"/>
           <c:set var="ideiasRejeitadas" value="${ideiaDAO.listarParametro(ideiaRej)}" />
 
-          <%-- UX-01: estado vazio com mensagem contextual -- a lista (ul.collapsible)
-               so pode renderizar quando ha ideias pendentes; um <ul> vazio ainda e
-               estilizado pelo Materialize e aparecia como uma linha fininha residual. --%>
+          <%-- UX-01/UX-LINHA-FININHA: mensagem contextual (ul vazio ainda era estilizado pelo Materialize). --%>
           <c:if test="${empty ideiasPendentes}">
             <div class="center-align grey-text" style="padding: 40px 20px;">
               <i class="material-icons" style="font-size: 3rem; display:block;">done_all</i>
@@ -156,9 +148,7 @@
             <c:forEach var="ideia" items="${ideiasPendentes}" varStatus="id">
                 <li>
                   <div class="collapsible-header">
-                    <%-- M.5 (2026-07-06): cabecalho so com Usuario + Titulo (descricao removida
-                         daqui, ja aparece no corpo ao clicar no +). Titulo (max 50) quebra em
-                         vez de cortar; sem a descricao ao lado nao ha mais o "merge" visual. --%>
+                    <%-- M.5: cabecalho so com Usuario + Titulo (descricao ja aparece no corpo ao expandir). --%>
                     <span style="width: 30%; text-align: left;" class="truncate"><c:out value="${ideia.usuario.nome}"/></span>
                     <span style="width: 65%; text-align: left; white-space: normal; word-break: break-word;"><c:out value="${ideia.titulo}"/></span>
                     <i class="material-icons" style="width: 5%; text-align: right;">add</i>

@@ -11,11 +11,7 @@ import javax.persistence.Table;
 @Table(name = "persona_pov")
 public class PersonaPointOfView {
 
-	// TK-07 (fix 2026-06-17): a PK real da tabela persona_pov e o surrogate 'id'
-	// (auto_increment), NAO persona_id — uma persona aparece em varios POV, entao
-	// persona_id se repete. Antes o @Id estava em persona_id: mapeamento errado
-	// (fragil e impedia o hbm2ddl/auto-create de gerar a tabela certa). Agora o @Id
-	// e o id gerado pelo banco; persona_id/pov_id/ideia_codigo viram colunas comuns.
+	// @Id no surrogate 'id' (auto_increment), NAO persona_id (que se repete -- 1 persona, N POVs).
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")

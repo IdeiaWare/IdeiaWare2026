@@ -11,29 +11,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author lucas
- */
 @WebServlet(name = "PermissaoUsuarioServlet", urlPatterns = {"/PermissaoUsuarioServlet"})
 public class PermissaoUsuarioServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
 
-        // RKM-01: sem esta checagem, qualquer usuário logado podia se promover a
-        // administrador. Só um admin pode alterar permissões de usuários.
+        // RKM-01: so admin altera permissao (antes, qualquer logado se promovia a admin).
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("codigoUsuario") == null) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -75,45 +61,22 @@ public class PermissaoUsuarioServlet extends HttpServlet {
         request.getRequestDispatcher("gerenciar-usuarios.jsp").forward(request, response);
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // SEC-18: POST-only. GET nao altera permissao (fecha a escalada de privilegio
-        // por CSRF via GET: um admin com link malicioso promoveria um atacante a adm).
+        // SEC-18: POST-only (antes, GET dava pra escalar privilegio via CSRF/link).
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

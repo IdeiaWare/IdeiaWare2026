@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.dao.IdeiaDAO;
@@ -19,21 +14,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- *
- * @author USER
- */
 public class EntrarIdeiaServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -62,73 +44,42 @@ public class EntrarIdeiaServlet extends HttpServlet {
 
         IdeiaUsuarioDAO ideiaUsuarioDAO = new IdeiaUsuarioDAO();
 
-        // COL-DUP: nao cria vinculo DUPLICADO. Antes, clicar "Entrar" 2x inscrevia o
-        // mesmo usuario na mesma ideia duas vezes (membro repetido no grupo).
+        // COL-DUP: nao cria vinculo duplicado (antes, "Entrar" 2x inscrevia 2x).
         List<IdeiaUsuario> jaVinculado = ideiaUsuarioDAO
                 .listarParametro(new IdeiaUsuario(usuario, ideia, null));
         if (jaVinculado != null && !jaVinculado.isEmpty()) {
-            // UX: apos participar, leva o usuario direto p/ "Minhas Ideias" (onde a ideia
-            // agora aparece), em vez de voltar p/ a listagem de outras ideias.
             response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
             return;
         }
 
-        // M.2 (2026-07-06): "Participar" nao entra mais direto no grupo -- entra na LISTA
-        // DE ESPERA (flStatusVinculo = P). O lider aprova/rejeita em detalhes-ideia.jsp
-        // enquanto o grupo esta aberto (AprovarMembroServlet/RejeitarMembroServlet). So
-        // aprovados viram membros efetivos e entram na escolha de lider ao fechar o grupo.
+        // M.2: "Participar" entra na LISTA DE ESPERA (P), lider aprova/rejeita depois.
         IdeiaUsuario ideiaUsuario = new IdeiaUsuario(usuario, ideia, "N");
         ideiaUsuario.setFlStatusVinculo(edu.unisc.lic.classes.StatusIdeia.VINCULO_PENDENTE);
         ideiaUsuario.setDtInscricao();
         try {
             ideiaUsuarioDAO.salvar(ideiaUsuario);
         } catch (org.hibernate.exception.ConstraintViolationException ex) {
-            // K.8 #2: 2 cliques quase-simultaneos em "Entrar" passam os 2 pela checagem
-            // "jaVinculado" acima antes de qualquer um commitar -- a UNIQUE do banco
-            // (uk_ideiausuario_par) barra o 2o insert. O resultado pro usuario e o mesmo
-            // de ja estar vinculado: segue normalmente pra minha-ideia.jsp.
+            // K.8 #2: 2 cliques quase-simultaneos -- UNIQUE do banco barra o 2o insert, segue normal.
         }
 
         response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

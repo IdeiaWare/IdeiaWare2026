@@ -22,10 +22,7 @@ public class IdeiaController {
 	AdminCookies cookie = new AdminCookies();
 	
 	
-	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET): virou
-	// POST -- este era o mais grave dos 9 porque o link fica no header, presente em
-	// TODA pagina do modulo. Mesmo motivo dos outros: token vinha na query string
-	// (historico do navegador, logs de proxy, header Referer, prefetch/crawler).
+	// TK-26: virou POST -- o mais grave dos 9, link fica no header presente em TODA pagina do modulo.
 	@PostMapping("/finalize")
 	public String finalizeIdeia(HttpServletRequest request){
 		if(cookie.getCookieIdeiaCodigo(request) != null){

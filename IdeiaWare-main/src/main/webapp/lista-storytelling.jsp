@@ -75,14 +75,9 @@
           <jsp:useBean id="iu"     class="edu.unisc.lic.domain.IdeiaUsuario" />
           <jsp:setProperty name="iu" property="usuario" value="${usuarioClasse}" />
 
-          <%--
-            STR-09: listarTodasIdeiasStorytelling inclui líderes e participantes.
-            Antes apenas líderes conseguiam ver o storytelling nesta lista.
-          --%>
+          <%-- STR-09: inclui lideres e participantes (antes, so lideres viam o storytelling aqui). --%>
           <c:set var="ideiasStory" value="${iuDAO.listarTodasIdeiasStorytelling(iu)}" />
-          <%-- UX: <ul class="collapsible"> so aparece com conteudo -- vazia, o
-               Materialize ainda desenha a borda dela (uma linha fina sem nada
-               dentro), por cima da mensagem de estado vazio. --%>
+          <%-- UX-01: collapsible so aparece com conteudo (vazia, o Materialize desenha a borda mesmo assim). --%>
           <c:if test="${not empty ideiasStory}">
           <ul class="collapsible" data-collapsible="accordion">
             <c:forEach var="iuItem" items="${ideiasStory}">

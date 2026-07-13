@@ -1,9 +1,3 @@
-<%-- 
-    Document   : lista-caixa-de-ferramentas
-    Created on : Nov 3, 2017, 7:18:13 PM
-    Author     : Gustavo Armborst Guedes de Azevedo
---%>
-
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page import="edu.unisc.lic.dao.UsuarioDAO"%>
 <%@page import="edu.unisc.lic.domain.Usuario"%>
@@ -122,9 +116,7 @@
           <jsp:setProperty name="ideia" property="usuario" value="${usuarioClasse}" />
           <jsp:useBean id="data" class="edu.unisc.lic.classes.Data" />
           <c:set var="ideiasCaixa" value="${ideiaDAO.listarCaixa(ideia)}" />
-          <%-- UX: <ul class="collapsible"> so aparece com conteudo -- vazia, o
-               Materialize ainda desenha a borda dela (uma linha fina sem nada
-               dentro), por cima da mensagem de estado vazio. --%>
+          <%-- UX-01: collapsible so aparece com conteudo (vazia, o Materialize desenha a borda mesmo assim). --%>
           <c:if test="${not empty ideiasCaixa}">
           <ul class="collapsible" data-collapsible="accordion">
             <c:forEach var="caixa" items="${ideiasCaixa}" varStatus="id">

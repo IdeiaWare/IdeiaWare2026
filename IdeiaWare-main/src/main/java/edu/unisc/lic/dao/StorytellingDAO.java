@@ -7,19 +7,8 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 
-/**
- *
- * @author viniciussdsilva
- */
 public class StorytellingDAO extends GenericDAO<Storytelling> {
 
-    /**
-     * Busca parâmetros do storytelling, e você pode escolher os atributos
-     * usuario.codigo, ideia.codigo e status
-     *
-     * @param st
-     * @return
-     */
     public List<Storytelling> listarParametro(Storytelling st) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 

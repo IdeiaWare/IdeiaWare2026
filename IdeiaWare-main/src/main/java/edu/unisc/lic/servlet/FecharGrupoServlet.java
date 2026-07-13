@@ -50,8 +50,7 @@ public class FecharGrupoServlet extends HttpServlet {
             return;
         }
 
-        // AUTORIZACAO: so o LIDER da ideia pode fechar o grupo / transferir a lideranca.
-        // Antes, qualquer um (ate sem login) regredia o status com um POST do codigo.
+        // SEC-13: so o LIDER fecha o grupo / transfere lideranca (antes, qualquer POST regredia).
         Usuario sessionUser = new Usuario();
         sessionUser.setCodigo((Long) codigoUsuario);
         List<IdeiaUsuario> souLider = new IdeiaUsuarioDAO()
@@ -73,16 +72,11 @@ public class FecharGrupoServlet extends HttpServlet {
             return;
         }
 
-        // K.8 #1: as escritas (ideia, vinculos de lideranca, log) sao decididas aqui em
-        // Java a partir de leituras, mas so sao PERSISTIDAS no final, todas juntas, via
-        // fecharGrupoAtomico -- antes cada editar()/salvar() abria sua propria transacao.
+        // K.8 #1: escritas so sao PERSISTIDAS no final, todas juntas, via fecharGrupoAtomico.
         List<IdeiaUsuario> vinculosParaAtualizar = new ArrayList<>();
         Usuario liderFinal = list.get(0).getUsuario();
 
-        // M.2 (2026-07-06): todos os vinculos da ideia. Ao fechar, os PENDENTES/REJEITADOS
-        // (quem nao foi aprovado) sao REMOVIDOS -- sobram so os aprovados, e as checagens de
-        // participacao ja existentes (Canva/Caixa/Storytelling/etc.) seguem valendo sem
-        // filtro de status. So um membro aprovado pode virar lider.
+        // M.2: ao fechar, vinculos PENDENTES/REJEITADOS sao removidos -- sobram so os aprovados.
         List<IdeiaUsuario> todos = ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(null, ideia, null));
         List<IdeiaUsuario> vinculosParaRemover = new ArrayList<>();
         if (todos != null) {
@@ -104,11 +98,7 @@ public class FecharGrupoServlet extends HttpServlet {
                 return;
             }
             if (list.get(0).getUsuario().getCodigo() != radioId && todos != null) {
-                // M.2 (2026-07-06): acha o novo lider entre os APROVADOS ANTES de mexer em
-                // nada. So promove um membro aprovado (o radio na tela ja so mostra
-                // aprovados; reforca aqui contra POST forjado com id de pendente/rejeitado).
-                // Antes o codigo rebaixava o lider antigo PRIMEIRO e so depois procurava o
-                // novo -- se o radio apontasse pra um invalido, a ideia ficava SEM LIDER.
+                // M.2: acha o novo lider entre os APROVADOS antes de rebaixar o antigo (senao, sem lider).
                 IdeiaUsuario novoLider = null;
                 for (IdeiaUsuario iU : todos) {
                     String st = iU.getFlStatusVinculo();

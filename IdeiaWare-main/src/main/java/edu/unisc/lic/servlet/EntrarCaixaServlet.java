@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.classes.AssinaturaCaixa;
@@ -20,29 +15,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author Gustavo Armborst Guedes de Azevedo
- */
 public class EntrarCaixaServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
 
-        // SEC-23: exige login + que o usuario seja PARTICIPANTE da ideia, e ASSINA o
-        // ideiaId (HMAC). O Toolkit so aceita um ideiaId assinado aqui -> o cookie deixa
-        // de ser forjavel (antes qualquer um setava ideiaId=N na mao e entrava na Caixa).
+        // SEC-23: exige login + participacao, e ASSINA o ideiaId (HMAC) -- antes, cookie forjavel.
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("codigoUsuario") == null) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -76,8 +56,7 @@ public class EntrarCaixaServlet extends HttpServlet {
         String host = request.getServerName();
         int port = request.getServerPort();
 
-        // Cookies sem dominio explicito -> valem para o host atual; lidos pelo Toolkit
-        // (mesmo host). setPath("/") cobre /LIC e /toolkit.
+        // setPath("/") cobre /LIC e /toolkit (mesmo host le os 2).
         Cookie ck = new Cookie("ideiaId", String.valueOf(ideiaId));
         ck.setMaxAge(-1);
         ck.setPath("/");
@@ -95,53 +74,25 @@ public class EntrarCaixaServlet extends HttpServlet {
         ck2.setPath("/");
         response.addCookie(ck2);
 
-        // INFRA-11: usa o scheme da requisicao (http em dev, https em prod).
-        // ROUTE-404-01: redirecionava pra "/toolkit" nu, dependendo da cadeia fragil
-        // welcome-file (index.jsp) -> scriptlet "response.sendRedirect(persona/lista)"
-        // pra chegar numa rota de verdade -- o DispatcherServlet do Spring esta mapeado
-        // em "/" e nao tem NENHUM controller respondendo por "/" exata, entao qualquer
-        // falha nessa cadeia (welcome-file nao resolvido, JSP nao compilado, etc.) da
-        // 404 direto. Aponta direto pra rota real, sem depender de nada intermediario.
+        // INFRA-11/ROUTE-404-01: scheme da requisicao + rota real direto (nao mais "/toolkit" nu).
         response.sendRedirect(request.getScheme() + "://" + host + ":" + port + "/toolkit/persona/lista");
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

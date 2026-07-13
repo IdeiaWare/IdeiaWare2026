@@ -23,10 +23,7 @@ public class PersonaDAOImpl implements PersonaDAO {
 		// get the current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 		
-		// create a query ... sort by name
-		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): ideia_codigo -> ideiaCodigo
-		// (nome de propriedade, nao de coluna -- funcionava por coincidencia, mesmo
-		// motivo documentado em EmpathyDAOImpl).
+		// TK-HQL: ideiaCodigo (propriedade, nao coluna) -- mesmo motivo do EmpathyDAOImpl.
 		Query<Persona> theQuery =
 				currentSession.createQuery("from Persona where ideiaCodigo=:IdeiaCodigo order by name", Persona.class);
 		theQuery.setParameter("IdeiaCodigo", ideiaCodigo);
@@ -43,8 +40,7 @@ public class PersonaDAOImpl implements PersonaDAO {
 		// get current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 
-		// SEC-24 (IDOR de escrita): num UPDATE (id != 0), so salva se a persona existente
-		// for da MESMA ideia -> bloqueia sobrescrever persona de outra ideia chutando o id.
+		// SEC-24: num UPDATE, so salva se a persona existente for da MESMA ideia (IDOR de escrita).
 		if (thePersona.getId() != 0) {
 			Persona existente = currentSession.get(Persona.class, thePersona.getId());
 			if (existente == null || existente.getIdeiaCodigo() == null
@@ -63,8 +59,7 @@ public class PersonaDAOImpl implements PersonaDAO {
 		// get the current hibernate sesion
 		Session currentSession = sessionFactory.getCurrentSession();
 
-		// TK-03: filtra por ideia_codigo para impedir deletar persona de outra ideia (IDOR)
-		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): ideia_codigo -> ideiaCodigo.
+		// TK-03/TK-HQL: filtra por ideiaCodigo (propriedade, nao coluna) pra impedir deletar de outra ideia.
 		Query theQuery = currentSession.createQuery("delete from Persona where id=:ID and ideiaCodigo=:ideiaCodigo");
 		theQuery.setParameter("ID", theId);
 		theQuery.setParameter("ideiaCodigo", ideiaCodigo);
@@ -78,14 +73,11 @@ public class PersonaDAOImpl implements PersonaDAO {
 		// get the curent hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 		
-		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): persona_id/ideia_codigo
-		// -> id/ideiaCodigo (nomes de propriedade, nao de coluna).
+		// TK-HQL: id/ideiaCodigo (propriedade, nao coluna).
 		Query<Persona> theQuery =
 				currentSession.createQuery("from Persona where id=:PersonaId and ideiaCodigo=:IdeiaCodigo order by name", Persona.class);
 		theQuery.setParameter("PersonaId", theId);
 		theQuery.setParameter("IdeiaCodigo", ideiaCodigo);
-		// now retrieve/read from database using the primary key
-		//Persona thePersona = currentSession.get(Persona.class, theId);
 
 		// TK-02: uniqueResult retorna null em vez de lancar NoResultException.
 		Persona thePersona = theQuery.uniqueResult();

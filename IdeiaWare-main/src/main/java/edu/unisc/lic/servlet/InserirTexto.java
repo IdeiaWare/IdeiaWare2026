@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.unisc.lic.servlet;
 
 import com.google.gson.Gson;
@@ -20,21 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author Vinicius Santiago
- */
 public class InserirTexto extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("application/json");
@@ -51,7 +33,6 @@ public class InserirTexto extends HttpServlet {
         }
         Storytelling st = new StorytellingDAO().buscar((long) storyId);
 
-//        ElementosStorytelling est = new ElementosStorytelling(st, "TXT", "texto", x, y, 0, 0);
         ElementosStorytelling est = new ElementosStorytelling();
         est.setStorytelling(st);
         est.setX(data.get("x").getAsDouble());
@@ -63,52 +44,27 @@ public class InserirTexto extends HttpServlet {
         est.setCaminho("texto");
         est.setTipo("TXT");
         
-        // STM-19: salvar() ja preenche o codigo gerado na entidade. Removido o
-        // 'ultimoAdicionado', que com adicoes rapidas retornava o codigo de outro
-        // elemento (race) -> textos/figuras com id trocado, que nao apagavam e
-        // embaralhavam o salvamento.
+        // STM-19: salvar() ja preenche o id em 'est' (o antigo ultimoAdicionado() tinha race).
         new ElementosStorytellingDAO().salvar(est);
 
         response.getWriter().write(new Gson().toJson(est));
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

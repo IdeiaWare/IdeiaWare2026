@@ -1,11 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%-- Tela de confirmacao da finalizacao do Storytelling (espelha canvas-finalizado.jsp
-     e finalize.jsp do Toolkit): exportar o Storytelling ENCERRA o modulo (status -> CF),
-     entao em vez do alert() + corte seco mostra um cartao de sucesso e deixa a navegacao
-     a cargo do usuario. Padroniza os 3 modulos que encerram: cada um com a cor do seu
-     PROPRIO modulo (aqui indigo, igual storytelling.jsp) -- nao mais o teal do
-     colaborativo. Header proprio (nao usa header/headerCookies.jsp nem headerCookies_2.jsp,
-     que carregam JS pesado do editor Konva que esta tela nao precisa). --%>
+<%-- Tela de confirmacao da finalizacao do Storytelling (espelha canvas-finalizado.jsp).
+     Header proprio (nao usa headerCookies.jsp/headerCookies_2.jsp, que carregam JS pesado do Konva). --%>
 <%@page contentType="text/html" pageEncoding="UTF-8" session="true"%>
 <%@page import="edu.unisc.lic.dao.UsuarioDAO"%>
 <%@page import="edu.unisc.lic.domain.Usuario"%>
@@ -30,15 +25,25 @@
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<link type="text/css" rel="stylesheet" href="css/materialize.min.css" media="screen,projection"/>
 		<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+		<%-- FONT-TITLE-APP-01: fonte Condiment + .title-app (faltava, header proprio caia no fallback Arial). --%>
+		<link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
+		<style>.title-app { color:#fff; font-family: 'Condiment'; font-size: 42px; line-height: 25px; }</style>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	</head>
 	<body class="center-align">
 		<nav>
 			<div class="nav-wrapper indigo lighten-1 z-depth-2">
 				<a href="index.jsp" class="brand-logo" style="left: 50px">
-					<img style="display:inline-block; vertical-align:middle; width:36px; margin-right:8px;" src="imagens/idea.png" alt="IdeiaWare"/>IdeiaWare
+					<ul id="nav-logo" style="width:300px" class="left hide-on-med-and-down">
+						<div class="row" style="padding-left: 10px">
+							<div class="col s1 indigo lighten-3" style="width:50px; height:50px; margin-top:5px; padding:6px; border-radius:100%; box-sizing:border-box;">
+								<img style="display:block; width:62%; margin-left:7px; margin-top:-1px" src="imagens/idea.png" alt="IdeiaWare"/>
+							</div>
+							<h1 class="col s4 center-align title-app">IdeiaWare</h1>
+						</div>
+					</ul>
 				</a>
-				<ul id="nav-logo" class="right hide-on-med-and-down">
+				<ul id="nav-links" class="right hide-on-med-and-down">
 					<li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
 				</ul>
 			</div>

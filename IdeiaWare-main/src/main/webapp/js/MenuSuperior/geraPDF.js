@@ -7,25 +7,11 @@ function geraPDF(stage) {
 
   $("#overlay").attr('style', 'display: block !important');
 
-  // STM-11: no Konva 1.6.5 o Stage.toDataURL() e ASSINCRONO (compoe as varias
-  // layers via callback). O uso sincrono retornava undefined e o PDF saia
-  // vazio/com erro. Usar o callback funciona tanto no caso sincrono quanto no
-  // assincrono.
-  // STM-24: pixelRatio:1 evita que telas retina (devicePixelRatio 2) gerem uma
-  // imagem com o dobro/quadruplo de pixels, inflando o base64.
+  // STM-11: Stage.toDataURL() e ASSINCRONO no Konva 1.6.5 (uso sincrono retornava undefined).
   stage.toDataURL({
     pixelRatio: 1,
     callback: function (dataURL) {
-      // STM-24: ANTES o quadro era exportado como PNG sem compressao e jogado
-      // direto no PDF (addImage(...,'PNG',0,0)). O base64 do PNG de um quadro
-      // inteiro chega a varios MB e estourava o max_allowed_packet do MySQL ->
-      // o ExportaStoryServlet dava 500 e o usuario via "Erro ao exportar o PDF".
-      // Aqui desenhamos o PNG (transparente) sobre um canvas BRANCO e
-      // reexportamos como JPEG comprimido:
-      //  - some a transparencia (JPEG nao tem alpha, evita fundo preto);
-      //  - o base64 fica MUITO menor, cabendo no pacote do banco;
-      //  - a imagem e escalada/paginada para caber na pagina A4 (antes saia
-      //    cortada quando o quadro era maior que a pagina).
+      // STM-24: desenha sobre canvas BRANCO + reexporta em JPEG (PNG cru estourava o max_allowed_packet do MySQL).
       var img = new Image();
       img.onload = function () {
         var canvas = document.createElement('canvas');
@@ -67,10 +53,7 @@ function geraPDF(stage) {
           salvaPDF(reader.result);
         };
       };
-      // REVISAO 2026-07-08 (varredura JS, achado MEDIA): img.onload tratava so o
-      // sucesso -- se a imagem gerada pelo canvas falhar por qualquer motivo (ex.:
-      // dataURL invalido), onload nunca dispara e o overlay de loading (ligado na
-      // linha acima) ficava bloqueando a tela pra sempre, sem mensagem nenhuma.
+      // TK-38: img.onerror (antes so tratava sucesso -- falha deixava o overlay travado pra sempre).
       img.onerror = function () {
         $("#overlay").attr('style', 'display: none !important');
         alert('Erro ao gerar o PDF :(');
@@ -88,10 +71,7 @@ function salvaPDF(base64data) {
     processData: false,
     data: base64data,
     success: function () {
-      // UX: exportar ENCERRA o modulo -> vai para a pagina de sucesso (que leva a
-      // "Minhas Ideias"), padronizando com Canvas (canvas-finalizado) e Caixa
-      // (finalize.jsp). Antes: alert() bloqueante + corte seco para minha-ideia.
-      // STR-12: URL relativa — funciona em qualquer contexto de deploy
+      // NAV-FINALIZE/STR-12: pagina de sucesso (URL relativa), padronizado com Canvas/Caixa.
       window.location.href = "storytelling-finalizado.jsp";
     },
     error: function () {

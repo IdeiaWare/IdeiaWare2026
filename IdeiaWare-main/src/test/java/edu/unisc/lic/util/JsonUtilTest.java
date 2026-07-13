@@ -10,11 +10,7 @@ import edu.unisc.lic.domain.ColaboracaoIdeia;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * REVISAO 2026-07-07 (varredura de servlets): JsonUtil.GSON_SEM_SENHA nunca deve incluir
- * Usuario.senha (hash bcrypt) na saida JSON, mesmo quando o Usuario aparece aninhado dentro
- * de outra entidade (ex.: ColaboracaoIdeia.usuario, o caso real do vazamento encontrado).
- */
+// GT-01: JsonUtil.GSON_SEM_SENHA nunca inclui Usuario.senha, mesmo aninhado (ex.: ColaboracaoIdeia.usuario).
 public class JsonUtilTest {
 
 	@Test

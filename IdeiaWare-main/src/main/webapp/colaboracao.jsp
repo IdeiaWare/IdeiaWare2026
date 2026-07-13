@@ -11,10 +11,7 @@
       <div class="container">
         <div style="padding: 10px;" class="white">
           <h1>Colaboração da Ideia</h1>
-          <%-- UX-VOLTAR-V2: icone circular flutuante no canto superior esquerdo (fixed),
-               fora do fluxo normal da pagina -- NAO mexe no header/nav compartilhado
-               (headerCookies.jsp/footer.jsp), pra nao repetir o bug de margin-collapse
-               do [UX-02] revertido antes. Destino contextual igual antes. --%>
+          <%-- UX-VOLTAR-V2: icone flutuante proprio (nao mexe no header compartilhado, ver L.1). --%>
           <c:choose>
             <c:when test="${sessionScope.isRetencao eq false}">
               <a href="minha-ideia.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
@@ -74,24 +71,14 @@
             <br/>
           </div>
 
-          <%-- UX-01: mensagem de estado vazio com icone, tabela substituida por inteiro
-               (nao mais um <br><h5> dentro da propria tag <table>). TEST-04 (2026-07-06):
-               achado real testando -- a 1a versao deste fix tirava a <table> do DOM via
-               c:if quando vazia, mas o JS de "Enviar colaboracao"/polling faz
-               appendTo("#tabelaColab") em tempo real (sem reload); numa ideia nova (0
-               colaboracoes), o elemento nao existia ainda no DOM e o appendTo falhava em
-               silencio -- a colaboracao so aparecia depois de um F5. Agora a <table> FICA
-               sempre no DOM (JS sempre acha o alvo), so escondida via CSS quando vazia; o
-               JS revela a tabela e esconde a mensagem apos o 1o appendTo bem-sucedido. --%>
+          <%-- UX-01/TEST-04: tabela FICA sempre no DOM, so escondida via CSS -- removê-la via c:if
+               quebra o appendTo("#tabelaColab") do polling/envio (falha em silencio numa ideia nova). --%>
           <div id="colaboracoesVazio" class="center-align grey-text" style="padding: 40px 20px; ${empty colaboracoes ? '' : 'display:none;'}">
             <i class="material-icons" style="font-size: 3rem; display:block;">forum</i>
             Ainda não há colaborações para esta ideia.
           </div>
 
-          <%-- M.6 (2026-07-06): maior codigo ja renderizado no carregamento inicial. Como
-               ${colaboracoes} vem em ordem crescente de codigo, a ultima iteracao do
-               forEach abaixo deixa esta var no maior codigo (0 se vazia). O polling manda
-               esse valor e so renderiza colaboracoes com codigo maior. --%>
+          <%-- M.6: maior codigo ja renderizado (colaboracoes vem em ordem crescente); o polling so traz codigo maior. --%>
           <c:set var="ultimoCodigoInicial" value="0" />
           <table id="tabelaColab" style="${empty colaboracoes ? 'display:none;' : ''}">
             <%-- COL-12: usa ${colaboracoes} (já em cache) — sem nova query --%>
@@ -107,10 +94,7 @@
             <c:forEach var="cola" items="${colaboracoes}">
               <tr data-codigo="${cola.codigo}">
                 <td><c:out value="${cola.usuario.nome}"/></td>
-                <%-- M.10 (2026-07-06): texto num span (.colab-texto) pra dar pra atualizar
-                     apos editar; botao de editar (lapis) so pro AUTOR da colaboracao e so
-                     enquanto nao foi adicionada a descricao (flSalvado null), fora de
-                     retencao. As mesmas regras sao reforcadas no EditarColaboracaoServlet. --%>
+                <%-- M.10: editar (lapis) so pro AUTOR e so antes de virar descricao oficial (reforcado no servlet). --%>
                 <td>
                   <span class="colab-texto"><c:out value="${cola.descricaoIdeiaAtual}"/></span>
                   <c:if test="${cola.usuario.codigo eq sessionScope.codigoUsuario and cola.flSalvado eq null and isRetencao eq false}">
@@ -193,8 +177,7 @@
           $("#descricaoAtual").text(responseTexto);
           form[0][1].setAttribute("disabled", "true");
           form[0][1].setAttribute("class", "btn-floating disabled teal darken-1");
-          // REVISAO 2026-07-07: aria-label nao era atualizado ao desabilitar -- ficava
-          // com o texto antigo ("Adicionar à Descrição", sem o "ja enviado").
+          // GT-08: aria-label atualizado ao desabilitar (antes ficava com o texto antigo).
           form[0][1].setAttribute("aria-label", "Adicionar à Descrição (já enviado)");
         },
         error: function () {
@@ -256,19 +239,13 @@
     // antes de injetar no DOM via .html() -> impede XSS armazenado.
     function escapeHtml(s){if(s==null)return '';return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
-    // M.6 (2026-07-06): maior codigo de colaboracao ja renderizado na tela. Tanto o envio
-    // quanto o polling so renderizam colaboracoes com codigo MAIOR que este (e atualizam
-    // ele). Como JS e single-thread, cada handler checa+atualiza de forma atomica, entao a
-    // MESMA colaboracao nunca e adicionada 2x -- fim da duplicacao que acontecia na corrida
-    // envio-vs-polling. Inicia no maior codigo que ja veio renderizado do servidor.
+    // M.6: envio e polling so renderizam codigo MAIOR que este (JS single-thread = sem corrida/duplicata).
     var ultimoCodigo = ${ultimoCodigoInicial};
-    // M.10 (2026-07-06): codigo do usuario logado e flag de retencao -- pra decidir se a
-    // linha nova (via AJAX) leva o botao de editar (so o AUTOR, so nao-salvada, fora de retencao).
+    // M.10: decide se a linha nova leva botao de editar (so AUTOR, so nao-salvada, fora de retencao).
     var meuCodigo = ${sessionScope.codigoUsuario};
     var isRetencaoJS = ${isRetencao};
 
-    // Monta a <tr> de uma colaboracao e adiciona na tabela -- SO se ainda nao foi vista
-    // (codigo > ultimoCodigo). Reutilizado pelo envio e pelo polling.
+    // Monta a <tr> de uma colaboracao (reutilizado pelo envio e pelo polling).
     function renderColaboracao(cola) {
       if (cola == null || cola.usuario == null) return;
       if (cola.codigo <= ultimoCodigo) return; // ja renderizada (ou corrida) -> ignora
@@ -282,10 +259,7 @@
                 + "<td><span class=\"colab-texto\">" + escapeHtml(cola.descricaoIdeiaAtual) + "</span>" + btnEditar + "</td>\n";
 
       if ("${sessionScope.lider}" === "S") {
-        // REVISAO 2026-07-07: aria-label sumiu na consolidacao do M.6 -- a versao JSTL
-        // (colaboracoes ja renderizadas no load inicial) sempre teve aria-label nos 2
-        // estados; toda colaboracao que aparece DEPOIS (via envio ou polling) passava por
-        // aqui sem, entao praticamente todo botao "+" em uso real ficava sem nome acessivel.
+        // GT-08: aria-label replicado aqui (renderColaboracao() montava o botao sem, diferente da versao JSTL).
         if (cola.flSalvado == null) {
           texto += "<td><form name=\"addDescricao\" id=\"addDescricao\" action=\"AddDescricaoServlet\" method=\"POST\">\n"
                  + "<input type=\"hidden\" value=\"" + cola.codigo + "\" id=\"colaboracao\" name=\"colaboracao\">\n"

@@ -1,14 +1,6 @@
 package edu.unisc.lic.classes;
 
-/**
- * REFAC-01: constantes dos status de Ideia e de Grupo, centralizadas num lugar
- * so (antes os codigos "PE", "VA", "ST"... ficavam espalhados como strings
- * magicas pelos servlets/DAOs, faceis de errar). Os VALORES sao exatamente os
- * mesmos de antes — nada muda no funcionamento, so a legibilidade/seguranca.
- *
- * OBS.: os JSPs continuam usando os literais ('VA', 'CV'...) em EL, pois EL nao
- * referencia constantes Java diretamente. A referencia textual fica no README.
- */
+// REFAC-01: constantes dos status (antes, strings magicas "PE"/"VA"/"ST" espalhadas pelo codigo).
 public final class StatusIdeia {
 
     // ----- Status da Ideia -----

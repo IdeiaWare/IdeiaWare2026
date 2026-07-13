@@ -100,8 +100,7 @@ public class RejeitarMembroServletTest {
 
 	@Test
 	public void motivoVazio_naoRejeitaEMantemPendente() throws Exception {
-		// REVISAO 2026-07-07: motivo era exigido so no client (onsubmit do modal); um POST
-		// forjado sem motivo gravava motivoRejeicaoMembro vazio. Agora e exigido no servidor.
+		// GT-04: motivo era exigido so no client; POST forjado sem motivo agora e rejeitado no servidor.
 		Usuario lider = novoUsuario("Lider3");
 		Ideia ideia = novaIdeia(lider);
 		vincula(lider, ideia, "S", StatusIdeia.VINCULO_APROVADO);

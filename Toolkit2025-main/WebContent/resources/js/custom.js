@@ -45,10 +45,7 @@
 	}
 	
 	Toolkit.Persona.selectColorPicker = function(){
-		// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): os "botoes" de cor sao
-		// <div> puros -- so respondiam a mouse. Extraida a selecao pra uma funcao
-		// nomeada e ligada tambem no keydown (Enter/Espaco), pra funcionar com
-		// role="button" tabindex="0" (adicionado nos 6 JSPs de quadrante).
+		// TK-A11Y-COR: post-its de cor sao <div>, so respondiam a mouse -- keydown (Enter/Espaco) adicionado.
 		function selecionarCor(el){
 			$(".card-color").val($(el).attr("data-color"))
 			$(".post-it .btn").removeClass("active");
@@ -77,9 +74,7 @@
 	
 	
 	Toolkit.Persona.exportFile = function(areaClass, forceOrient){
-		// TK-16: usa a opcao "onrendered" (API de callback do html2canvas 0.5.0-beta3,
-		// nao a Promise .then) -- ver o comentario mais abaixo, que documenta certo o
-		// motivo da troca de versao da lib.
+		// TK-08/09/10/14/17: usa "onrendered" (API de callback do html2canvas 0.5.0-beta3, nao Promise .then).
 		$("#overlay").attr('style','display: block !important');
 
 		var section = $(areaClass)[0];
@@ -88,15 +83,7 @@
 			return;
 		}
 
-		// === TK-16: corte do export resolvido usando a MESMA abordagem do Canvas do
-		// LIC (CAN-13), que captura o conteudo INTEIRO. A causa do corte: a area de
-		// empatia e inline-table e renderiza MAIS LARGA que a janela; sem informar o
-		// tamanho real, o html2canvas captura so a largura da janela e corta a direita.
-		// Correcao comprovada (geraPDFCanva.js do Canvas, que funciona): rolar pro topo
-		// e passar width/height/windowWidth/windowHeight = scrollWidth/scrollHeight.
-		// Isso exige um html2canvas que respeite essas opcoes -> a lib do toolkit foi
-		// trocada da 1.2.4 (que ignorava e cortava) pela 0.5.0-beta3 do LIC. A API 0.5
-		// usa o callback "onrendered" (em vez de Promise .then). Fundo branco: TK-09/10.
+		// TK-08/09/10/14/17/CAN-13: mesma abordagem do Canvas do LIC -- scrollTo(0,0) + width/height=scrollWidth/scrollHeight.
 		window.scrollTo(0, 0);
 		var fullWidth  = section.scrollWidth;
 		var fullHeight = section.scrollHeight;
@@ -108,8 +95,7 @@
 			windowWidth:  fullWidth,
 			windowHeight: fullHeight,
 			onrendered: function (canvas) {
-				// TK-10: pinta um fundo BRANCO real atras do screenshot. O export e
-				// JPEG (sem canal alpha) -> todo pixel transparente viraria PRETO.
+				// TK-10: pinta fundo branco atras do screenshot (export e JPEG sem alpha, transparente vira preto).
 				var whiteCanvas = document.createElement('canvas');
 				whiteCanvas.width  = canvas.width;
 				whiteCanvas.height = canvas.height;
@@ -124,23 +110,14 @@
 
 				var pageData = canvas.toDataURL('image/jpeg', 1.0);
 
-				// FIX 2026-06-23: gera uma FOLHA A4 PADRAO (com margem) em vez de uma pagina
-				// do tamanho exato do conteudo (que saia "justa", so onde tinha linhas). A
-				// imagem e encaixada na A4 mantendo a proporcao e CENTRALIZADA -> visual de
-				// tabela numa folha. Orientacao pela proporcao do conteudo (largo -> paisagem;
-				// alto -> retrato) p/ aproveitar a folha. Como o formato e o 'a4' nomeado (e
-				// nao um tamanho custom [w,h]), o jsPDF NAO gira a pagina (problema do TK-17).
-				// orientacao: a empatia (mapa largo) usa auto -> paisagem (ficou perfeita); o
-				// POV passa 'p' (retrato) p/ a tabela imprimir bem numa A4 vertical.
+				// TK-17: folha A4 padrao com margem, imagem centralizada; formato 'a4' nomeado evita o jsPDF girar a pagina.
 				var orient = forceOrient || ((contentWidth >= contentHeight) ? 'l' : 'p');
 				var pdf = new jsPDF(orient, 'pt', 'a4');
 				var pageW = (orient === 'l') ? 841.89 : 595.28; // A4 em pt
 				var pageH = (orient === 'l') ? 595.28 : 841.89;
 				var margin = 28; // ~1cm
 
-				// FIX 2026-06-23: pinta a folha A4 INTEIRA de branco antes da imagem. Sem isso
-				// a area do PDF fora da imagem ficava transparente -> o "abrir" da Retencao do
-				// LIC (e alguns viewers) mostrava PRETO; so na impressao virava branco.
+				// TK-10: pinta a folha A4 inteira de branco antes da imagem (senao ficava transparente/preta ao abrir).
 				pdf.setFillColor(255, 255, 255);
 				pdf.rect(0, 0, pageW, pageH, 'F');
 				var scale = Math.min((pageW - margin * 2) / contentWidth,
@@ -155,10 +132,7 @@
 				var blob = pdf.output("blob");
 				var reader = new FileReader();
 				reader.readAsDataURL(blob);
-				// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): onloadend dispara em
-				// sucesso OU falha (diferente de onload, so sucesso); sem checar reader.error
-				// primeiro, uma falha de leitura submetia o form com #file-location vazio/null
-				// pro servidor, em vez de avisar o usuario.
+				// TK-PDF-ERR: onloadend dispara em sucesso OU falha -- checa reader.error antes de usar reader.result.
 				reader.onloadend = function () {
 					if (reader.error) {
 						console.error('Falha ao ler o PDF gerado:', reader.error);
@@ -172,21 +146,14 @@
 				};
 			}
 		}).catch(function (err) {
-			// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): o overlay de loading so
-			// era escondido no caminho de SUCESSO (dentro de onrendered) -- se o html2canvas
-			// falhar (CSS nao suportado, canvas "tainted" por imagem cross-origin), o overlay
-			// ficava visivel PRA SEMPRE, sem mensagem, so recarregando a pagina resolvia.
+			// TK-PDF-ERR: catch() esconde o overlay em falha do html2canvas (antes ficava visivel pra sempre).
 			console.error('Falha ao gerar o PDF:', err);
 			$("#overlay").attr('style','display: none !important');
 			alert('Não foi possível gerar o PDF. Tente novamente.');
 		});
 	}
 	
-	// FIX 2026-06-23: export do Mapa de Empatia (Visao Geral) NATIVO no PDF (antes era
-	// screenshot html2canvas). Desenha a grade 2 colunas (SENTE/VE, DIZ/ESCUTA, DORES/
-	// GANHOS) e os post-its como retangulos coloridos (cor + texto lidos do DOM). Cards de
-	// largura fixa que quebram em linhas; o quadrante cresce com o conteudo e quebra de
-	// pagina se passar da folha. Vetorial -> nitido e print-safe (nao corta no Ctrl+P).
+	// EXP-EMP: grade de post-its vetorial no PDF (antes screenshot html2canvas, cortava no Ctrl+P).
 	Toolkit.Persona.exportEmpathyMap = function() {
 		$("#overlay").attr('style', 'display: block !important');
 
@@ -281,10 +248,7 @@
 		};
 	};
 
-	// FIX 2026-06-23: export do POV agora desenha uma TABELA NATIVA (vetorial) no PDF,
-	// dentro das margens da A4. Antes era um screenshot (html2canvas) que no Ctrl+P cortava
-	// a borda/coluna da direita. Acentos do PT (c,a,o,e acentuados < 256) renderizam ok no
-	// jsPDF 1.2.4. A tabela cresce com os dados e quebra de pagina repetindo o cabecalho.
+	// EXP-POV: tabela nativa vetorial no PDF (antes screenshot cortava a borda direita no Ctrl+P).
 	Toolkit.PointOfView.exportTable = function() {
 		$("#overlay").attr('style', 'display: block !important');
 
@@ -369,9 +333,7 @@
 			}
 		})
 		
-		// TK-12: o botao e <input class="btn">, nao <div class="btn"><input>.
-		// O seletor antigo ".btn input" nao casava nada -> o rotulo nunca mudava
-		// para "Atualizar" ao editar um atributo.
+		// TK-12: seletor era ".btn input" (nao casava nada); botao e <input class="btn">, nao <div><input>.
 		$(".attribute form input.btn").val("Atualizar");
 		$(".attribute form .btn-cancelar").closest("div").show();
 		
@@ -395,13 +357,7 @@
 			var info = $(this).find(".card-content").text().trim();
 			var color = $(this).attr("class");
 
-			// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- XSS armazenado via
-			// re-injecao): o texto do post-it e escapado com seguranca na listagem via
-			// <c:out>, mas .text() aqui DECODIFICA as entidades de volta pro caractere
-			// original -- reinjetar isso com .html() faz o navegador interpretar como
-			// HTML de verdade (ex.: <img src=x onerror=alert(1)> executa). .empty()+
-			// .append($("<p>").text(...)) monta a mesma estrutura <p>texto</p> sem
-			// nunca passar o texto por um parser de HTML.
+			// TK-19: .empty()+.append().text() em vez de .html() (evita re-injetar entidades decodificadas como HTML, XSS).
 			$(".modal-card-info .card-content").empty().append($("<p>").text(info));
 			$(".modal-card-info .card-content").css("word-break", "break-all")
 			$(".modal-card-info .card").attr("class", color);
@@ -427,10 +383,7 @@
 			var need = $(this).closest("tr").find("td:nth-child(3) .pov-info").text().trim();
 			var insight = $(this).closest("tr").find("td:nth-child(4) .pov-info").text().trim();
 
-			// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- XSS armazenado via
-			// re-injecao): mesmo padrao do buildCardViewOnModal acima -- .text() decodifica
-			// as entidades, .html() reinjetava cru. 4 pontos de injecao (nome/usuario/
-			// necessidade/introspeccao do POV).
+			// TK-20: mesmo padrao do TK-19 (buildCardViewOnModal), 4 pontos de injecao (nome/usuario/necessidade/introspeccao).
 			$(".modal-pov-info .names").empty().append($("<p>").text(names));
 			$(".modal-pov-info .user").empty().append($("<p>").text(user));
 			$(".modal-pov-info .need").empty().append($("<p>").text(need));
@@ -656,26 +609,12 @@ $(document).ready(function(){
 	$(".button-collapse").sideNav();
 	$('.collapsible').collapsible();
 
-	// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- acessibilidade sistemica):
-	// botoes so-icone (FAB de criar Persona/POV, acoes de linha Abrir/Editar/Excluir/
-	// Visao Geral, editar/excluir atributo nas 6 telas de empatia, "Voltar" -- presente
-	// em quase toda tela do modulo) usam data-tooltip pra UI visual, mas esta versao
-	// do Materialize NAO gera aria-label a partir disso -- ficavam sem nome acessivel
-	// nenhum, inoperaveis/mudos pra leitor de tela. Deriva aria-label automaticamente
-	// de data-tooltip pra qualquer elemento que ainda nao tenha um -- cobre todos os
-	// botoes so-icone de uma vez (inclusive os que vierem a ser adicionados depois,
-	// sem depender de lembrar disso em cada JSP novo).
+	// TK-40: deriva aria-label de data-tooltip pra qualquer elemento sem um -- cobre todos os botoes so-icone.
 	$('[data-tooltip]:not([aria-label])').each(function(){
 		$(this).attr('aria-label', $(this).attr('data-tooltip'));
 	});
 
-		// TK-13 (v2 - JS): a lib Waves envolve <input type="submit" class="btn"> num
-		// <i class="btn waves-input-wrapper"><input class="waves-button-input">. O
-		// <input> interno fica do tamanho do TEXTO, entao clicar na "borda" do botao
-		// (a area do wrapper) nao submetia - so o texto funcionava. O fix por CSS
-		// nao resolveu (o wrapper encolhe pro texto). Aqui, ao clicar na area do
-		// wrapper que NAO e o proprio input, repassamos o clique para o input -> o
-		// botao inteiro volta a ser clicavel. Vale para todos os submits do toolkit.
+		// TK-13 (v2 - JS): wrapper do Waves (input do tamanho do texto) nao submetia se clicado na borda -- repassa o clique pro input.
 		$(document).on('click', '.waves-input-wrapper', function(e){
 			if (e.target === this) {
 				var inp = this.querySelector('.waves-button-input');
@@ -714,44 +653,23 @@ $(document).ready(function(){
 				}
 			})
 
-			// Passa as personas via query string (codificada) em vez de path.
-			// Nomes com espacos/"+" no path causavam 404 no Tomcat 9; na query
-			// string esses caracteres sao tratados corretamente.
-			// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): antes juntava tudo
-			// com "," num unico param, contando com o Spring quebrar por virgula -- se
-			// o NOME de uma persona tivesse virgula, a lista quebrava errado (a virgula
-			// do nome virava um separador fantasma). Agora manda 1 "personas=" por
-			// persona (List<String> do Spring aceita parametro repetido nativamente),
-			// cada um com seu proprio encodeURIComponent -- sem depender de delimitador
-			// nenhum entre personas diferentes.
+			// TK-45b: personas via query string (path com espaco/"+" dava 404 no Tomcat); 1 "personas=" por persona (nao junta com ",", evita colisao de delimitador).
 			window.location.href = contextPath + "/point-of-view/criar-pov?" + data.join("&");
 		}
 		else
 			Materialize.toast('Voc&ecirc; deve selecionar pelo menos uma Persona', 4000)
 	})
 	
-	// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- menu mobile): trocado de
-	// #logout (id) pra .logout-link (classe) -- o link "Sair" agora existe 2x no HTML
-	// (nav desktop + drawer mobile, ver header.tag/no-container-header.tag), e 2
-	// elementos com o MESMO id e invalido/so o 1o seria encontrado por #id.
+	// TK-39: binding trocado de #logout (id) pra .logout-link (classe) -- "Sair" existe 2x no HTML (nav + drawer mobile).
 	$(".logout-link").click(function(){
 		Toolkit.eraseCookie("ideiaId")
 		Toolkit.eraseCookie("usuarioNome")
 		Toolkit.eraseCookie("ideiaSig")
-		// Sair = LOGOUT de verdade: o LogOutServlet invalida a sessao do LIC e vai pro
-		// login num clique so. Antes ia pra listagem de caixas (sem deslogar) -> 2o clique.
-		// REVISAO 2026-07-08 (varredura Toolkit, DRY): /LIC/ centralizado -- licBasePath e
-		// exposto como global JS por header.tag/no-container-header.tag (mesmo padrao ja
-		// usado pra contextPath), ja que este arquivo estatico nao le EL da JSP.
+		// LOGOUT-FIX: vai direto pro LogOutServlet (invalida sessao, 1 clique). DRY-LIC: licBasePath vem global de header.tag.
 		window.location.href = licBasePath + "/LogOutServlet"
 	})
 	
-	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA): 2 bugs aqui --
-	// (1) if sem chaves: so a declaracao de "nome" ficava dentro da condicao, a
-	//     linha de exibir o nome no rodape RODAVA SEMPRE, incondicionalmente;
-	// (2) readCookie devolve null (nao "") quando o cookie nao existe, e
-	//     `null != ""` e true -- a guarda antiga nao protegia contra cookie ausente.
-	// Corrigido lendo 1 vez + checagem truthy (cobre null E "" de uma vez), com chaves.
+	// TK-43: if sem chaves rodava sempre + readCookie() null falhava em `!= ""` -- leitura unica com checagem truthy.
 	var nomeUsuario = Toolkit.readCookie("usuarioNome");
 	if (nomeUsuario) {
 		$("footer .usuario").text(decodeURIComponent(nomeUsuario.replace(/\+/g, '%20')));

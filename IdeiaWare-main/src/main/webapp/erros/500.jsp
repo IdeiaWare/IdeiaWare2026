@@ -1,9 +1,3 @@
-<%-- 
-    Document   : 500
-    Created on : May 11, 2018, 11:39:34 PM
-    Author     : Gustavo Armborst Guedes de Azevedo
---%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8" isErrorPage="true"%>
 <!DOCTYPE html>
 <html lang="pt-BR">

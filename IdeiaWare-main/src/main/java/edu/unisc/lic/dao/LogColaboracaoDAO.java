@@ -8,19 +8,8 @@ import org.hibernate.Session;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 
-/**
- *
- * @author viniciussdsilva
- */
 public class LogColaboracaoDAO extends GenericDAO<LogColaboracao> {
 
-    /**
-     * Esse método retorna uma lista de objetos LogColaboracao, conforme os
-     * parâmetros que foram passados dentro de lc.
-     *
-     * @param lc
-     * @return lista de LogColaboracao
-     */
     public List<LogColaboracao> listarParametro(LogColaboracao lc) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
@@ -42,13 +31,6 @@ public class LogColaboracaoDAO extends GenericDAO<LogColaboracao> {
 
     }
 
-    /**
-     * Busca a ultima descrição gerada pelo lider, conforme os parametros
-     * passados
-     *
-     * @param lc
-     * @return lista de LogColaboracao
-     */
     public LogColaboracao buscarDescricaoFinal(LogColaboracao lc) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 

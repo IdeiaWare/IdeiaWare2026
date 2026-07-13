@@ -120,9 +120,7 @@ public class EntrarColaboracaoServletTest {
 
 	@Test
 	public void participantePendente_naoEntraNaColaboracao() throws Exception {
-		// REVISAO 2026-07-07: achado da varredura -- so checava iu==null, nao o status do
-		// vinculo. Um usuario com vinculo PENDENTE (ainda nao aprovado pelo lider) conseguia
-		// entrar na colaboracao via POST direto, furando a lista de espera do M.2 inteira.
+		// GT-02: checagem so testava iu==null, nao o status do vinculo (PENDENTE furava a lista de espera).
 		Usuario autor = novoUsuario("AutorPend", "usr");
 		Ideia ideia = novaIdeia(autor);
 		Usuario candidato = novoUsuario("CandidatoPend", "usr");

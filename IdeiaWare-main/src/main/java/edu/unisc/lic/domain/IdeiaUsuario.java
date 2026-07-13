@@ -14,20 +14,12 @@ import javax.persistence.UniqueConstraint;
 
 import edu.unisc.lic.classes.Data;
 
-/**
- *
- * @author viniciussdsilva
- */
 @SuppressWarnings("serial")
 @Entity
-// K.8 #2 (2026-07-06): unique(usuario_codigo, ideia_codigo) trava no BANCO que o mesmo
-// usuario seja inserido 2x como participante da mesma ideia. Antes, EntrarIdeiaServlet
-// fazia "verifica se ja existe -> insere" em 2 passos sem trava real: clique duplo em
-// "Entrar" (ou um retry de rede) podia passar os 2 pela checagem e inserir 2 vinculos.
+// K.8 #2: unique(usuario_codigo, ideia_codigo) trava no BANCO que o mesmo usuario entre 2x na ideia.
 @Table(uniqueConstraints = @UniqueConstraint(name = "uk_ideiausuario_par", columnNames = {"usuario_codigo", "ideia_codigo"}))
 public class IdeiaUsuario extends GenericDomain {
 
-    // Chaves estrangeiras
     @ManyToOne
     @JoinColumn(name = "usuario_codigo", nullable = false)
     private Usuario usuario;
@@ -39,14 +31,11 @@ public class IdeiaUsuario extends GenericDomain {
     @Column(length = 1)
     private String flLider;
 
-    // M.2 (2026-07-06): status do vinculo na "lista de espera" do grupo -- P(endente)/
-    // A(provado)/R(ejeitado). Ver StatusIdeia.VINCULO_*. NULL = vinculo legado (criado
-    // antes desta feature) -> tratado como aprovado nas telas. O lider aprova/rejeita
-    // (AprovarMembroServlet/RejeitarMembroServlet) enquanto o grupo esta aberto.
+    // M.2: status na "lista de espera" -- P(endente)/A(provado)/R(ejeitado); NULL = vinculo legado (aprovado).
     @Column(length = 1)
     private String flStatusVinculo;
 
-    // M.3 (2026-07-06): motivo informado pelo lider ao REJEITAR a entrada de alguem.
+    // M.3: motivo do lider ao REJEITAR a entrada de alguem.
     @Column(length = 200)
     private String motivoRejeicaoMembro;
 
@@ -54,7 +43,6 @@ public class IdeiaUsuario extends GenericDomain {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dtInscricao;
 
-    // Métodos construtores
     public IdeiaUsuario() {
         this.usuario = new Usuario();
         this.ideia = new Ideia();
@@ -76,13 +64,11 @@ public class IdeiaUsuario extends GenericDomain {
         this.flLider = flLider;
     }
 
-    // Métodos
     @Override
     public String toString() {
         return "IdeiaUsuario{" + "usuario=" + usuario + ", ideia=" + ideia + ", flLider=" + flLider + '}';
     }
 
-    // Getters and Setters
     public Usuario getUsuario() {
         return usuario;
     }

@@ -18,17 +18,10 @@
                     <jsp:useBean id="ideiaDAO" class="edu.unisc.lic.dao.IdeiaDAO" />
                     <jsp:useBean id="data"    class="edu.unisc.lic.classes.Data" />
 
-                    <%--
-                        listarIdeiasDisponiveis faz UMA única query HQL que:
-                          1. filtra status=VA e statusGrupo=AB
-                          2. exclui ideias em que o usuário já está inscrito
-                        Resolve COL-10 (N+1 queries) e COL-14 (carrega tudo).
-                    --%>
+                    <%-- COL-10/COL-14: 1 unica query HQL (status=VA, statusGrupo=AB, exclui ja-inscritas). --%>
                     <c:set var="ideiasDisponiveis" value="${ideiaDAO.listarIdeiasDisponiveis(usuarioClasse)}" />
 
-                    <%-- UX: busca e tabela so aparecem quando ha ideias -- nao faz
-                         sentido mostrar campo de busca ou cabecalho de colunas p/
-                         uma lista vazia. --%>
+                    <%-- UX-01: busca e tabela so aparecem quando ha ideias. --%>
                     <c:if test="${empty ideiasDisponiveis}">
                         <div class="center-align grey-text" style="padding: 40px 20px;">
                             <i class="material-icons" style="font-size: 3rem; display:block;">web_asset</i>

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.unisc.lic.servlet;
 import edu.unisc.lic.classes.StatusIdeia;
 
@@ -20,28 +15,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author USER
- */
 public class ValidarIdeiaServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
 
-        // COL-07: validar ideia é ação de gestor. Sem esta checagem, qualquer
-        // usuário logado podia validar/rejeitar ideias chamando o servlet direto.
+        // COL-07: validar ideia e acao de gestor (antes, qualquer logado validava/rejeitava).
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("codigoUsuario") == null) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -56,8 +37,7 @@ public class ValidarIdeiaServlet extends HttpServlet {
         IdeiaDAO ideiaDAO = new IdeiaDAO();
         UsuarioDAO usuDAO = new UsuarioDAO();
 
-        // BLINDAGEM: codigo/codUsuario nulos ou nao-numericos geravam
-        // NumberFormatException/NPE (500); ideia inexistente -> NPE no setGestor.
+        // BLINDA-03: parametros invalidos/nulos causavam NFE/NPE (500) antes.
         Ideia ideia;
         Usuario usu;
         try {
@@ -76,9 +56,7 @@ public class ValidarIdeiaServlet extends HttpServlet {
 
         String acao = request.getParameter("validar");
         if ("validar".equals(acao) || "reabrir".equals(acao)) {
-            // M.1 (2026-07-06): "reabrir" destrava uma ideia REJEITADA -- volta pra
-            // VALIDADA (direto pro grupo aberto), mesmo efeito de validar. Antes RE era
-            // terminal. Ao reabrir, limpa o motivo de rejeicao (nao faz mais sentido).
+            // M.1: "reabrir" destrava uma ideia REJEITADA de volta pra VALIDADA (antes, era terminal).
             ideia.setStatus(StatusIdeia.VALIDADA);
             ideia.setDtValidacao();
             ideia.setStatusGrupo(StatusIdeia.GRUPO_ABERTO);
@@ -97,15 +75,6 @@ public class ValidarIdeiaServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + File.separator + "validar-ideia.jsp");
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -113,28 +82,15 @@ public class ValidarIdeiaServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

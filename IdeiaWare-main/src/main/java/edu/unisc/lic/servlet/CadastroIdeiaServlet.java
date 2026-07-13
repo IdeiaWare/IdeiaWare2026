@@ -21,9 +21,7 @@ public class CadastroIdeiaServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // AUTORIZACAO: exige login. Antes o servlet nao checava sessao nenhuma -- um
-        // POST sem login dava NPE no unboxing de codigoUsuario, e a ideia ficava sem
-        // usuario (FK nullable=false), virando erro 500 cru em vez de redirecionar.
+        // GT-05: exige login (antes, POST sem sessao dava NPE em vez de redirecionar).
         HttpSession session = request.getSession(true);
         Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
@@ -63,13 +61,11 @@ public class CadastroIdeiaServlet extends HttpServlet {
         ideia.setStatusGrupo(StatusIdeia.GRUPO_ABERTO);
 
         IdeiaUsuario ideiaUsuario = new IdeiaUsuario(usuario, ideia, "S");
-        // M.2 (2026-07-06): o criador ja e lider e ja entra APROVADO (nao passa por lista
-        // de espera). So os que clicam "Participar" depois e que entram como pendentes.
+        // M.2: o criador ja e lider e entra APROVADO direto (nao passa pela lista de espera).
         ideiaUsuario.setFlStatusVinculo(StatusIdeia.VINCULO_APROVADO);
         ideiaUsuario.setDtInscricao();
 
-        // K.8 #5: salva a Ideia e o vinculo de lideranca do autor NUMA SO transacao (antes
-        // eram 2 DAOs/transacoes separadas -- falha na 2a deixava a Ideia orfa, sem lider).
+        // K.8 #5: Ideia + vinculo de lideranca numa SO transacao (senao, falha deixava Ideia sem lider).
         new IdeiaDAO().criarComLider(ideia, ideiaUsuario);
 
         response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");

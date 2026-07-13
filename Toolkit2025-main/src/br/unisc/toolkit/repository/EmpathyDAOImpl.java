@@ -19,13 +19,7 @@ public class EmpathyDAOImpl implements EmpathyDAO {
 		// get the current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 		
-		// create a query
-		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): HQL usava nome de
-		// COLUNA (fk_persona_id, ideia_codigo) em vez de nome de PROPRIEDADE Java
-		// (personaId, ideiaCodigo) -- funcionava por coincidencia (fallback do parser
-		// HQL classico do Hibernate 5.x pra SQL literal quando nao reconhece a
-		// propriedade); nao sobrevive a um @Column renomeado ou ao parser estrito do
-		// Hibernate 6.
+		// TK-HQL: HQL usa nome de PROPRIEDADE Java (personaId/ideiaCodigo), nao de coluna (funcionava por coincidencia antes).
 		Query<Empathy> theQuery =
 				currentSession.createQuery("from Empathy where personaId=:ID and attribute=:Attribute and ideiaCodigo=:IdeiaCodigo", Empathy.class);
 		theQuery.setParameter("ID", theId);
@@ -48,8 +42,7 @@ public class EmpathyDAOImpl implements EmpathyDAO {
 		// get current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 
-		// SEC-24 (IDOR de escrita): num UPDATE (id != 0), so salva se o atributo existente
-		// for da MESMA ideia -> bloqueia sobrescrever atributo de outra ideia pelo id.
+		// SEC-24: num UPDATE, so salva se o atributo existente for da MESMA ideia (IDOR de escrita).
 		if (theEmpathy.getId() != 0) {
 			Empathy existente = currentSession.get(Empathy.class, theEmpathy.getId());
 			if (existente == null || existente.getIdeiaCodigo() == null
@@ -68,9 +61,7 @@ public class EmpathyDAOImpl implements EmpathyDAO {
 		// get the current hibernate sesion
 		Session currentSession = sessionFactory.getCurrentSession();
 
-		// TK-03: filtra por ideia_codigo para impedir deletar atributo de outra ideia (IDOR)
-		// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): ideia_codigo -> ideiaCodigo
-		// (nome de propriedade, nao de coluna -- mesmo motivo da query acima).
+		// TK-03/TK-HQL: filtra por ideiaCodigo (propriedade, nao coluna) pra impedir deletar de outra ideia.
 		Query theQuery = currentSession.createQuery("delete from Empathy where id=:ID and ideiaCodigo=:ideiaCodigo");
 		theQuery.setParameter("ID", attributeId);
 		theQuery.setParameter("ideiaCodigo", ideiaCodigo);

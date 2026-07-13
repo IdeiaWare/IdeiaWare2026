@@ -97,9 +97,7 @@
     <title>IdeiaWare - Gerenciamento de Ideias</title>
   </head>
   <body class="center-align light-blue darken-1">
-    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- icone
-         circular flutuante no canto superior esquerdo (fixed). Entrar nos detalhes
-         de uma ideia aqui nao tinha NENHUMA saida de volta pra listagem. --%>
+    <%-- UX-VOLTAR-V2: icone flutuante (antes nao tinha nenhuma saida de volta pra listagem). --%>
     <a href="lista-ideia-gerenciamento.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper light-blue darken-2">
@@ -116,9 +114,6 @@
           </ul>
         </a>
         <ul id="nav-mobile" class="right hide-on-med-and-down" >
-          <%-- UX: "Gerenciar Ideias" removido -- e a propria tela (redirecionaria p/
-               si mesma). "Validar Ideias" removido -- ja acessivel pelo cabecalho
-               do modulo colaborativo. --%>
           <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
         </ul>
 
@@ -433,13 +428,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <%-- M.16 (2026-07-06): botao "Fechar" oscilava entre cinza e verde -- bug do ripple
-             preso do Materialize (waves-green sobre base CINZA). 1a tentativa: base verde
-             fixa + waves-light -- ainda ficava estranho (o proprio ripple claro sobre fundo
-             verde cria o mesmo tipo de artefato visual, so que agora um "flash" claro em vez
-             de verde). REVISAO 2026-07-07: removido o ripple por completo (sem waves-effect
-             nenhum) -- mesmo padrao JA usado pros outros "Fechar" do app (ver minha-ideia.jsp,
-             2x), comprovadamente sem esse bug. href="#!" pra fechar sem pular o scroll. --%>
+        <%-- M.16: SEM waves-effect de proposito (ripple do Materialize deixava o botao oscilando cinza/verde). --%>
         <a href="#!" class="modal-action modal-close btn-flat grey lighten-1">Fechar</a>
       </div>
     </div>
@@ -677,15 +666,9 @@
           html += "   <tr>";
           html += "       <td style='white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;'><c:out value="${ideia.titulo}"/></td>";
           html += "       <td style='text-align:right;'>";
-          // UX: "Abrir quadro" removido da Retencao -- nao servia p/ nada util aqui
-          // (reabria o quadro em modo leitura, mas o PDF ja mostra tudo). So
-          // "Visualizar PDF" fica, no mesmo padrao dos outros passos da timeline.
-          // UX-ALINHAMENTO: esta tabela so tem 2 colunas (sem Data/Excluir como as
-          // outras) -- a celula fica LARGA e sem align o botao caia colado na
-          // esquerda. text-align:right alinha com o padrao visual dos outros passos.
-          // UX-COR: indigo lighten-1 (cor EXATA do header/footer do modulo
-          // Storytelling); indigo darken-1 (#3949ab) ficava visivelmente diferente
-          // do header (indigo lighten-1, #5c6bc0).
+          // UX-RETENCAO-BOTOES: botao "Abrir quadro" removido (nao servia pra nada util aqui, PDF ja mostra tudo).
+          // UX-ALINHAMENTO: tabela so tem 2 colunas -- sem align, o botao caia colado na esquerda.
+          // UX-COR-MODULO: indigo lighten-1 (cor EXATA do header/footer do Storytelling, nao o darken-1).
           html += "             <a class='btn indigo lighten-1' onclick='openFileData(\"${storytelling.caminhoFinalizado}\")' href='javascript:;' target='_blank'>Visualizar PDF</a>";
           html += "       </td>";
           html += "   </tr>";

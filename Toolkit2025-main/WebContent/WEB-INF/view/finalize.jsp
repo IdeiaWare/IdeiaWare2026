@@ -1,10 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
-<%-- TK-11: tela de confirmacao da finalizacao da Caixa de Ferramentas (como no
-     programa original). Antes este JSP redirecionava sozinho para o Canva do LIC;
-     agora exibe a mensagem e oferece o botao "Ver lista de ideias", deixando a
-     navegacao a cargo do usuario. --%>
+<%-- TK-11: tela de confirmacao ao finalizar (antes redirecionava sozinho pro Canva do LIC). --%>
 <t:header></t:header>
 	<div id="success">
 		 <div class="row">

@@ -20,10 +20,7 @@
     <div>
       <div class="row" style="min-height: 80vh; padding-top: 20px; width: 95%">                 
         <div class="col s3 grey lighten-2 z-depth-2" style="min-height: 85vh; padding-top: 20px;">
-          <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo -- icone circular flutuante
-               no canto superior esquerdo (fixed), fora do fluxo da pagina. storytelling
-               usa cabecalho proprio (headerCookies_2.jsp) sem link pra
-               lista-storytelling.jsp -- so pra index.jsp. --%>
+          <%-- UX-VOLTAR-V2: icone flutuante (headerCookies_2.jsp proprio desta tela nao linka pra lista-storytelling.jsp). --%>
           <a href="lista-storytelling.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
 
           <h5 class="center grey-text text-darken-3" style="padding-top: 10px; padding-bottom: 5px">Ferramentas</h5>
@@ -40,11 +37,7 @@
             <li class="white">
               <div id="b1" class="collapsible-header"><i class="material-icons">image</i>Adicionar Imagem</div>
               <div class="collapsible-body">
-                <%-- BUG-403: request multipart/form-data NAO passa pelo getParameter() do
-                     servlet container (o UploadArquivoServlet le via Apache Commons
-                     FileUpload, nao @MultipartConfig), entao o CsrfFilter nunca achava
-                     o campo csrfToken do form e barrava com 403. Query string funciona
-                     pois nao depende de parsing do body -- so do content-type. --%>
+                <%-- UX-STORYTELLING-UPLOAD-403: multipart/form-data nao passa pelo getParameter() do CsrfFilter -- token vai na query string. --%>
                 <form id="enviarImagem" method="POST" action="UploadArquivoServlet?csrfToken=${csrfToken}" enctype="multipart/form-data">
                   </br><label for="arquivo">Carregar Imagem</label><input type="file" id="arquivo" name="UploadImg" /></br>
                   </br><input class="btn indigo accent-2" id="b1_1" type="submit" value="inserir arquivo" />
@@ -155,9 +148,7 @@
             <li class="white">
               <div id="b5" class="collapsible-header"><i class="material-icons">keyboard_voice</i>Adicionar Áudio</div>
               <div class="collapsible-body">
-                <%-- UX: botoes ficavam colados/empilhados sem espacamento (o "Salvar
-                     audio" grudava nos outros dois). Wrapper flex com gap resolve
-                     tanto lado-a-lado quanto quebrado em linhas (coluna estreita). --%>
+                <%-- UX-STORYTELLING-AUDIO-ESPACO: wrapper flex com gap (botoes ficavam colados sem espacamento). --%>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
                   <input id="start-btn" class="center btn indigo accent-2" type="button" name="UploadImg" value="Gravar"  />
                   <input id="stop-btn" class="center btn indigo accent-2" type="button" name="UploadImg" value="Parar gravação" />
@@ -201,10 +192,7 @@
       <div class="modal-content">
         <div class="row">
           <div class="input-field col s6">
-            <%-- REVISAO 2026-07-08 (varredura JS, achado ALTA): type="number" min="10"
-                 como 1a barreira (o guard de verdade e no JS, controle.js#btnModificar --
-                 este input aceita valor direto via $.val(), entao o HTML5 sozinho nao
-                 e suficiente, mas ajuda a UI/teclado mobile e evita o caso mais obvio). --%>
+            <%-- TK-33: type="number" min="10" e so a 1a barreira -- o guard real e no JS (controle.js). --%>
             <input value="" id="AlturaId" placeholder="Altura" aria-label="Altura" type="number" min="10" class="validate">
             <label class="active" for="Altura">Altura</label>
           </div>

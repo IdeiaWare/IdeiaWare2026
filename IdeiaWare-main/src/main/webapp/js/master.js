@@ -38,10 +38,7 @@ function deleteFile(id){
           contentType: 'application/json',
           data: id.toString(),
           success: function () {
-            // REVISAO 2026-07-08 (varredura JS, achado ALTA): faltava o "]" de fechar
-            // o seletor de atributo -- o DELETE rodava com sucesso no servidor, mas o
-            // seletor malformado nunca casava nada, entao a linha NUNCA sumia da lista
-            // (item deletado continuava aparecendo como se nada tivesse acontecido).
+            // TK-32: faltava o "]" de fechar o seletor (DELETE funcionava, mas a linha nunca sumia da lista).
             $('.modal.open i[data-id="'+ id +'"]').closest('tr').remove();
 
             if ($('.modal.open i').length === 0)
@@ -54,9 +51,6 @@ function deleteFile(id){
     }
 }
 
-// Exclui um Canva exportado (Canvaexport) na Retencao. Espelha deleteFile(), mas
-// aponta para o DeletarCanvaexportServlet (entidade diferente do ExportFile de
-// persona/POV). POST via $.ajax -> o csrf.js injeta o header X-CSRF-Token.
 function deleteCanvaExport(codigo){
     var confirmDelete = confirm("Você tem certeza que deseja deletar este item?");
 
@@ -67,8 +61,7 @@ function deleteCanvaExport(codigo){
           contentType: 'application/json',
           data: codigo.toString(),
           success: function () {
-            // REVISAO 2026-07-08 (varredura JS, achado ALTA): mesmo bug (copy-paste) do
-            // deleteFile() acima -- faltava o "]" de fechar o seletor de atributo.
+            // TK-32: mesmo bug de copy-paste do deleteFile() acima.
             $('.modal.open i[data-id="'+ codigo +'"]').closest('tr').remove();
 
             if ($('.modal.open i').length === 0)

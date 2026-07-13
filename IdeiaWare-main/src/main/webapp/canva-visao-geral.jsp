@@ -44,11 +44,7 @@
 			</div>
 
 			<!-- INICIO DA DIV DE EXPORTAÇÃO / LISTAGEM DE POST-ITS -->
-			<%-- TEST-04 (2026-07-06): esta pagina e so leitura (nenhum form/botao de
-			     edicao aqui, so o Exportar acima, fora deste bloco) -- gate-la inteira
-			     por isRetencao deixava a pagina em BRANCO no modo retencao, diferente
-			     das 9 canva-*.jsp irmas (que so escondem o FORM de adicionar post-it,
-			     nunca a listagem). Removido o gate: mostra sempre. --%>
+			<%-- TEST-04: pagina so-leitura, sem gate de isRetencao (senao ficava em branco no modo retencao). --%>
 			<div id="myPDF">
 				<!-- INICIO SEGMENTO DE CLIENTES -->
 				    <c:set var="numPost" value="0" />

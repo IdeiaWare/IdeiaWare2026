@@ -16,10 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author Vinicius Santiago
- */
 public class GerenciarIdeiaServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -28,8 +24,7 @@ public class GerenciarIdeiaServlet extends HttpServlet {
 
         HttpSession session = request.getSession(true);
 
-        // RETENCAO-ACESSO: exige login. Antes este servlet nao checava sessao
-        // nenhuma (a checagem de permissao ficava so na JSP de destino).
+        // RETENCAO-ACESSO: exige login (antes, so a JSP de destino checava permissao).
         Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
             response.sendRedirect(request.getContextPath() + File.separator + "login.jsp");
@@ -41,9 +36,7 @@ public class GerenciarIdeiaServlet extends HttpServlet {
             return;
         }
 
-        // RET-14: valida o parametro e a existencia da ideia antes de usar. Sem
-        // isso, ideiaId nulo/invalido dava 500 (NumberFormatException) e uma ideia
-        // ja removida dava NPE em ideia.getCodigo().
+        // RET-14: valida parametro/ideia antes de usar (evita 500/NPE).
         String ideiaIdParam = request.getParameter("ideiaId");
         Ideia ideia = null;
         if (ideiaIdParam != null) {
@@ -58,9 +51,7 @@ public class GerenciarIdeiaServlet extends HttpServlet {
             return;
         }
 
-        // RETENCAO-ACESSO (IDOR): agora que a tela e liberada p/ todos, admin ve
-        // qualquer ideia mas colaborador so ve as que participa -- sem isso, dava
-        // p/ trocar o ideiaId na URL e ver o historico de uma ideia de outro usuario.
+        // RETENCAO-ACESSO: admin ve qualquer ideia, colaborador so as que participa.
         if (!"adm".equals(usuario.getPermissao())) {
             List<IdeiaUsuario> vinculo = new IdeiaUsuarioDAO()
                     .listarParametro(new IdeiaUsuario(usuario, ideia, null));
@@ -76,43 +67,21 @@ public class GerenciarIdeiaServlet extends HttpServlet {
 
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

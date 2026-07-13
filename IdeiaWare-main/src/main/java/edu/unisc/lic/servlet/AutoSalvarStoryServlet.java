@@ -23,9 +23,7 @@ public class AutoSalvarStoryServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // AUTORIZACAO: so edita elementos do storytelling ATIVO na sessao. Sem isto,
-        // dava p/ alterar (mover/editar) elementos de QUALQUER storytelling passando
-        // o codigo no JSON (IDOR de escrita).
+        // SEC-16: so edita elementos do storytelling ATIVO na sessao (antes, IDOR de escrita).
         javax.servlet.http.HttpSession session = request.getSession(false);
         Object storyId = session == null ? null : session.getAttribute("storytellingId");
         if (storyId == null) {
@@ -42,10 +40,7 @@ public class AutoSalvarStoryServlet extends HttpServlet {
         JsonArray data = new Gson().fromJson(json, JsonArray.class);
         ElementosStorytellingDAO elementosStorytellingDAO = new ElementosStorytellingDAO();
 
-        // PERF-02: antes, cada elemento do quadro disparava 1 buscar() + 1 editar() -- CADA UM
-        // abrindo/fechando sua propria Session/conexao (2N conexoes por autosave, N = elementos
-        // no quadro). Agora: 1 SELECT em lote (buscarPorCodigos) + 1 Session/Transaction so pra
-        // salvar tudo (salvarLote), total de 2 idas ao banco por autosave, nao importa o N.
+        // PERF-02: 1 SELECT em lote + 1 Session pra salvar tudo, em vez de 2N conexoes (N=elementos).
         Map<Long, ElementosStorytelling> existentes = buscarExistentes(elementosStorytellingDAO, data);
 
         List<ElementosStorytelling> paraSalvar = new ArrayList<>();
@@ -86,8 +81,7 @@ public class AutoSalvarStoryServlet extends HttpServlet {
         return existentes;
     }
 
-    // STR-02: elemento pode ter sido deletado entre o carregamento e o save.
-    // IDOR: ignora elementos que nao pertencem ao storytelling da sessao.
+    // STR-02/SEC-16: ignora elemento deletado nesse meio-tempo ou de outro storytelling.
     private boolean podeSalvar(ElementosStorytelling est, Long storytellingId) {
         return est != null
                 && est.getStorytelling() != null

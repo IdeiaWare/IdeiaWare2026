@@ -70,9 +70,7 @@ public class PointOfViewServiceImpl implements PointOfViewService {
 		associarPersonas(thePOV);
 	}
 
-	// REVISAO 2026-07-08 (varredura Toolkit, achado ALTA -- IDOR, mesmo achado do
-	// controller): personasId[] vem 100% do form; so associa personas que realmente
-	// pertencem a esta ideia (persona_id e auto-increment GLOBAL).
+	// TK-23: so associa personas que realmente pertencem a esta ideia (persona_id e auto-increment GLOBAL).
 	private void associarPersonas(PointOfView thePOV) {
 		for (int id : thePOV.getPersonasId()) {
 			if (personaService.getPersona(id, thePOV.getIdeiaCodigo()) == null) {

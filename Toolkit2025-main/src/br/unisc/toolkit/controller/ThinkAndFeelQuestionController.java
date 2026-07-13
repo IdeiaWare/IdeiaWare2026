@@ -67,10 +67,7 @@ public class ThinkAndFeelQuestionController {
 				return "redirect:/persona/empatia/mapa?personaId=" + theEmpathy.getPersonaId();
 			}
 			theEmpathy.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
-			// REVISAO 2026-07-08 (varredura Toolkit, achado BAIXA): "attribute" (o tipo do
-			// quadrante) vinha 100% do form:hidden, nunca setado no servidor -- um POST
-			// direto pra este endpoint com attribute=pain gravava tipo arbitrario. Forca
-			// o valor correto no servidor, igual ja e feito com ideiaCodigo acima.
+			// TK-ATTR: forca "think_feel" no servidor (antes vinha 100% do form:hidden, POST direto trocava o tipo).
 			theEmpathy.setAttribute("think_feel");
 
 			// save the empathy attribute using our service
@@ -83,8 +80,7 @@ public class ThinkAndFeelQuestionController {
 		}
 	}
 	
-	// REVISAO 2026-07-08 (varredura Toolkit, achado MEDIA -- csrfToken em GET): virou
-	// POST -- mesmo motivo do GainQuestionController.
+	// TK-26: virou POST (mesmo motivo do GainQuestionController).
 	@PostMapping("/o-que-pensa-e-sente/delete")
 	public String deleteAttribute(@RequestParam("personaId") int personaId,
 								@RequestParam("attributeId") int attributeId,

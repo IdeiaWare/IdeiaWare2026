@@ -1,7 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%-- Tela de confirmacao da finalizacao do Canvas (espelha a finalize.jsp do
-     Toolkit): em vez do corte seco do export direto para "Minhas Ideias",
-     mostra um cartao de sucesso e deixa a navegacao a cargo do usuario. --%>
+<%-- Tela de confirmacao da finalizacao do Canvas (espelha finalize.jsp do Toolkit). --%>
 <%@page contentType="text/html" pageEncoding="UTF-8" session="true"%>
 <%@include file="header/headerCookiesCV.jsp" %>
 <!DOCTYPE html>

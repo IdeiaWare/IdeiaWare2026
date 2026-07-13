@@ -15,12 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- * M.2 (2026-07-06): o LIDER aprova a entrada de alguem no grupo (vinculo P -> A). So o
- * lider da ideia pode aprovar, e so vinculos que estao PENDENTES. Ambas as regras sao
- * checadas no servidor. Depois de aprovado, a pessoa vira membro efetivo (entra na escolha
- * de lider ao fechar o grupo).
- */
+// M.2: o LIDER aprova a entrada de alguem no grupo (vinculo P -> A), checado no servidor.
 @WebServlet(name = "AprovarMembroServlet", urlPatterns = {"/AprovarMembroServlet"})
 public class AprovarMembroServlet extends HttpServlet {
 
@@ -52,8 +47,7 @@ public class AprovarMembroServlet extends HttpServlet {
 
         Ideia ideia = vinculo.getIdeia();
 
-        // AUTORIZACAO: so o LIDER da ideia aprova. Sem isso, qualquer logado aprovaria
-        // membros de qualquer ideia chamando o servlet direto.
+        // AUTORIZACAO: so o LIDER da ideia aprova membros (senao, qualquer logado aprovaria).
         Usuario sessionUser = new Usuario();
         sessionUser.setCodigo((Long) codigoUsuario);
         List<IdeiaUsuario> souLider = ideiaUsuarioDAO

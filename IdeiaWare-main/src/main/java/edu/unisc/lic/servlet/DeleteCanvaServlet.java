@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.dao.CanvaDAO;
@@ -20,31 +15,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author yanrodrigues
- */
 public class DeleteCanvaServlet extends HttpServlet {
 
-    // TEST-04: lista fechada dos destinos validos -- antes bastava comecar com
-    // "EntrarCanva" (ex.: "EntrarCanvaXxx", que nao existe, passava na checagem e so
-    // quebrava em runtime com 404). Nao era um open-redirect explorado, mas uma lista
-    // fechada fecha o buraco por completo em vez de confiar num prefixo de string.
+    // CAN-04/TEST-04: lista fechada de destinos validos (antes bastava comecar com "EntrarCanva").
     private static final Set<String> DESTINOS_VALIDOS = new HashSet<>(Arrays.asList(
             "EntrarCanvaServlet", "EntrarCanvaAtividadeServlet", "EntrarCanvaCanalServlet",
             "EntrarCanvaEstruturaServlet", "EntrarCanvaParceriaServlet", "EntrarCanvaPropostaServlet",
             "EntrarCanvaReceitaServlet", "EntrarCanvaRecursoServlet", "EntrarCanvaRelacionamentoServlet",
             "EntrarCanvaSegmentoServlet"));
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
     	
@@ -80,10 +59,7 @@ public class DeleteCanvaServlet extends HttpServlet {
             canvaDAO.excluir(canva);
         }
 
-        // CAN-04: 'context' vinha do formulário direto para o sendRedirect,
-        // permitindo redirecionamento para sites externos (open redirect).
-        // TEST-04: trocado o prefixo "EntrarCanva" por uma lista fechada dos
-        // servlets de destino realmente validos.
+        // CAN-04: 'context' ia direto pro sendRedirect sem validar (open redirect).
         String context = request.getParameter("context");
         if (!DESTINOS_VALIDOS.contains(context)) {
             context = "EntrarCanvaServlet";
@@ -92,43 +68,21 @@ public class DeleteCanvaServlet extends HttpServlet {
 
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

@@ -9,10 +9,6 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
-/**
- *
- * @author viniciussdsilva
- */
 public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
 
     public List<ColaboracaoIdeia> listarParametro(ColaboracaoIdeia ci) {
@@ -34,14 +30,7 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
         }
     }
 
-    /**
-     * M.6 (2026-07-06): retorna TODAS as colaboracoes da ideia com codigo > ultimoCodigo,
-     * em ordem crescente. Substitui o uso de ultimaColab() no polling do colaboracao.jsp,
-     * que so trazia a ULTIMA -- se 2 chegassem entre 2 polls, a do meio se perdia ate um
-     * F5, e o protocolo por CONTAGEM abria uma corrida que duplicava a colaboracao recem
-     * enviada (o poll trazia a mesma que o handler de envio ja tinha adicionado). Com
-     * codigo > ultimoCodigo, o cliente so renderiza o que ainda nao viu.
-     */
+    // M.6: colaboracoes com codigo > ultimoCodigo (antes, protocolo por contagem perdia/duplicava).
     public List<ColaboracaoIdeia> listarAposCodigo(ColaboracaoIdeia ci, Long ultimoCodigo) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
@@ -74,8 +63,7 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
             filtro.addOrder(Order.desc("dtModificacao"));
             filtro.setMaxResults(1);
 
-            // RET-14: retorna null em vez de estourar IndexOutOfBounds se nao
-            // houver colaboracoes (defensivo).
+            // RET-14: retorna null em vez de estourar se nao houver colaboracoes.
             List<ColaboracaoIdeia> resultado = filtro.list();
             return resultado.isEmpty() ? null : resultado.get(0);
 
@@ -84,11 +72,7 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
         }
     }
 
-    // REVISAO 2026-07-07: renomeado de quantidadeMes -- o nome prometia contar so as do
-    // MES, mas o metodo nunca filtrou por data (so por ideia), sempre retornou o TOTAL
-    // historico. Sem callers em producao (achado da varredura) -- renomeado pra refletir o
-    // que de fato faz, e trocado list().size() (carrega todas as entidades so pra contar)
-    // por Projections.rowCount() (COUNT no banco, sem trazer linha nenhuma pra memoria).
+    // GT-12: renomeado de quantidadeMes (nunca filtrou por mes) + COUNT no banco em vez de carregar tudo.
     public int quantidadeTotal(ColaboracaoIdeia ci) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
