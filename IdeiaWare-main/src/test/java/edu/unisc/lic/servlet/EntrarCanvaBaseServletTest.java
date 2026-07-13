@@ -22,11 +22,7 @@ import edu.unisc.lic.domain.Canva;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04 (2026-07-03), Tier 1: EntrarCanvaBaseServlet (MNT-01) -- testado via uma
- * subclasse real (EntrarCanvaAtividadeServlet) ja que a base e abstrata. Cobre o
- * SRV-NPE-01 (null-check depois do buscar(ideiaId) da sessao).
- */
+// TEST-04, Tier 1: EntrarCanvaBaseServlet (MNT-01) -- testado via subclasse real, cobre o SRV-NPE-01.
 public class EntrarCanvaBaseServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

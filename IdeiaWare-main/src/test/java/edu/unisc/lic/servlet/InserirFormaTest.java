@@ -33,10 +33,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * InserirForma: adiciona uma figura (IMG) ao quadro do storytelling ativo na
- * sessao. Sem storytellingId na sessao -> 400 (STM-04).
- */
+// InserirForma: adiciona figura ao quadro do storytelling ativo na sessao -- sem storytellingId -> 400 (STM-04).
 public class InserirFormaTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

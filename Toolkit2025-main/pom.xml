@@ -27,6 +27,13 @@
         <sourceDirectory>src</sourceDirectory>
         <!-- TEST-01: testes ficam em test/ (fora de src/, que e o sourceDirectory) -->
         <testSourceDirectory>test</testSourceDirectory>
+        <!-- TEST-0X: recursos de teste (applicationContext-test.xml) ficam em test/resources,
+             acompanhando o testSourceDirectory nao-padrao acima. -->
+        <testResources>
+            <testResource>
+                <directory>test/resources</directory>
+            </testResource>
+        </testResources>
 
         <plugins>
             <plugin>
@@ -189,6 +196,13 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>3.12.4</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- TEST-03: H2 em memoria pros testes de DAO (mesma versao/abordagem do LIC) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.200</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

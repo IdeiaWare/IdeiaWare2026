@@ -5,10 +5,7 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-// GT-01: Gson padrao vaza Usuario.senha (hash bcrypt) por reflection em qualquer entidade com
-// referencia a Usuario. NAO marcar o campo como `transient` pra resolver -- em campo JPA
-// mapeado por acesso direto, isso faz o Hibernate parar de PERSISTIR a senha tambem (quebraria
-// login). Este Gson compartilhado exclui o campo so na serializacao, sem tocar a persistencia.
+// GT-01: exclui Usuario.senha so na serializacao (marcar `transient` quebraria a persistencia pelo Hibernate).
 public final class JsonUtil {
 
     /** Gson que nunca inclui Usuario.senha no JSON de saida. Uso: JsonUtil.GSON_SEM_SENHA.toJson(obj). */

@@ -18,10 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * TEST-02: logica do CsrfInterceptor (double-submit). Trava CSRF-01: POST/GET-delete
- * exigem token (param/header) igual ao cookie; GET comum so gera o cookie e passa.
- */
+// TEST-02: logica do CsrfInterceptor -- trava CSRF-01 (POST/GET-delete exigem token igual ao cookie; GET comum so gera o cookie).
 public class CsrfInterceptorTest {
 
 	private CsrfInterceptor interceptor;

@@ -37,14 +37,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: UploadArquivoServlet (STR-06/upload de imagem do Storytelling) --
- * exige storytelling ativo na sessao e so aceita extensoes de imagem (allowlist que
- * impede gravar .jsp/.html executavel na pasta servida pelo Tomcat -- RCE). Como o
- * parsing e feito via Apache Commons FileUpload direto sobre o corpo multipart (nao
- * a API javax.servlet.http.Part), os testes de upload constroem o corpo multipart
- * "na mao" e simulam o InputStream da request.
- */
+// TEST-04, Tier 3: UploadArquivoServlet (STR-06) -- allowlist de extensao de imagem impede RCE via upload; testes montam o corpo multipart na mao.
 public class UploadArquivoServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
@@ -68,11 +61,7 @@ public class UploadArquivoServletTest {
 		return st;
 	}
 
-	/**
-	 * O servlet chama getServletContext().getRealPath("") para criar/gravar na pasta
-	 * de imagens do storytelling -- precisa de init(ServletConfig) antes de usar fora
-	 * de um container real, senao da NPE.
-	 */
+	// getRealPath("") pra gravar na pasta de imagens -- precisa de init(ServletConfig) fora de container real, senao NPE.
 	private UploadArquivoServlet novoServletComContexto() throws Exception {
 		UploadArquivoServlet servlet = new UploadArquivoServlet();
 		ServletConfig config = mock(ServletConfig.class);
@@ -106,8 +95,7 @@ public class UploadArquivoServletTest {
 		HttpSession session = mock(HttpSession.class);
 		when(request.getSession(false)).thenReturn(session);
 		when(session.getAttribute("storytellingId")).thenReturn(storytellingId);
-		// ServletFileUpload.isMultipartContent(HttpServletRequest) exige method "post"
-		// (case-insensitive) ALEM do Content-Type -- sem isso volta false silenciosamente.
+		// ServletFileUpload.isMultipartContent() exige method "post" ALEM do Content-Type (senao volta false em silencio).
 		when(request.getMethod()).thenReturn("POST");
 		when(request.getContentType()).thenReturn("multipart/form-data; boundary=" + boundary);
 		when(request.getContentLength()).thenReturn(corpo.length);

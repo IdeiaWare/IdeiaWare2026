@@ -8,12 +8,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
-/**
- * TEST-04: o scratch @Ignore original batia num IdeiaDAO real (buscar(2L)) so pra
- * chamar diferencaDatas() e dar println -- nao testava nada e dependia de banco.
- * diferencaDatas() e logica pura (2 Date -> String); reescrito sem nenhuma
- * dependencia de banco, igual ao espirito do DataFormatacaoTest (TEST-01).
- */
+// TEST-04: diferencaDatas() e logica pura (2 Date -> String); reescrito sem dependencia de banco.
 public class DataTest {
 
 	@Test

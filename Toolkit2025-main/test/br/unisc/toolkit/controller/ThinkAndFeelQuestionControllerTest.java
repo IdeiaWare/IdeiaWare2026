@@ -20,10 +20,7 @@ import br.unisc.toolkit.classes.AssinaturaCaixa;
 import br.unisc.toolkit.entity.Empathy;
 import br.unisc.toolkit.service.EmpathyService;
 
-/**
- * TEST-02: empatia (representa os 6 controllers de pergunta, que sao identicos).
- * Valida o backstop server-side do atributo via MockMvc.
- */
+// TEST-02: representa os 6 controllers de pergunta (identicos) -- valida o backstop server-side do atributo via MockMvc.
 public class ThinkAndFeelQuestionControllerTest {
 
 	private MockMvc mvc;

@@ -25,10 +25,7 @@ import edu.unisc.lic.domain.Canvaexport;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: DeletarCanvaexportServlet (RKM-02) -- exclui um Canvaexport a partir
- * da Retencao do Conhecimento; admin-only, espelhando o DeletarExportedFileServlet.
- */
+// TEST-04, Tier 3: DeletarCanvaexportServlet (RKM-02) -- admin-only, espelha o DeletarExportedFileServlet.
 public class DeletarCanvaexportServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

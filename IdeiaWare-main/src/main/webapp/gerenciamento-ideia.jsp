@@ -5,11 +5,7 @@
 <%
     UsuarioDAO usuarioDAO = new UsuarioDAO();
     Usuario usuario = null;
-    // RET-11: faltava o return apos o redirect de login. Sem ele, quando a sessao
-    // nao tinha codigoUsuario o codigo seguia ate o segundo sendRedirect
-    // (index.jsp, linha abaixo) e o Tomcat lancava "Cannot call sendRedirect()
-    // after the response has been committed" (erro 500). Agora encerra a
-    // requisicao ja no primeiro redirect.
+    // RET-11: faltava o return apos o redirect de login -- o codigo seguia ate o 2o sendRedirect e o Tomcat dava 500.
     if (session.getAttribute("codigoUsuario") == null) {
         response.sendRedirect("login.jsp");
         return;
@@ -24,19 +20,14 @@
         request.setAttribute("usuario", usuario.getUsuario());
     }
 
-    // RET-04: se o usuário não existe mais (conta removida com sessão ativa),
-    // redireciona para o login em vez de causar NullPointerException.
-    // RETENCAO-ACESSO: antes so admin acessava. A checagem de QUAL ideia o
-    // usuario pode ver ja aconteceu no GerenciarIdeiaServlet (so chega aqui se
-    // for admin OU participante da ideia -> session.ideiaId vem validado).
+    // RET-04: usuario nao existe mais (conta removida com sessao ativa) -- redireciona em vez de NullPointerException.
+    // RETENCAO-ACESSO: QUALQUER logado acessa; a checagem de QUAL ideia ja aconteceu no GerenciarIdeiaServlet.
     if (usuario == null) {
         response.sendRedirect("index.jsp");
         return;
     }
 
-    // RET-03: se a página for acessada diretamente (sem passar pelo
-    // GerenciarIdeiaServlet), não há ideiaId na sessão. Evita o erro 500
-    // de Long.parseLong(null) redirecionando para a lista de gerenciamento.
+    // RET-03: acesso direto (sem passar pelo GerenciarIdeiaServlet) nao tem ideiaId -- evita 500 de Long.parseLong(null).
     if (session.getAttribute("ideiaId") == null) {
         response.sendRedirect("lista-ideia-gerenciamento.jsp");
         return;
@@ -102,7 +93,7 @@
     <nav>
       <div class="nav-wrapper light-blue darken-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
-          <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
+          <ul style="width:300px" id="nav-logo" class="left hide-on-med-and-down">
             <div class="row" style="padding-left: 10px">
               <div class="col s1 light-blue darken-1 knowledge" style=" width: 50px;  height: 50px; 
                    margin-top: 5px;  padding: 6px 6px; 
@@ -119,8 +110,7 @@
 
       </div>
     </nav>
-    <%-- UX: FAB removido -- so tinha atalhos do modulo COLABORATIVO (Cadastrar/Minhas/
-         Outras Ideias), nenhum deles e uma acao de Retencao do Conhecimento. --%>
+    <%-- UX: FAB removido -- so tinha atalhos do modulo Colaborativo, nenhum e uma acao de Retencao. --%>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script type="text/javascript" src="js/materialize.js"></script>
@@ -182,8 +172,7 @@
           <div class="container">
             <div class="card blue-grey darken-1">
               <div class="card-content white-text">
-                <%-- M.7 (2026-07-06): mesmo fix do colaboracao.jsp -- titulo (max 50) quebra
-                     no card em vez de estourar com fonte 32px fixa. --%>
+                <%-- M.7: mesmo fix do colaboracao.jsp -- titulo (max 50) quebra em vez de estourar com fonte 32px fixa. --%>
                 <span class="card-title" style="display:block; word-break: break-word; line-height:1.2;"><b style="font-size: 28px;"><c:out value="${ideia.titulo}"/></b></span>
                 <p style="text-align: justify" id="descricaoAtual"><c:out value="${log2.getDescricao()}"/></p>
               </div>
@@ -363,11 +352,9 @@
                   <div class="row">                
                     <!--início persona -->
                     <div class="col s2">
-                      <!--<form id="abrirPersona" action="AbrirPersona" method="post" target="_blank"> href="javascript:{}"   onclick="document.getElementById('abrirPersona').submit();"-->
                       <a href="#modalGenerico" id="persona" class="modal-trigger red lighten-2" data-target="persona" data-titulo="Seleção Persona">
                         <div><i class="large material-icons">person</i></div>
                       </a>
-                      <!--</form>  importante mandar dps-->
                       <div>Persona</div>
                     </div>
                     <c:set var="pointOfView" value="true"/>		             
@@ -380,11 +367,9 @@
                         </div>
 
                         <div class="col s2">
-                          <!--<form id="abrirPOV" action="AbrirPointOfView" method="post" target="_blank"> href="javascript:{}" onclick="document.getElementById('abrirPOV').submit();"-->
                           <a href="#modalGenerico" id="pointOfView" class="modal-trigger red lighten-2" data-target="pov" data-titulo="Seleção Point of View">
                             <div><i class="large material-icons">person_pin</i></div>
                           </a>
-                          <!--</form>-->
                           <div>Point Of View</div>
                         </div>
                         <c:set var="canva" value="true"/>
@@ -401,7 +386,6 @@
                           <a href="#modalGenerico" id="canva" class="modal-trigger red lighten-2" data-target="canva" data-titulo="Seleção Canva">
                             <div><i class="large material-icons">person_pin</i></div>
                           </a>
-                          <!--</form>-->
                           <div>Canva</div>
                         </div>
                     </c:if>
@@ -452,7 +436,6 @@
      $(document).ready(function(){
         $('.modal').modal({
           ready: function (modal, trigger) {
-            //                    colocando o titulo para o modal
             // SEC-05: escapa dado do usuario (trigger.data() decodifica entidades -> innerHTML re-parseia = XSS).
             function escapeHtml(s){if(s==null)return '';return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
             document.getElementById('titulo').innerHTML = "<h4>" + escapeHtml(trigger.data('titulo')) + "</h4>";
@@ -489,48 +472,6 @@
         });
       });
 
-      //        $("#ideiaCriada").click(function () {
-      //            //          alert("ideiaCriada");divIdeiaCriada
-      //            document.getElementById('titulo').innerHTML = document.getElementById('divIdeiaCriada').innerHTML;
-      //            document.getElementById('corpo').innerHTML = ideiaCriada();
-      //        });
-      //
-      //        $("#validacaoGestor").click(function () {
-      //            alert("validacaoGestor");
-      //        });
-      //
-      //        $("#ideiaRejeitada").click(function () {
-      //            alert("ideiaRejeitada");
-      //        });
-      //
-      //        $("#ideiaValidada").click(function () {
-      //            alert("ideiaValidada");
-      //        });
-      //
-      //        $("#visualizacao").click(function () {
-      //            alert("visualizacao");
-      //        });
-      //
-      //        $("#inscricao").click(function () {
-      //            alert("inscricao");
-      //        });
-      //
-      //        $("#encerramento").click(function () {
-      //            alert("encerramento");
-      //        });
-      //
-      //        $("#storytelling").click(function () {
-      //            alert("storytelling");
-      //        });
-      //
-      //        $("#pointOfView").click(function () {
-      //            alert("pointOfView");
-      //        });
-      //
-      //        $("#persona").click(function () {
-      //            alert("persona");
-      //        });
-
 
 
       function pov() {
@@ -555,8 +496,7 @@
                 "              </tr>\n" +
                 "            </thead>";
         html += "<tbody>";
-        // UX: mensagem consistente com storytelling()/canva() abaixo (CTA com link
-        // pra onde exportar, em vez de um texto seco sem acao nenhuma).
+        // UX: mensagem consistente com storytelling()/canva() abaixo (CTA com link pra onde exportar).
         if (${exportDAO.listarParametro(export).size()} === 0)
           html = "<div style='text-align:center'>\n" +
                  "   Nenhum Point of View foi exportado. <a href='lista-caixa-de-ferramentas.jsp'>Acesse-o agora</a>, exporte-o e volte aqui :)\n" +
@@ -608,8 +548,7 @@
                 "              </tr>\n" +
                 "            </thead>";
         html += "<tbody>";
-        // UX: mensagem consistente com storytelling()/canva() abaixo (CTA com link
-        // pra onde exportar, em vez de um texto seco sem acao nenhuma).
+        // UX: mensagem consistente com storytelling()/canva() abaixo (CTA com link pra onde exportar).
         if (${export1DAO.listarParametro(export1).size()} === 0)
           html = "<div style='text-align:center'>\n" +
                  "   Nenhuma Persona foi exportada. <a href='lista-caixa-de-ferramentas.jsp'>Acesse-o agora</a>, exporte-a e volte aqui :)\n" +
@@ -680,9 +619,7 @@
       }
       
       function canva() {
-          // RET-07: a variável 'canva' é a string "false" quando não há canva
-          // exportado, então "${canva}" == null nunca era verdadeiro e a mensagem
-          // de aviso jamais aparecia. Usamos o tamanho real da lista.
+          // RET-07: 'canva' e a string "false" quando vazio -- "${canva}"==null nunca era true; usa o tamanho real da lista.
           if (${canvaList.size()} === 0) {
             var html = "";
             html += "<div style='text-align:center'>\n" +

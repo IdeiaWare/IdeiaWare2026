@@ -22,10 +22,7 @@ import edu.unisc.lic.domain.ExportFile;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: DeletarExportedFileServlet (RKM-02) -- chamado via AJAX; so admin
- * pode excluir um arquivo exportado, e um id inexistente nao deve levantar excecao.
- */
+// TEST-04, Tier 3: DeletarExportedFileServlet (RKM-02) -- so admin exclui, id inexistente nao levanta excecao.
 public class DeletarExportedFileServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

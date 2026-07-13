@@ -7,12 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-/**
- * TEST-04: AssinaturaCaixa.assinar() e a base do SEC-23 (impede forjar o cookie
- * ideiaId entre LIC e Toolkit). Logica pura (HMAC-SHA256), sem banco -- barata e de
- * alto valor: se a assinatura mudar de comportamento sem querer, essa protecao
- * degrada silenciosamente.
- */
+// TEST-04: AssinaturaCaixa.assinar() e a base do SEC-23 -- logica pura (HMAC-SHA256), barata e de alto valor.
 public class AssinaturaCaixaTest {
 
 	@Test

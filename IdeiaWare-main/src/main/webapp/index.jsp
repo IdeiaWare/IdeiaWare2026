@@ -84,7 +84,7 @@
     <nav>
       <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
-          <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
+          <ul style="width:300px" id="nav-logo" class="left hide-on-med-and-down">
             <div class="row" style="padding-left: 10px">
               <div class="col s1 blue-grey lighten-3" style=" width: 50px;  height: 50px; 
                    margin-top: 5px;  padding: 6px 6px; 
@@ -97,12 +97,9 @@
           </ul>
         </a>
         <ul id="nav-mobile" class="right hide-on-med-and-down" >
-          <!--// LucasFreitag 2024-->
-          <%-- XSS: nome do usuario e texto livre de cadastro -- escapado (mesma classe
-               de achado ja corrigida em footer.jsp/canva-footer.jsp, [FOOTER-XSS]). --%>
+          <%-- FOOTER-XSS: nome do usuario (texto livre de cadastro) escapado com c:out. --%>
           <li><a href="index-perfil.jsp"><c:out value="${sessionScope.nomeUsuario}"/><i style="padding-left: 10px" class="fa fa-user-o" aria-hidden="true"></i></a></li>
-          <%-- Gerenciar Usuarios: nao pertence a nenhum modulo (colaborativo, storytelling,
-               etc.), entao mora aqui na home em vez de dentro do header de algum modulo. --%>
+          <%-- UX-GERENCIAR-USUARIOS: nao pertence a nenhum modulo, mora aqui na home em vez do header de algum modulo. --%>
           <c:if test="${usuario.permissao eq 'adm'}">
             <li><a href="gerenciar-usuarios.jsp">Gerenciar Usuários<i style="padding-left: 10px" class="fa fa-users" aria-hidden="true"></i></a></li>
           </c:if>

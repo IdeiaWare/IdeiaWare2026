@@ -4,8 +4,7 @@ import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 
-// CASE-FIX: forca o nome fisico da tabela pra minusculo (entidades sem @Table herdam o nome
-// da classe com maiuscula, que quebra no MySQL Linux case-sensitive). Ver D-5 no relatorio.
+// CASE-FIX/D-5: forca nome de tabela minusculo (MySQL Linux case-sensitive) -- sozinho nao basta, precisa tambem de lower_case_table_names=1.
 public class LowerCaseTableNamingStrategy extends PhysicalNamingStrategyStandardImpl {
 
 	private static final long serialVersionUID = 1L;

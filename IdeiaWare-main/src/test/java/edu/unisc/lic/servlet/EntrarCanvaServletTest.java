@@ -29,11 +29,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: EntrarCanvaServlet (CAN-09/CAN-PARTICIPANTE) -- ponto de entrada
- * principal do Canvas: exige participacao na ideia e carrega os 9 blocos na sessao
- * antes de redirecionar para canva-mapa.jsp.
- */
+// TEST-04, Tier 3: EntrarCanvaServlet (CAN-09) -- ponto de entrada principal do Canvas, exige participacao e carrega os 9 blocos na sessao.
 public class EntrarCanvaServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
@@ -93,9 +89,7 @@ public class EntrarCanvaServletTest {
 
 	@Test
 	public void semLogin_redirecionaParaLoginEmVezDeNPE() throws Exception {
-		// TEST-04: achado durante os testes -- faltava checagem de login (a linha original
-		// fazia (long) session.getAttribute("codigoUsuario") sem checar null, o que dava
-		// NPE no unboxing em vez de redirecionar como os demais servlets do modulo).
+		// TEST-04: faltava checagem de login -- unboxing de getAttribute("codigoUsuario") sem checar null dava NPE em vez de redirecionar.
 		Usuario autor = novoUsuario("AutorSemLogin");
 		Ideia ideia = novaIdeia(autor);
 

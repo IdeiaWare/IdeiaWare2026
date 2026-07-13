@@ -7,13 +7,7 @@
     <link href="js/quill/quill.snow.css" rel="stylesheet">
     <title>IdeiaWare - Editar Texto</title>
     <style>
-      /* M.9 (2026-07-06): o editor crescia demais e empurrava os botoes Concluir/Cancelar
-         pra muito abaixo (precisava rolar quase 1 pagina). O Quill modela altura assim:
-         .ql-container (=#editor) e .ql-editor tem height:100% -- entao a altura vinha do
-         pai (min-height:90vh). O jeito certo (uso pretendido do Quill) e dar uma ALTURA
-         fixa no #editor/container; o .ql-editor de dentro ja tem overflow-y:auto e rola
-         sozinho. Setar so max-height no .ql-editor (tentativa anterior) nao resolvia
-         porque o container continuava com height:100%. */
+      /* M.9: editor crescia demais e empurrava os botoes -- altura fixa no #editor (o .ql-editor interno ja rola sozinho). */
       #editor {
         height: 40vh;
       }
@@ -58,12 +52,6 @@
 <!-- Initialize Quill editor -->
 <script>
 
-                  /*!
-                   * Quill Editor v1.3.2
-                   * https://quilljs.com/
-                   * Copyright (c) 2014, Jason Chen
-                   * Copyright (c) 2013, salesforce.com
-                   */
                   var Bold = Quill.import('formats/bold');
                   Bold.tagName = 'B';   // Quill uses <strong> by default
                   Quill.register(Bold, true);
@@ -83,35 +71,19 @@
                   Quill.register(PlainListItem, true);
 
                   var ColorClass = Quill.import('attributors/style/color');
-//                                var SizeStyle = Quill.import('attributors/style/size');
                   Quill.register(ColorClass, true);
-//                                Quill.register(SizeStyle, true);
 
 
                   var Size = Quill.import('attributors/style/size');
                   Size.whitelist = ['10px', '18px', '32px'];
                   Quill.register(Size, true);
 
-//                                var fontSizeStyle = Quill.import('attributors/style/size');
-//                                fontSizeStyle.whitelist = ['small', 'large', 'huge'];
-//                                Quill.register(fontSizeStyle, true);
-
-
-
                   var toolbarOptions = [
-                    ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-
-//                                    [{'size': ['small', false, 'large', 'huge']}], // custom dropdown
+                    ['bold', 'italic', 'underline', 'strike'],
                     [{'size': ['10px', false, '18px', '32px']}],
-
-//                                  [{'list': 'ordered'}, {'list': 'bullet'}],
                     [{'color': ['black', 'red', 'yellow', 'blue', 'green', 'purple', 'orange']}],
-                    [{'script': 'sub'}, {'script': 'super'}], // superscript/subscript
-//                    [{'indent': '-1'}, {'indent': '+1'}], // outdent/indent
-
-//                    [{'align': []}],
-
-                    ['clean']                                         // remove formatting button
+                    [{'script': 'sub'}, {'script': 'super'}],
+                    ['clean']
                   ];
 
                   var quill = new Quill('#editor', {
@@ -121,14 +93,7 @@
                     theme: 'snow'
                   });
 
-                  // Carrega a descricao atual DENTRO do Quill pela API de clipboard
-                  // (converte o HTML no modelo do Quill e mantem so os formatos
-                  // conhecidos). Resolve os DOIS bugs:
-                  //  (1) as tags apareciam como texto literal (era HTML escapado);
-                  //  (2) ao salvar, document.getElementById('editor').innerHTML trazia
-                  //      a marcacao INTERNA do Quill (ql-editor/ql-clipboard, atributos
-                  //      contenteditable) = os "caracteres estranhos/bugados".
-                  // Agora o Concluir usa quill.root.innerHTML = so o conteudo limpo.
+                  // UX-EDITAR-TEXTO: carrega a descricao no Quill via clipboard.dangerouslyPasteHTML; Concluir usa quill.root.innerHTML.
                   var descInicial = document.getElementById('descricao-inicial').value;
                   if (descInicial && descInicial.trim() !== '') {
                     quill.clipboard.dangerouslyPasteHTML(descInicial);

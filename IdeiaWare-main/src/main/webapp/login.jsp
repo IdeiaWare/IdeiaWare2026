@@ -3,7 +3,7 @@
     Boolean respostaCadastro = (Boolean) request.getAttribute("respostaCadastro");
     Boolean respostaCadastro2 = (Boolean) request.getAttribute("respostaCadastro2");
     Boolean respostaCadastro3 = (Boolean) request.getAttribute("respostaCadastro3");
-    Boolean respostaCadastro4 = (Boolean) request.getAttribute("respostaCadastro4"); // LucasFreitag 2024 
+    Boolean respostaCadastro4 = (Boolean) request.getAttribute("respostaCadastro4");
     Boolean resposta5 = (Boolean) request.getAttribute("resposta5");
     Boolean ErroRedefinicaoSenha = (Boolean) request.getAttribute("ErroRedefinicaoSenha");
     Boolean SucessoRedefinicaoSenha = (Boolean) request.getAttribute("SucessoRedefinicaoSenha");
@@ -100,7 +100,6 @@
                 box-shadow: 0 0 0 0 rgba(255,255,255, 0);
             }
         }
-        /*// LucasFreitag 2024*/
         .password-strength {
             height: 10px;
             border-radius: 5px;
@@ -203,7 +202,6 @@
                     <h6>Preencha todos os campos para criar a conta.</h6>
                 </div>
             </c:if>
-            <!--// LucasFreitag 2024-->
             <c:if test="${respostaCadastro4}">
                 <div class="erro">
                     <h6>E-mail já cadastrado!</h6>
@@ -227,8 +225,6 @@
 
             <form id="login-form" class="login-form" action="LogInServlet" method="POST" >
                 <input name="usuario" type="text" placeholder="usuário" aria-label="usuário" pattern=".{4,32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres"/>
-                <!--// LucasFreitag 2024-->
-                <!--<input name="senha" type="password" placeholder="senha" aria-label="senha" pattern=".{8,32}" required title="O campo senha deve conter entre 8 e 32 caracteres"/>-->
                 <%-- UX: "olhinho" pra revelar a senha digitada. --%>
                 <div style="position:relative;">
                     <input name="senha" id="login-senha" type="password" placeholder="senha" aria-label="senha"/>
@@ -246,10 +242,9 @@
                 <label for="reg-usuario" class="perfil-label">Usuário</label>
                 <input id="reg-usuario" name="usuario" type="text" placeholder="usuário" aria-label="usuário" pattern=".{4,32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres" />
                 <label for="reg-email" class="perfil-label">E-mail</label>
-                <input id="reg-email" name="email" type="email" placeholder="email" aria-label="email" pattern="\w+(\+?\w+)@\w+(\.\w+)+" required title="email@exemplo.com" maxlength="100"/> <!--// LucasFreitag 2024-->
+                <input id="reg-email" name="email" type="email" placeholder="email" aria-label="email" pattern="\w+(\+?\w+)@\w+(\.\w+)+" required title="email@exemplo.com" maxlength="100"/>
                 <label for="senha" class="perfil-label">Senha</label>
-                <!-- SENHA-#: o pattern antigo só aceitava os especiais @$!%*?& e rejeitava
-                     senhas com '#' (e outros). Agora aceita qualquer caractere especial. -->
+                <!-- SENHA-#: pattern antigo so aceitava @$!%*?& e rejeitava '#' -- agora aceita qualquer especial. -->
                 <div style="position:relative;">
                     <input name="senha" id="senha" type="password" placeholder="senha" aria-label="senha" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,32}$" required title="O campo senha deve conter entre 8 e 32 caracteres. E os 5 requisitos abaixo." maxlength="32" oninput="checkPasswordStrength()"/>
                     <button type="button" id="toggle-reg-senha" tabindex="-1" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('senha','toggle-reg-senha')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
@@ -261,9 +256,7 @@
                     <button type="button" id="toggle-reg-senha2" tabindex="-1" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('reg-senha2','toggle-reg-senha2')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
                 </div>
 
-                <%-- UX: forca da senha depois de Senha+Confirmar (antes ficava encaixada
-                     entre os dois campos, cortando o fluxo de preenchimento). --%>
-                <!--// LucasFreitag 2024-->
+                <%-- UX-CADASTRO-ORDEM: forca da senha depois de Senha+Confirmar (antes cortava o fluxo entre os 2 campos). --%>
                 <div class="password-strength">
                     <div class="strength-bar" id="strength-bar"></div>
                 </div>
@@ -277,8 +270,6 @@
                 </ul>
 
                 <c:if test="${respostaCadastro2}"><div class="erro"><h6>A senha e a confirmação não coincidem.</h6></div> </c:if>
-                <!--<input disabled="true" type="text" placeholder="e-mail " aria-label="e-mail "/>-->
-                <!--// LucasFreitag 2024-->
                 <div style="text-align: left; margin-bottom: 10px">
                     <input type="checkbox" id="termos" name="termos" value="termos" required title="Necessário aceitar termos de uso para realizar cadastro." />
                     <label class="message2" for="termos">Termos de uso. <a href="#modal1" class="modal-trigger terms-link">Para ler clique aqui.</a></label>
@@ -287,7 +278,6 @@
                 <p class="message">Já é cadastrado? <a href="#" id="show-login-form">Entre</a></p>
             </form>
 
-            <!--// LucasFreitag 2024-->
             <form id="reset-password-form" class="reset-password-form" action="ResetPasswordServlet" method="POST" style="display:none;">
                 <input name="email" type="email" placeholder="email" aria-label="email" pattern="\w+(\+?\w+)@\w+(\.\w+)+" required title="email@exemplo.com" maxlength="100"/>
                 <button class="blue accent-1" type="submit" >Enviar</button>
@@ -295,7 +285,6 @@
             </form>
         </div>    
 
-        <!--// LucasFreitag 2024-->
         <div id="modal1" class="modal">
             <div class="modal-content">
                 <h4>Termos de Uso</h4>
@@ -327,7 +316,6 @@
             </div>
         </div>
 
-        <!--// LucasFreitag 2024-->
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 var elems = document.querySelectorAll('.modal');
@@ -353,21 +341,18 @@
                 const strengthText = document.getElementById('strength-text');
                 let strength = 0;
 
-                // Definindo critérios
                 const lengthcriterio = document.getElementById('length-criterio');
                 const uppercasecriterio = document.getElementById('uppercase-criterio');
                 const lowercasecriterio = document.getElementById('lowercase-criterio');
                 const numbercriterio = document.getElementById('number-criterio');
                 const specialcriterio = document.getElementById('special-criterio');
 
-                // Resetando classes
                 lengthcriterio.classList.remove('valid');
                 uppercasecriterio.classList.remove('valid');
                 lowercasecriterio.classList.remove('valid');
                 numbercriterio.classList.remove('valid');
                 specialcriterio.classList.remove('valid');
 
-                // Verificando critérios
                 if (password.length >= 8) {
                     strength += 1;
                     lengthcriterio.classList.add('valid');
@@ -458,9 +443,7 @@
                     $('#login-form').fadeIn();
                 });
 
-                // UX: quando o servidor retorna um erro de cadastro ou de redefinição,
-                // reabre o formulário correspondente — senão a mensagem aparece mas o
-                // usuário fica olhando para o formulário de login (contexto perdido).
+                // UX-LOGIN-REABRE: reabre o formulario correspondente ao erro (senao ficava mostrando o login com a mensagem perdida).
                 var erroCadastro = ${respostaCadastro or respostaCadastro2 or respostaCadastro3 or respostaCadastro4};
                 var erroRedefinicao = ${resposta5 or ErroRedefinicaoSenha};
                 if (erroCadastro) {

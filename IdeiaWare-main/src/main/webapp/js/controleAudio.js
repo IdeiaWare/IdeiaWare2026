@@ -20,8 +20,7 @@ function Initialize() {
 }
 
 function startRecording() {
-  // UX-STORYTELLING-AUDIO-API: navigator.mediaDevices.getUserMedia (Promise), a antiga navigator.getUserMedia
-  // foi removida dos navegadores modernos. Exige contexto seguro (HTTPS ou localhost).
+  // UX-STORYTELLING-AUDIO-API: navigator.mediaDevices.getUserMedia (Promise) -- a antiga foi removida dos navegadores modernos.
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     alert('Este navegador não suporta gravação de áudio, ou a página não está em um contexto seguro (HTTPS).');
     return;

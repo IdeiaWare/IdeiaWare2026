@@ -20,10 +20,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * M.2 (2026-07-06): AprovarMembroServlet -- so o LIDER aprova a entrada de alguem no grupo
- * (P -> A), e so vinculos pendentes. Regras checadas no servidor.
- */
+// M.2: AprovarMembroServlet -- so o LIDER aprova entrada no grupo (P->A), so vinculos pendentes.
 public class AprovarMembroServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

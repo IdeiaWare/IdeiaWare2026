@@ -23,11 +23,7 @@ import edu.unisc.lic.domain.ColaboracaoIdeia;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * M.10 (2026-07-06): EditarColaboracaoServlet -- so o AUTOR edita a propria colaboracao, e
- * so enquanto ela nao foi adicionada a descricao (flSalvado != "ad"). As duas regras sao
- * checadas no servidor (nao so escondendo o botao na UI).
- */
+// M.10: EditarColaboracaoServlet -- so o AUTOR edita, so enquanto nao foi adicionada a descricao (flSalvado != "ad"), checado no servidor.
 public class EditarColaboracaoServletTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

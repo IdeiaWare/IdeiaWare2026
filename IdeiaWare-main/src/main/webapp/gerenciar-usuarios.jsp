@@ -21,8 +21,7 @@
         request.setAttribute("usuario", usuario.getUsuario());
     }
 
-    // RKM-03: evita NullPointerException caso a conta tenha sido removida
-    // enquanto a sessão ainda estava ativa.
+    // RKM-03: evita NullPointerException caso a conta tenha sido removida com a sessao ainda ativa.
     if (usuario == null || !usuario.getPermissao().equals("adm")) {
         response.sendRedirect("index.jsp");
         return;
@@ -116,14 +115,12 @@
         <title>IdeiaWare - Gerenciar usuários</title>
     </head>
     <body class="center-align blue-grey lighten-5">
-        <!--<body class="center-align light-blue darken-1 knowledge">-->
-        <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
-             saida de volta pra tela inicial (index.jsp). --%>
+        <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial. --%>
         <a href="index.jsp" class="btn-floating btn-large blue-grey darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
         <nav>
             <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
                 <a href="index.jsp" class="brand-logo" style="left: 50px">
-                    <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
+                    <ul style="width:300px" id="nav-logo" class="left hide-on-med-and-down">
                         <div class="row" style="padding-left: 10px">
                             <div class="col s1 blue-grey lighten-3" style=" width: 50px;  height: 50px;
                                  margin-top: 5px;  padding: 6px 6px;
@@ -202,8 +199,7 @@
 
     <script src="js/csrf.js"></script>
   </body>
-    <%-- UX: footer padronizado com a cor do header da home (antes era o footer teal
-         do modulo colaborativo, cor destoante do header azul desta tela). --%>
+    <%-- UX: footer padronizado com a cor do header da home (antes era o teal do colaborativo, destoante). --%>
     <footer class="center blue-grey lighten-1 page-footer">
         <div class="container">
             <div class="row">

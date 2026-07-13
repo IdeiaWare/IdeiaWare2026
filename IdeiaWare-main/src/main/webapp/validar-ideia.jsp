@@ -19,8 +19,7 @@
         request.setAttribute("usuario", usuario.getUsuario());
     }
     
-    // COLM-01: evita NullPointerException caso a conta tenha sido removida
-    // enquanto a sessão ainda estava ativa.
+    // COLM-01: evita NullPointerException caso a conta tenha sido removida com a sessao ainda ativa.
     if (usuario == null || !usuario.getPermissao().equals("adm")) {
         response.sendRedirect("index.jsp");
         return;
@@ -81,13 +80,12 @@
     <title>IdeiaWare - Validar Ideias</title>
   </head>
   <body class="center-align light-blue darken-1 knowledge">
-    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
-         saida de volta pra tela inicial da colaboracao. --%>
+    <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial da colaboracao. --%>
     <a href="index-colaboracao.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper light-blue darken-2 knowledge">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
-          <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
+          <ul style="width:300px" id="nav-logo" class="left hide-on-med-and-down">
             <div class="row" style="padding-left: 10px">
               <div class="col s1 light-blue darken-1 knowledge" style=" width: 50px;  height: 50px; 
                    margin-top: 5px;  padding: 6px 6px; 
@@ -176,8 +174,7 @@
           </ul>
           </c:if>
 
-          <%-- M.1 (2026-07-06): ideias REJEITADAS, com botao "Reabrir" (volta pra Validada,
-               grupo aberto). Antes RE era terminal -- nao havia como destravar. --%>
+          <%-- M.1: ideias REJEITADAS ganham botao "Reabrir" (volta pra Validada) -- antes RE era terminal. --%>
           <c:if test="${not empty ideiasRejeitadas}">
           <h5 style="margin-top: 30px;">Ideias rejeitadas</h5>
           <ul class="collapsible" data-collapsible="accordion">
@@ -269,14 +266,12 @@
         }
       }
       $(document).ready(function () {
-        // M.1 (2026-07-06): init explicito do collapsible (a pagina so inicializava o
-        // modal). Garante que a lista nova de "Ideias rejeitadas" tambem expanda.
+        // M.1: init explicito do collapsible (a pagina so inicializava o modal); garante que "Ideias rejeitadas" tambem expanda.
         $('.collapsible').collapsible();
         $('.modal').modal({
           ready: function (modal, trigger) {
             modal.find('input[name="codigo"]').val(trigger.data('codigo'));
 
-//                        aqui é onde tudo é inserido na div, dá pra criar divs depois do igual
             // SEC-05: escapa dado do usuario (trigger.data() decodifica entidades -> innerHTML re-parseia = XSS).
             function escapeHtml(s){if(s==null)return '';return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
             document.getElementById('divTitulo').innerHTML = "<b>Ideia:</b> " + escapeHtml(trigger.data('titulo'));

@@ -12,8 +12,7 @@
             <div class="container">
                 <div style="padding: 10px; border-radius: 0.2em;" class="white">
                     <h1>Outras Ideias</h1>
-                    <%-- UX-VOLTAR-V2: icone circular flutuante no canto superior esquerdo (fixed) --
-                         ver colaboracao.jsp pro raciocinio completo (nao mexe no header compartilhado). --%>
+                    <%-- UX-VOLTAR-V2: icone circular flutuante (mesmo padrao do colaboracao.jsp, nao mexe no header compartilhado). --%>
                     <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
                     <jsp:useBean id="ideiaDAO" class="edu.unisc.lic.dao.IdeiaDAO" />
                     <jsp:useBean id="data"    class="edu.unisc.lic.classes.Data" />
@@ -95,16 +94,14 @@
             $('#modal-detalhe-ideia').modal('open');
         });
 
-        // UX: campo de busca so existe no DOM quando ha ideias (c:if na JSP);
-        // guard evita TypeError ao chamar addEventListener em null na lista vazia.
+        // UX: guard evita TypeError ao chamar addEventListener em null quando a lista esta vazia (campo nao existe no DOM).
         var input = document.getElementById('filtro-nome');
         if (input) {
             var trs = Array.prototype.slice.call(document.querySelectorAll('#lista tbody tr'));
             input.addEventListener('input', function () {
                 var search = input.value.toLowerCase();
                 trs.forEach(function (elem) {
-                    // Busca só em título + descrição (antes usava o textContent da linha
-                    // inteira, incluindo a data e o botão "Participar").
+                    // Busca so em titulo + descricao (antes usava o textContent da linha inteira, incluindo data e botao).
                     var titulo    = (elem.querySelector('.title')       || {}).textContent || '';
                     var descricao = (elem.querySelector('.description')  || {}).textContent || '';
                     var alvo = (titulo + ' ' + descricao).toLowerCase();

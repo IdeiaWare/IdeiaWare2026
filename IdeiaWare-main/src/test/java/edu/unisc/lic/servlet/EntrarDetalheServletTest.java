@@ -23,11 +23,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04 (2026-07-03), Tier 1: EntrarDetalheServlet -- o fix aqui foi parar de
- * confiar no parametro "lider" vindo do cliente e calcular no servidor. Nao ha
- * bloqueio de acesso (qualquer logado ve o detalhe), so o flag "lider" muda.
- */
+// TEST-04, Tier 1: EntrarDetalheServlet -- parou de confiar no parametro "lider" do cliente, calcula no servidor.
 public class EntrarDetalheServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
@@ -107,8 +103,7 @@ public class EntrarDetalheServletTest {
 
 		Map<String, Object> attrs = new HashMap<>();
 		HttpServletRequest request = mockRequest(autor.getCodigo(), ideia.getCodigo().toString(), attrs);
-		// mesmo que o cliente tentasse mandar lider=N por parametro, o servlet nem le esse
-		// parametro mais -- e exatamente o fix (RET-14/COLM-05).
+		// mesmo que o cliente mande lider=N por parametro, o servlet nem le esse parametro mais (RET-14/COLM-05).
 		when(request.getParameter("lider")).thenReturn("N");
 		HttpServletResponse response = mock(HttpServletResponse.class);
 

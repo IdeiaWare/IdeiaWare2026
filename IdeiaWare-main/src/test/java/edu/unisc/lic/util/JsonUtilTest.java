@@ -27,8 +27,7 @@ public class JsonUtilTest {
 
 	@Test
 	public void gsonSemSenha_naoIncluiSenhaDeUsuarioAninhadoEmColaboracaoIdeia() {
-		// Caso real do vazamento: ColaboracaoIdeia.usuario serializado via
-		// EnviarColaboracaoServlet/RetornaMensagensServlet/EditarColaboracaoServlet.
+		// Caso real do vazamento: ColaboracaoIdeia.usuario serializado via EnviarColaboracaoServlet/RetornaMensagensServlet.
 		Usuario u = new Usuario("Colaborador", "login2", "x", "usr", "e2@x.com");
 		u.setSenha("hashBcryptDoColaborador", false);
 		Ideia ideia = new Ideia(u, "Titulo", "Descricao", StatusIdeia.EM_DESENVOLVIMENTO, StatusIdeia.GRUPO_ABERTO);

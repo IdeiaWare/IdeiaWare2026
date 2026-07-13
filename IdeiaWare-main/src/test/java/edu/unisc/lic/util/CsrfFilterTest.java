@@ -18,11 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-/**
- * TEST-04: CsrfFilter roda em TODA rota (web.xml, url-pattern /*). Sem teste, um bug
- * aqui vira ou um buraco de CSRF (aceita POST sem token valido) ou um apagao total
- * (barra todo POST legitimo). Cobre os 2 lados do double-submit cookie.
- */
+// TEST-04: CsrfFilter roda em toda rota -- cobre os 2 lados do double-submit cookie (bloqueio sem token + liberacao com token valido).
 public class CsrfFilterTest {
 
 	private static final String COOKIE_NOME = "XSRF-TOKEN";

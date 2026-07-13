@@ -1,6 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%-- Tela de confirmacao da finalizacao do Storytelling (espelha canvas-finalizado.jsp).
-     Header proprio (nao usa headerCookies.jsp/headerCookies_2.jsp, que carregam JS pesado do Konva). --%>
+<%-- Tela de confirmacao da finalizacao do Storytelling (espelha canvas-finalizado.jsp); header proprio (nao carrega o JS pesado do Konva). --%>
 <%@page contentType="text/html" pageEncoding="UTF-8" session="true"%>
 <%@page import="edu.unisc.lic.dao.UsuarioDAO"%>
 <%@page import="edu.unisc.lic.domain.Usuario"%>

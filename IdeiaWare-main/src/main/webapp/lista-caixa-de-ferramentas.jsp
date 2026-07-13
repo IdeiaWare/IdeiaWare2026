@@ -81,13 +81,12 @@
     <title>IdeiaWare - Lista Caixa de Ferramentas</title>
   </head>
   <body class="red darken-1">
-    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
-         saida de volta pra tela inicial (index.jsp). --%>
+    <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial (index.jsp). --%>
     <a href="index.jsp" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper red darken-1 z-depth-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
-          <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
+          <ul style="width:300px" id="nav-logo" class="left hide-on-med-and-down">
             <div class="row" style="padding-left: 10px">
               <div class="col s1 red lighten-3" style=" width: 50px;  height: 50px; 
                    margin-top: 5px;  padding: 6px 6px; 
@@ -124,8 +123,7 @@
                 <c:set var="iLog" value="${logDAO.buscarDescricaoFinal(log)}" />
                 <li>
                   <div class="collapsible-header">
-                    <%-- M.5 (2026-07-06): cabecalho so com Usuario + Titulo (descricao removida
-                         daqui, ja aparece no corpo ao clicar no +). Titulo (max 50) quebra. --%>
+                    <%-- M.5: cabecalho so com Usuario + Titulo (descricao ja aparece no corpo ao clicar no +); titulo (max 50) quebra. --%>
                     <span style="width: 30%; text-align: left;" class="truncate"><c:out value="${caixa.ideia.usuario.nome}"/></span>
                     <span style="width: 65%; text-align: left; white-space: normal; word-break: break-word;"><c:out value="${caixa.ideia.titulo}"/></span>
                     <i class="material-icons" style="width: 5%; text-align: right;">add</i>
@@ -174,7 +172,6 @@
           ready: function (modal, trigger) {
             modal.find('input[name="codigo"]').val(trigger.data('codigo'));
 
-//                        aqui é onde tudo é inserido na div, dá pra criar divs depois do igual
             // SEC-05: escapa dado do usuario (trigger.data() decodifica entidades -> innerHTML re-parseia = XSS).
             function escapeHtml(s){if(s==null)return '';return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
             document.getElementById('divTitulo').innerHTML = "<b>Ideia:</b> " + escapeHtml(trigger.data('titulo'));

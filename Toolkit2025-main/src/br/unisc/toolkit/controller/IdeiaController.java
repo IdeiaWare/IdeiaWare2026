@@ -37,8 +37,7 @@ public class IdeiaController {
 
 			ideiaService.finalize(theIdeia);
 
-			// Mostra a tela de confirmacao "Caixa de Ferramentas finalizada"; o botao dela
-			// leva para "Minhas Ideias" do LIC (ver finalize.jsp).
+			// TK-11: tela de confirmacao "Caixa de Ferramentas finalizada" (ver finalize.jsp).
 			return "finalize";
 
 		}else {

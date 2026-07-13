@@ -28,10 +28,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * RetornaElementos: devolve TODOS os elementos (qualquer tipo) do
- * storytelling ativo na sessao. Sem storytellingId na sessao -> 400 (STM-04).
- */
+// RetornaElementos: devolve TODOS os elementos do storytelling ativo na sessao -- sem storytellingId -> 400 (STM-04).
 public class RetornaElementosTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

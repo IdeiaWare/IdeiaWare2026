@@ -22,13 +22,7 @@ import org.junit.Test;
 import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04/RACE-01 (2026-07-03): primeiro teste de servlet do projeto (0 servlets tinham
- * teste ate agora). Prova que 2 cadastros SIMULTANEOS com o mesmo login nao criam 2
- * contas (o bug real: as 2 passavam pela checagem em Java e as 2 inseriam) -- a UNIQUE
- * do banco fecha a corrida, e o catch no servlet garante que o perdedor da corrida cai
- * na mesma resposta amigavel de "ja existe" em vez de estourar uma excecao pro usuario.
- */
+// TEST-04/RACE-01: prova que 2 cadastros simultaneos com o mesmo login nao criam 2 contas -- UNIQUE do banco fecha a corrida, catch devolve a resposta amigavel.
 public class CadastroUsuarioServletTest {
 
 	private HttpServletRequest mockRequest(String login, String email) throws Exception {

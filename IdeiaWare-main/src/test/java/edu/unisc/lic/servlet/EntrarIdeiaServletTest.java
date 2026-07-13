@@ -27,12 +27,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3 (2026-07-05): EntrarIdeiaServlet (COLM-05/COL-DUP). K.8 #2 (2026-07-06):
- * a checagem "ja vinculado?" e um check-then-insert em Java sem trava real -- corrigido com
- * UNIQUE(usuario_codigo, ideia_codigo) em IdeiaUsuario + catch no servlet. Teste de corrida
- * abaixo prova que 2 cliques simultaneos em "Entrar" nao duplicam mais o vinculo.
- */
+// TEST-04/K.8 #2: EntrarIdeiaServlet (COLM-05/COL-DUP) -- UNIQUE(usuario_codigo, ideia_codigo) + catch; teste de corrida prova que 2 cliques simultaneos nao duplicam o vinculo.
 public class EntrarIdeiaServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
@@ -97,8 +92,7 @@ public class EntrarIdeiaServletTest {
 		List<IdeiaUsuario> vinculos = ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(novoParticipante, ideia, null));
 		org.junit.Assert.assertEquals(1, vinculos.size());
 		org.junit.Assert.assertEquals("N", vinculos.get(0).getFlLider());
-		// M.2 (2026-07-06): "Participar" agora entra na LISTA DE ESPERA (pendente), nao mais
-		// como membro efetivo direto -- o lider aprova depois.
+		// M.2: "Participar" entra na LISTA DE ESPERA (pendente), nao mais como membro efetivo direto.
 		org.junit.Assert.assertEquals(StatusIdeia.VINCULO_PENDENTE, vinculos.get(0).getFlStatusVinculo());
 		verify(response).sendRedirect(contains("minha-ideia.jsp"));
 	}

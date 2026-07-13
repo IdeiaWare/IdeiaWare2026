@@ -14,9 +14,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.LogColaboracao;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04: reativado a partir do scratch @Ignore original.
- */
+// TEST-04: reativado a partir do scratch @Ignore original.
 public class LogColaboracaoDAOTest {
 
 	private final LogColaboracaoDAO logColaboracaoDAO = new LogColaboracaoDAO();

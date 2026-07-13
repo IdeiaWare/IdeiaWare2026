@@ -19,9 +19,7 @@ import org.junit.Test;
 import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 2 (2026-07-05): AnonimizaUsuarioServlet (RKM-04/SEC-22/LGPD).
- */
+// TEST-04, Tier 2: AnonimizaUsuarioServlet (RKM-04/SEC-22/LGPD).
 public class AnonimizaUsuarioServletTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

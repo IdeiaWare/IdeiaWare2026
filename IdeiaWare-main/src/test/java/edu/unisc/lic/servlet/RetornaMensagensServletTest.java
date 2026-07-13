@@ -26,12 +26,7 @@ import edu.unisc.lic.domain.ColaboracaoIdeia;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * RetornaMensagensServlet: polling (a cada 2s, ver COLM-05) do colaboracao.jsp.
- * M.6 (2026-07-06): protocolo mudou de CONTAGEM (numMensagens) pra ULTIMO CODIGO visto --
- * agora devolve um ARRAY com TODAS as colaboracoes com codigo > ultimoCodigo (nunca perde
- * a do meio e nao duplica na corrida envio-vs-polling). Sem ideiaId na sessao -> "nao".
- */
+// RetornaMensagensServlet: polling do colaboracao.jsp -- M.6 mudou pra protocolo por ULTIMO CODIGO visto (nao perde nem duplica na corrida envio-vs-polling).
 public class RetornaMensagensServletTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

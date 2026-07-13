@@ -14,11 +14,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04: reativado a partir do scratch @Ignore original. Storytelling.usuario e
- * Storytelling.ideia sao @OneToOne (1 storytelling por usuario e 1 por ideia) --
- * cada teste usa Usuario/Ideia novos pra nao esbarrar nas constraints UNIQUE.
- */
+// TEST-04: reativado do scratch @Ignore original; Storytelling.usuario/ideia sao @OneToOne, cada teste usa dados novos.
 public class StorytellingDAOTest {
 
 	private final StorytellingDAO storytellingDAO = new StorytellingDAO();
@@ -81,13 +77,7 @@ public class StorytellingDAOTest {
 
 		List<Storytelling> resultado = storytellingDAO.listarParametro(filtro);
 
-		// TEST-04 (2026-07-03): nao assume exclusividade GLOBAL do status "FN" -- o H2 de
-		// teste e compartilhado entre TODAS as classes de teste na mesma JVM (DB_CLOSE_DELAY=-1
-		// + SessionFactory static), entao outra classe (ex.: EntrarStorytellingServletTest) pode
-		// ja ter criado outro Storytelling "FN" -- foi exatamente isso que quebrou o build no
-		// Docker (assertEquals(1, ...) virou 2). O que este teste precisa provar e: (1) o
-		// registro criado aqui esta no resultado, (2) NENHUM resultado tem status diferente de
-		// "FN" (o filtro realmente exclui o "AB" acima) -- nao "sou o unico FN do banco todo".
+		// TEST-04: H2 e compartilhado entre TODAS as classes na mesma JVM -- nao assume exclusividade global do status "FN", so que o registro esta no resultado e nada tem status diferente.
 		assertTrue("o storytelling finalizado criado neste teste deve estar no resultado",
 				resultado.stream().anyMatch(s -> s.getCodigo().equals(finalizado.getCodigo())));
 		assertTrue("todo resultado do filtro deve ter status FN",

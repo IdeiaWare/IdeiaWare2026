@@ -5,11 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-/**
- * TEST-01: testes da validacao server-side do Toolkit (Onda 1). Logica pura,
- * sem Spring/banco. Trava as regras de persona (nome/idade), atributo de empatia
- * e POV contra regressao.
- */
+// TEST-01: validacao server-side do Toolkit (logica pura) -- trava as regras de persona/atributo/POV contra regressao.
 public class ToolkitValidacaoTest {
 
 	@Test

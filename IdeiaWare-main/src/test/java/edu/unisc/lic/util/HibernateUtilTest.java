@@ -7,12 +7,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.junit.Test;
 
-/**
- * TEST-04: reativado a partir do scratch @Ignore original. IMPORTANTE: a fabrica de
- * sessoes e um "static final" compartilhado por TODA a JVM de teste (HibernateUtil) --
- * NAO pode ser fechada aqui (o original @Ignore fazia .close(), o que quebraria todos
- * os outros testes de DAO que rodam na mesma JVM depois deste).
- */
+// TEST-04: reativado do scratch @Ignore -- a fabrica de sessoes e static final compartilhada pela JVM de teste, NAO pode ser fechada aqui.
 public class HibernateUtilTest {
 
 	@Test

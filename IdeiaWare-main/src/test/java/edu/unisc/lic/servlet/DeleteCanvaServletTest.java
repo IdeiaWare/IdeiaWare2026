@@ -22,11 +22,7 @@ import edu.unisc.lic.domain.Canva;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: DeleteCanvaServlet (CANM-04/CANM-09/CAN-04) -- exclui um post-it do
- * Canvas com guard IDOR (so exclui se pertencer a ideia da sessao) e guard de open
- * redirect no parametro 'context' (so aceita destinos internos "EntrarCanva*").
- */
+// TEST-04, Tier 3: DeleteCanvaServlet (CANM-04/CANM-09/CAN-04) -- guard IDOR + guard de open redirect no parametro 'context'.
 public class DeleteCanvaServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
@@ -123,9 +119,7 @@ public class DeleteCanvaServletTest {
 
 	@Test
 	public void contextComPrefixoValidoMasDestinoInexistente_caiNoDefault() throws Exception {
-		// TEST-04: achado durante os testes -- antes bastava comecar com "EntrarCanva"
-		// (ex.: "EntrarCanvaXxx", que nao existe) pra passar na checagem; agora e uma
-		// lista fechada dos destinos realmente validos.
+		// TEST-04: antes bastava comecar com "EntrarCanva" (mesmo inexistente) pra passar -- agora e uma lista fechada de destinos validos.
 		Usuario autor = novoUsuario("Autor4");
 		Ideia ideia = novaIdeia(autor);
 		Canva canva = new Canva(ideia, "Post-it", "ffeb3b", "receita");

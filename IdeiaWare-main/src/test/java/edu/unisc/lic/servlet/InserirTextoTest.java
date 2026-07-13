@@ -31,10 +31,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * InserirTexto: adiciona um elemento de texto (TXT) ao quadro do storytelling
- * ativo na sessao. Sem storytellingId na sessao -> 400 (STM-04).
- */
+// InserirTexto: adiciona elemento de texto ao quadro do storytelling ativo na sessao -- sem storytellingId -> 400 (STM-04).
 public class InserirTextoTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

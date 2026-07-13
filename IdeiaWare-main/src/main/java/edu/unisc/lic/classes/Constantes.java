@@ -7,8 +7,7 @@ public class Constantes {
     public static final String CAMINHO_IMAGENS_STORYTELLING = "imagensStorytelling" + File.separator;
     public static final String CAMINHO_FORMAS = "imagens" + File.separator;
     public static final String CAMINHO_CANVA = "canvas" + File.separator;
-    
-    // LucasFreitag 2024
+
     public static final String LETRAS_MIN = "abcdefghijklmnopqrstuvwxyz";
     public static final String LETRAS_MAI = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     public static final String NUMEROS = "0123456789";

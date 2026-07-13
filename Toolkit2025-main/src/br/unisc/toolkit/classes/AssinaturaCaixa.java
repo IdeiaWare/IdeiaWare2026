@@ -5,17 +5,11 @@ import java.security.MessageDigest;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-/**
- * SEC-23: validacao da assinatura HMAC do ideiaId (posta pelo LIC ao entrar na Caixa). O
- * AdminCookies so aceita o ideiaId se a assinatura bater -> o cookie deixa de ser FORJAVEL.
- *
- * IMPORTANTE: o SEGREDO TEM que ser IGUAL ao de edu.unisc.lic.classes.AssinaturaCaixa (LIC),
- * senao nenhuma assinatura valida. Externalizado via CAIXA_HMAC_SECRET.
- */
+// SEC-23: valida a assinatura HMAC do ideiaId (postada pelo LIC) -- cookie deixa de ser forjavel.
+// IMPORTANTE: o SEGREDO TEM que ser IGUAL ao de edu.unisc.lic.classes.AssinaturaCaixa (LIC).
 public class AssinaturaCaixa {
 
-    // SEC-#5: segredo HMAC via env CAIXA_HMAC_SECRET. DEVE ser IGUAL ao do LIC (no Docker e a
-    // mesma env do container). Default = valor legado p/ funcionar sem env.
+    // SEGREDO via env CAIXA_HMAC_SECRET (mesmo container no Docker = mesma env automaticamente).
     private static final String SEGREDO = segredo();
 
     private static String segredo() {

@@ -8,10 +8,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
-/**
- * TEST-01: formatacao de data (logica pura, sem banco). Cobre os metodos usados
- * nas telas e o comportamento null-safe (null -> usa "hoje", nao lanca NPE).
- */
+// TEST-01: formatacao de data (logica pura) -- cobre o comportamento null-safe (null -> "hoje", nao lanca NPE).
 public class DataFormatacaoTest {
 
 	private Date data(int ano, int mes, int dia, int hora, int min) {

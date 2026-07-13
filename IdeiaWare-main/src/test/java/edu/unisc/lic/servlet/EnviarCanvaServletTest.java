@@ -22,11 +22,7 @@ import edu.unisc.lic.domain.Canva;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: EnviarCanvaServlet (CANM-01/CANM-02/CANM-09) -- cria ou edita um
- * post-it do Canvas; a edicao tem guard IDOR (o post-it deve pertencer ao canva ativo
- * na sessao).
- */
+// TEST-04, Tier 3: EnviarCanvaServlet (CANM-01/CANM-02/CANM-09) -- cria/edita post-it com guard IDOR na edicao.
 public class EnviarCanvaServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

@@ -2,8 +2,7 @@
 
 function drawImage(imageObj, stage, caracteristicas) {
 
-  // [BRAVE] figura e uma Konva.Image arrastavel direto (Group/Rect/fill/hitFunc tentados
-  // antes eram workaround pro Brave bloquear leitura de pixel do canvas -- ver relatorio).
+  // BRAVE: figura e uma Konva.Image arrastavel direto (Group/Rect/fill/hitFunc eram workaround pro Brave bloquear leitura de pixel).
   var elemento = new Konva.Image({
     image: imageObj,
     draggable: true,

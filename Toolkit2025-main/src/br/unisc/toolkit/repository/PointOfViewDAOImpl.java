@@ -19,25 +19,19 @@ public class PointOfViewDAOImpl implements PointOfViewDAO {
 	@Override
 	public List<Object> getPointOfViews(Long ideiaCodigo) {
 		
-		// get the current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
-		
+
 		// TK-ORD: ORDER BY pov_id DESC (mais recentes em cima, combina com o LinkedHashMap do controller).
 		// TK-23: "AND persona.ideia_codigo=pov.ideia_codigo" -- defesa em profundidade contra vinculo cross-ideia.
 		Query<Object> theQuery =
 				currentSession.createNativeQuery("SELECT persona_pov.ID, persona.name, persona.persona_id, pov.user, pov.need, pov.insight, pov.pov_id FROM persona_pov inner join persona on (persona.persona_id = persona_pov.persona_id) inner join pov on (pov.pov_id = persona_pov.pov_id) where pov.ideia_codigo=:IdeiaCodigo AND persona.ideia_codigo=pov.ideia_codigo ORDER BY pov.pov_id DESC");
 		theQuery.setParameter("IdeiaCodigo", ideiaCodigo);
-		
-		// execute query and get result list
-		List<Object> pointOfViews = theQuery.getResultList();
-		
-		// return the results
-		return pointOfViews;
+
+		return theQuery.getResultList();
 	}
 	
 	@Override
 	public List<Object> getSpecificPointOfView(int theId, Long ideiaCodigo) {
-		// get the current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 
 		// SEC-23: escopo por ideia_codigo (antes buscava so por pov_id, IDOR). TK-23: mesmo motivo da query acima.
@@ -45,13 +39,9 @@ public class PointOfViewDAOImpl implements PointOfViewDAO {
 				currentSession.createNativeQuery("SELECT persona_pov.ID, persona.name, persona.persona_id, pov.user, pov.need, pov.insight, pov.pov_id FROM persona_pov inner join persona on (persona.persona_id = persona_pov.persona_id) inner join pov on (pov.pov_id = persona_pov.pov_id) where pov.pov_id=:ID and pov.ideia_codigo=:IdeiaCodigo and persona.ideia_codigo=pov.ideia_codigo");
 		theQuery.setParameter("ID", theId);
 		theQuery.setParameter("IdeiaCodigo", ideiaCodigo);
-		
-		// execute query and get result list
-		List<Object> pointOfView = theQuery.getResultList();
-		
-		// return the results
-		return pointOfView;
-	}	
+
+		return theQuery.getResultList();
+	}
 	
 	@Override
 	public boolean povPertenceAIdeia(int povId, Long ideiaCodigo) {
@@ -89,7 +79,6 @@ public class PointOfViewDAOImpl implements PointOfViewDAO {
 
 	@Override
 	public void deletePointOfView(int theId, Long ideiaCodigo) {
-		// get the current hibernate sesion
 		Session currentSession = sessionFactory.getCurrentSession();
 
 		// TK-03/TK-HQL: filtra por ideiaCodigo (propriedade, nao coluna) pra impedir deletar de outra ideia.

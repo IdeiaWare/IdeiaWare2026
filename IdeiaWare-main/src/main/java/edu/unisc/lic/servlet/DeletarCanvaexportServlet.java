@@ -11,14 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- * Exclui um Canva exportado (Canvaexport) a partir da Retencao do Conhecimento.
- *
- * Espelha o DeletarExportedFileServlet (que so trata ExportFile de persona/POV):
- * a Retencao e admin-only, entao exige login + permissao 'adm' antes de excluir,
- * com guard de parse e null-check. Chamado via AJAX (POST) pela funcao
- * deleteCanvaExport() do master.js -> coberto pelo CsrfFilter (token no header).
- */
+// RKM-02: exclui Canvaexport da Retencao, espelha o DeletarExportedFileServlet (auth admin + null check).
 public class DeletarCanvaexportServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)

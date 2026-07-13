@@ -4,11 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-/**
- * TEST-01: trava os valores das constantes de status. Como esses codigos sao
- * gravados no banco e comparados em varios JSP/servlets, mudar um valor sem
- * querer quebraria fluxos silenciosamente — este teste pega isso.
- */
+// TEST-01: trava os valores das constantes de status (gravados no banco e comparados em varios JSP/servlets).
 public class StatusIdeiaTest {
 
 	@Test

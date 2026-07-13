@@ -21,10 +21,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04 (2026-07-03), Tier 1: CadastroIdeiaServlet -- exige login (RET-14/SRV-500-01)
- * e valida titulo/descricao no servidor (COL-15), nao so no JS do cliente.
- */
+// TEST-04, Tier 1: CadastroIdeiaServlet -- exige login (RET-14/SRV-500-01) e valida titulo/descricao no servidor (COL-15).
 public class CadastroIdeiaServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

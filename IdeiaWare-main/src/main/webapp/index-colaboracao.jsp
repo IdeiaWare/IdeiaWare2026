@@ -7,8 +7,7 @@
         <title>IdeiaWare - Módulo Colaborativo</title>
     </head>
     <body class="center-align teal darken-1">
-        <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
-             saida de volta pra tela inicial (index.jsp). --%>
+        <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial (index.jsp). --%>
         <a href="index.jsp" class="btn-floating btn-large teal darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
         <div class="" style="min-height: 90vh">
             <div class="container">

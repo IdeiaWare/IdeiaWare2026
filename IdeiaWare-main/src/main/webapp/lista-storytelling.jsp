@@ -41,13 +41,12 @@
     <title>IdeiaWare - Lista Storytelling</title>
   </head>
   <body class="indigo lighten-5">
-    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
-         saida de volta pra tela inicial (index.jsp). --%>
+    <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial (index.jsp). --%>
     <a href="index.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper indigo lighten-1 z-depth-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
-          <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
+          <ul style="width:300px" id="nav-logo" class="left hide-on-med-and-down">
             <div class="row" style="padding-left: 10px">
               <div class="col s1 indigo lighten-3" style="width:50px; height:50px;
                    margin-top:5px; padding:6px; border-radius:100%; box-sizing:border-box;">
@@ -85,8 +84,7 @@
               <c:set var="iLog" value="${logDAO.buscarDescricaoFinal(log)}" />
               <li>
                 <div class="collapsible-header">
-                  <%-- M.5 (2026-07-06): cabecalho so com Usuario + Titulo (descricao removida
-                       daqui, ja aparece no corpo ao clicar no +). Titulo (max 50) quebra. --%>
+                  <%-- M.5: cabecalho so com Usuario + Titulo (descricao ja aparece no corpo ao clicar no +); titulo (max 50) quebra. --%>
                   <span style="width:30%; text-align:left;" class="truncate"><c:out value="${iuItem.usuario.nome}"/></span>
                   <span style="width:65%; text-align:left; white-space: normal; word-break: break-word;"><c:out value="${iuItem.ideia.titulo}"/></span>
                   <i class="material-icons" style="width:5%; text-align:right;">add</i>
@@ -112,8 +110,7 @@
                   <div style="text-align:right; margin-top:10px;">
                     <form name="entrarStory" action="EntrarStorytellingServlet" method="POST">
                       <input type="hidden" value="${iuItem.ideia.codigo}" name="ideiaId" />
-                      <%-- UX-COR: indigo lighten-1 (cor exata do header/footer desta tela);
-                           indigo darken-1 (#3949ab) ficava visivelmente diferente. --%>
+                      <%-- UX-COR: indigo lighten-1 (cor exata do header/footer desta tela, nao o darken-1). --%>
                       <input class="btn indigo lighten-1" type="submit" value="Entrar" name="StoryTelling" />
                     </form>
                   </div>

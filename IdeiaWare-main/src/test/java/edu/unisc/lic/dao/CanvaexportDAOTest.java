@@ -14,11 +14,7 @@ import edu.unisc.lic.domain.Canvaexport;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04: CanvaexportDAO nunca teve nenhum arquivo de teste. Canvaexport.ideia e
- * @OneToOne (1 export por ideia) -- cada teste usa uma Ideia nova pra nao esbarrar
- * na constraint UNIQUE gerada pelo hbm2ddl.
- */
+// TEST-04: CanvaexportDAO nunca teve teste; Canvaexport.ideia e @OneToOne, cada teste usa Ideia nova.
 public class CanvaexportDAOTest {
 
 	private final CanvaexportDAO canvaexportDAO = new CanvaexportDAO();

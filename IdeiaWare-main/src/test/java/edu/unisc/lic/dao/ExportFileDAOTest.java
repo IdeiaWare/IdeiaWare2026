@@ -13,9 +13,7 @@ import edu.unisc.lic.domain.ExportFile;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04: reativado a partir do scratch @Ignore original.
- */
+// TEST-04: reativado a partir do scratch @Ignore original.
 public class ExportFileDAOTest {
 
 	private static final String TIPO_POV = "pov";

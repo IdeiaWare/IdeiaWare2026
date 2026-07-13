@@ -24,9 +24,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3 (2026-07-05): DeletarObjServlet (STM-05/STM-06).
- */
+// TEST-04, Tier 3: DeletarObjServlet (STM-05/STM-06).
 public class DeletarObjServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

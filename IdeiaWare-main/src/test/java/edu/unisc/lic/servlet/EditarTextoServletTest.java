@@ -27,11 +27,7 @@ import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.LogColaboracao;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04 (2026-07-03), Tier 1: EditarTextoServlet (STR-15/SRV-IDOR-06) -- achado so
- * na SEGUNDA passada da varredura de servlets. Mesmo padrao do SalvarTextoServlet:
- * exige login + lideranca antes de abrir o editor.
- */
+// TEST-04, Tier 1: EditarTextoServlet (STR-15/SRV-IDOR-06) -- mesmo padrao do SalvarTextoServlet, exige login + lideranca.
 public class EditarTextoServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

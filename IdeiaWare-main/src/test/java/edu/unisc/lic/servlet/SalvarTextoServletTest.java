@@ -20,10 +20,7 @@ import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.LogColaboracao;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04 (2026-07-03), Tier 1: SalvarTextoServlet -- o autor e SEMPRE o usuario da
- * sessao (nao mais um parametro), e so o LIDER pode editar o texto oficial.
- */
+// TEST-04, Tier 1: SalvarTextoServlet -- autor sempre vem da sessao (nao mais parametro), so o LIDER edita o texto oficial.
 public class SalvarTextoServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

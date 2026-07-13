@@ -14,10 +14,7 @@ import edu.unisc.lic.domain.ColaboracaoIdeia;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04: reativado a partir do scratch @Ignore original (sem assert*, hits em
- * IDs fixos de um MySQL real). Agora roda contra H2, com dados proprios por teste.
- */
+// TEST-04: reativado do scratch @Ignore original (sem assert*, hits em IDs fixos de MySQL real) -- agora roda contra H2.
 public class ColaboracaoIdeiaDAOTest {
 
 	private final ColaboracaoIdeiaDAO colaboracaoIdeiaDAO = new ColaboracaoIdeiaDAO();

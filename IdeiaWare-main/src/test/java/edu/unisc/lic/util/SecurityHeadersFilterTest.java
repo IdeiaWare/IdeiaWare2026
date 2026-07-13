@@ -10,10 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 
-/**
- * TEST-04 (2026-07-06): SecurityHeadersFilter (SEC-26) -- roda em toda rota, seta
- * Referrer-Policy e sempre segue a cadeia (nunca bloqueia nada).
- */
+// TEST-04: SecurityHeadersFilter (SEC-26) -- roda em toda rota, seta Referrer-Policy, nunca bloqueia.
 public class SecurityHeadersFilterTest {
 
 	private final SecurityHeadersFilter filtro = new SecurityHeadersFilter();

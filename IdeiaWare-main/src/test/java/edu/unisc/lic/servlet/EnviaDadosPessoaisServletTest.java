@@ -18,11 +18,7 @@ import org.junit.Test;
 import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 2 (2026-07-05): EnviaDadosPessoaisServlet (LGPD). Achado nesta rodada:
- * o GET nao era bloqueado (unico do grupo Tier 2 sem SEC-18) -- corrigido pra
- * POST-only, testado abaixo.
- */
+// TEST-04, Tier 2: EnviaDadosPessoaisServlet (LGPD) -- GET nao era bloqueado (unico do Tier 2 sem SEC-18), corrigido pra POST-only.
 public class EnviaDadosPessoaisServletTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();
@@ -68,8 +64,7 @@ public class EnviaDadosPessoaisServletTest {
 
 		new EnviaDadosPessoaisServlet().doPost(request, response);
 
-		// sem SENDGRID_API_KEY no ambiente de teste, EnvioEmail.EnviaEmail retorna false
-		// sem tentar rede -- exercita o caminho de erro amigavel (nao uma excecao crua).
+		// sem SENDGRID_API_KEY no teste, EnvioEmail.EnviaEmail retorna false sem tentar rede (exercita o caminho de erro amigavel).
 		verify(request).setAttribute("ErroEnvioEmail", true);
 		verify(request.getRequestDispatcher("index-perfil.jsp")).forward(request, response);
 	}

@@ -16,8 +16,7 @@
       <div class="container">
         <div style="padding: 10px;" class="white">
           <h1>Minhas Ideias</h1>
-          <%-- UX-VOLTAR-V2: icone circular flutuante no canto superior esquerdo (fixed) --
-               ver colaboracao.jsp pro raciocinio completo (nao mexe no header compartilhado). --%>
+          <%-- UX-VOLTAR-V2: icone circular flutuante (mesmo padrao do colaboracao.jsp, nao mexe no header compartilhado). --%>
           <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
           <a href="cadastro-ideia.jsp"><input class="btn orange darken-1" type="submit" value="Cadastrar nova ideia" name="Cadastrar ideia"/></a>
             <jsp:useBean id="ideiaUsuarioDAO" class="edu.unisc.lic.dao.IdeiaUsuarioDAO" />
@@ -26,8 +25,7 @@
             <jsp:setProperty name="ideiaUsuario" property="usuario" value="${usuarioClasse}" />
             <c:set var="minhasIdeias" value="${ideiaUsuarioDAO.listarParametro(ideiaUsuario)}" />
           <p/>
-          <%-- UX: busca e tabela so aparecem quando ha ideias -- nao faz sentido
-               mostrar campo de busca ou cabecalho de colunas p/ uma lista vazia. --%>
+          <%-- UX: busca e tabela so aparecem quando ha ideias (sem sentido pra uma lista vazia). --%>
           <c:if test="${empty minhasIdeias}">
             <div class="center-align grey-text" style="padding: 40px 20px;">
               <i class="material-icons" style="font-size: 3rem; display:block;">lightbulb_outline</i>
@@ -44,7 +42,6 @@
               <col style="width: 15%;" />
               <col style="width: 25%;" />
               <col style="width: 40%;" />
-              <!--<col style="width: 13%;" />-->
               <col style="width: 10%;" />
               <col style="width: 10%;" />
             </colgroup>
@@ -53,7 +50,6 @@
                 <td>Usuário</td>
                 <td>Título</td>
                 <td>Descrição da Ideia</td>
-                <!--<td>Data de criação</td>-->
                 <td>Status</td>
                 <td></td>
               </tr>
@@ -73,7 +69,6 @@
                         <i class="material-icons info-icon"
                            style="color:#00796b; font-size:21px; cursor: pointer;">info_outline</i>
                     </td>
-<!--                                    <td style="text-align: center;">${data.formatarData(ideia.ideia.dtCriacao)}</td>-->
                     <td class="status">
                       <c:choose>
                           <c:when test="${ideia.ideia.status eq 'VA'}">Validada</c:when>
@@ -92,8 +87,7 @@
                               <%-- M.2: pendente/rejeitado ve o status em vez de "Entrar" (aprovado/legado segue normal). --%>
                               <c:choose>
                                   <c:when test="${ideia.flStatusVinculo eq 'P'}">
-                                      <%-- GT-10: "Em análise" (nao "Pendente", que colide com a coluna Status); type="button" evita o
-                                           input:not([type]):disabled do Materialize desenhar sublinhado pontilhado de campo de texto. --%>
+                                      <%-- GT-10: "Em análise" (nao "Pendente", que colide com a coluna Status); type="button" evita sublinhado pontilhado do Materialize. --%>
                                       <input type="button" class="btn disabled" disabled="true" value="Em análise" />
                                   </c:when>
                                   <c:when test="${ideia.flStatusVinculo eq 'R'}">
@@ -130,8 +124,7 @@
                           <c:when test="${ideia.ideia.status eq 'CF'}">
                               <form name="entrarCaixa" action="EntrarCaixaServlet" method="POST">
                                 <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
-                                <%-- XSS: nome de sessao e texto livre de cadastro -- escapado
-                                     dentro do atributo (mesmo padrao ja usado em validar-ideia.jsp). --%>
+                                <%-- XSS: nome de sessao (texto livre de cadastro) escapado dentro do atributo. --%>
                                 <input hidden="true" value="<c:out value='${nome}'/>" name="usuarioNome" />
                                 <input class="btn red darken-1" type="submit" value="Entrar"  name="Caixa" />
                               </form>
@@ -169,8 +162,7 @@
               i.addEventListener('input',function(){
                 var s=i.value.toLowerCase();
                 t.forEach(function(r){
-                  // UX: busca escopada a nome+titulo+descricao+status (antes usava o
-                  // textContent da linha inteira, incluindo o texto do botao "Entrar").
+                  // UX: busca escopada a nome+titulo+descricao+status (antes usava o textContent da linha inteira, incluindo o botao).
                   var nome   = (r.querySelector('.name')        || {}).textContent || '';
                   var titulo = (r.querySelector('.title')       || {}).textContent || '';
                   var desc   = (r.querySelector('.description') || {}).textContent || '';
@@ -216,8 +208,7 @@
           </div>
         </div>
 
-        <%-- M.2/M.3 (2026-07-06): modal do participante REJEITADO do grupo -- mostra o
-             motivo que o lider informou ao nao aprovar a entrada. --%>
+        <%-- M.2/M.3: modal do participante REJEITADO do grupo -- mostra o motivo que o lider informou. --%>
         <div id="modalMembroRejeitado" class="modal">
           <div class="modal-content">
             <h4>Não aprovado no grupo</h4>

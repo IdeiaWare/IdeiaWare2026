@@ -27,11 +27,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * AutoSalvarStoryServlet: autosave do quadro de Storytelling. So pode
- * editar elementos do storytelling ATIVO na sessao (IDOR de escrita - ver
- * comentario "AUTORIZACAO" no servlet).
- */
+// AutoSalvarStoryServlet: autosave do Storytelling -- so edita elementos do storytelling ATIVO na sessao (IDOR de escrita).
 public class AutoSalvarStoryServletTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

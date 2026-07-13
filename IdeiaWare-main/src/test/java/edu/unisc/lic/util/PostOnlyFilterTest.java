@@ -13,11 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 
-/**
- * TEST-04: PostOnlyFilter (SEC-25) roda em TODA rota e barra GET nos endpoints de
- * escrita (fecha "CSRF por GET"). Cobre: bloqueia GET num path da lista, libera GET
- * fora da lista, e nunca barra POST (metodo legitimo de todo chamador real).
- */
+// TEST-04: PostOnlyFilter (SEC-25) roda em toda rota, barra GET nos endpoints de escrita -- cobre bloqueio/liberacao/POST sempre livre.
 public class PostOnlyFilterTest {
 
 	private final PostOnlyFilter filtro = new PostOnlyFilter();

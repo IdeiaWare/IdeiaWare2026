@@ -13,9 +13,7 @@ import javax.servlet.http.HttpSession;
 
 import org.junit.Test;
 
-/**
- * TEST-04, Tier 2 (2026-07-05): LogOutServlet -- infra de auth core, nunca teve teste.
- */
+// TEST-04, Tier 2: LogOutServlet -- infra de auth core, nunca teve teste.
 public class LogOutServletTest {
 
 	@Test

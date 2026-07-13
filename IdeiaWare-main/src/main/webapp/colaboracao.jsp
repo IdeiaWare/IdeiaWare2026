@@ -39,8 +39,7 @@
 
             <div class="card blue-grey darken-1">
               <div class="card-content white-text">
-                <%-- M.7 (2026-07-06): titulo (max 50) estava cortando no card com fonte 32px
-                     fixa. Agora quebra em vez de estourar e a fonte cede um pouco. --%>
+                <%-- M.7: titulo (max 50) cortava no card com fonte 32px fixa -- agora quebra em vez de estourar. --%>
                 <span class="card-title" style="display:block; word-break: break-word; line-height:1.2;"><b style="font-size: 28px;"><c:out value="${ideiaTitulo}"/></b></span>
                 <%-- COL-03: null-safe — usa descricao da sessão como fallback se log2 não existir --%>
                 <p style="text-align: justify" id="descricaoAtual">
@@ -71,8 +70,7 @@
             <br/>
           </div>
 
-          <%-- UX-01/TEST-04: tabela FICA sempre no DOM, so escondida via CSS -- removê-la via c:if
-               quebra o appendTo("#tabelaColab") do polling/envio (falha em silencio numa ideia nova). --%>
+          <%-- UX-01/TEST-04: tabela FICA sempre no DOM, so escondida via CSS -- remove-la via c:if quebra o appendTo do polling/envio. --%>
           <div id="colaboracoesVazio" class="center-align grey-text" style="padding: 40px 20px; ${empty colaboracoes ? '' : 'display:none;'}">
             <i class="material-icons" style="font-size: 3rem; display:block;">forum</i>
             Ainda não há colaborações para esta ideia.
@@ -150,9 +148,7 @@
   </body>
 
   <script>
-    // TEST-04 (2026-07-06): revela a tabela (que agora fica sempre no DOM, so oculta
-    // via CSS quando a ideia comeca sem nenhuma colaboracao) e esconde a mensagem de
-    // vazio, chamado apos o 1o appendTo bem-sucedido (enviar colaboracao ou polling).
+    // TEST-04: revela a tabela e esconde a mensagem de vazio, chamado apos o 1o appendTo bem-sucedido.
     function revelarTabelaColaboracoes() {
       $("#colaboracoesVazio").hide();
       $("#tabelaColab").show();
@@ -186,9 +182,7 @@
       });
     }
 
-    // M.10 (2026-07-06): editar a propria colaboracao inline (troca o texto por um
-    // textarea + Salvar/Cancelar no lugar). So aparece pro autor e enquanto nao foi
-    // adicionada a descricao -- o EditarColaboracaoServlet reforca as 2 regras no servidor.
+    // M.10: editar a propria colaboracao inline (textarea + Salvar/Cancelar) -- so autor, so antes da descricao oficial.
     $(document).on("click", ".btn-editar-colab", function () {
       var $btn = $(this);
       var codigo = $btn.data("codigo");
@@ -235,8 +229,7 @@
       });
     });
 
-    // SEC-05: escapa dado do usuario (nome/descricao da colaboracao vindos do JSON)
-    // antes de injetar no DOM via .html() -> impede XSS armazenado.
+    // SEC-05: escapa dado do usuario (nome/descricao vindos do JSON) antes de injetar via .html() -> impede XSS.
     function escapeHtml(s){if(s==null)return '';return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
     // M.6: envio e polling so renderizam codigo MAIOR que este (JS single-thread = sem corrida/duplicata).
@@ -301,9 +294,7 @@
         url: 'RetornaMensagensServlet',
         data: { ultimoCodigo: ultimoCodigo },
         success: function (responseJson) {
-          // M.6: o servlet agora devolve um ARRAY com todas as colaboracoes novas
-          // (codigo > ultimoCodigo), em ordem crescente. Renderiza cada uma (o proprio
-          // renderColaboracao ignora as ja vistas, cobrindo a corrida com o envio).
+          // M.6: servlet devolve ARRAY com colaboracoes novas (codigo > ultimoCodigo); renderColaboracao ignora as ja vistas.
           if (!Array.isArray(responseJson)) return;
           responseJson.forEach(renderColaboracao);
         },

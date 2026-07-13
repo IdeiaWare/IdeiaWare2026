@@ -18,9 +18,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04: reativado a partir do scratch @Ignore original.
- */
+// TEST-04: reativado a partir do scratch @Ignore original.
 public class ElementosStorytellingDAOTest {
 
 	private static final String TIPO_IMAGEM = "IMAGEM";
@@ -102,8 +100,7 @@ public class ElementosStorytellingDAOTest {
 		assertNull(elementosDAO.ultimoAdicionado(filtro));
 	}
 
-	// TEST-04/PERF-02 (2026-07-03): metodos em lote que eliminam o N+1 do autosave do
-	// Storytelling (AutoSalvarStoryServlet) e do SalvarAudioServlet.
+	// TEST-04/PERF-02: metodos em lote que eliminam o N+1 do autosave (AutoSalvarStoryServlet/SalvarAudioServlet).
 	@Test
 	public void buscarPorCodigos_trazTodosNumaSoChamada() {
 		Storytelling s = novoStorytellingSalvo();

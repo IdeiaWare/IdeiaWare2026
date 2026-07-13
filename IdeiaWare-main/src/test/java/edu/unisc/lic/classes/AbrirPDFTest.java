@@ -15,11 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-/**
- * TEST-04: reativado/criado a partir da varredura em classes/ (2026-07-03). titulo=null
- * era o caso real (ExportFile.fileName nunca e preenchido em nenhum dos 2 projetos --
- * confirmado por grep) que fazia todo PDF de Persona/POV baixar como "null.pdf".
- */
+// TEST-04: titulo=null era o caso real (ExportFile.fileName nunca preenchido) que fazia PDF baixar como "null.pdf".
 public class AbrirPDFTest {
 
 	private ServletOutputStream fakeOutputStream(ByteArrayOutputStream sink) {

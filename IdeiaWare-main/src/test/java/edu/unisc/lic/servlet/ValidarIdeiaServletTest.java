@@ -18,10 +18,7 @@ import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 2 (2026-07-05): ValidarIdeiaServlet (COL-07) -- so gestor (adm) pode
- * validar/rejeitar ideias.
- */
+// TEST-04, Tier 2: ValidarIdeiaServlet (COL-07) -- so gestor (adm) valida/rejeita ideias.
 public class ValidarIdeiaServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
@@ -112,8 +109,7 @@ public class ValidarIdeiaServletTest {
 
 	@Test
 	public void admin_reabreIdeiaRejeitada_voltaParaValidadaELimpaMotivo() throws Exception {
-		// M.1 (2026-07-06): reabrir uma ideia REJEITADA -> volta pra VALIDADA (grupo aberto)
-		// e limpa o motivo de rejeicao.
+		// M.1: reabrir uma ideia REJEITADA volta pra VALIDADA (grupo aberto) e limpa o motivo de rejeicao.
 		Usuario admin = novoUsuario("AdminReab", "adm");
 		Usuario autor = novoUsuario("AutorReab", "usr");
 		Ideia ideia = novaIdeiaPendente(autor);

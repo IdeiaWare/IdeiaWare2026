@@ -13,11 +13,7 @@ import edu.unisc.lic.domain.Canva;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04: CanvaDAO nunca teve nenhum arquivo de teste (nem @Ignore). E o DAO do
- * modulo mais complexo do LIC (Canvas de 9 blocos), sem rede de seguranca nenhuma
- * antes deste teste.
- */
+// TEST-04: CanvaDAO nunca teve teste -- e o DAO do modulo mais complexo do LIC (Canvas de 9 blocos).
 public class CanvaDAOTest {
 
 	private static final String COR_AMARELA = "ffeb3b";

@@ -16,9 +16,7 @@ import org.junit.Test;
 import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 2 (2026-07-05): LogInServlet -- infra de auth core, nunca teve teste.
- */
+// TEST-04, Tier 2: LogInServlet -- infra de auth core, nunca teve teste.
 public class LogInServletTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

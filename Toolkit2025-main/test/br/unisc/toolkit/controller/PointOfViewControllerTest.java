@@ -22,10 +22,7 @@ import br.unisc.toolkit.service.ExportFileService;
 import br.unisc.toolkit.service.PersonaService;
 import br.unisc.toolkit.service.PointOfViewService;
 
-/**
- * TEST-02: PointOfView via MockMvc — backstop server-side do POV (exige >=1 texto
- * e >=1 persona). Mocka os 3 services autowired.
- */
+// TEST-02: PointOfView via MockMvc -- backstop server-side (exige >=1 texto e >=1 persona).
 public class PointOfViewControllerTest {
 
 	private MockMvc mvc;

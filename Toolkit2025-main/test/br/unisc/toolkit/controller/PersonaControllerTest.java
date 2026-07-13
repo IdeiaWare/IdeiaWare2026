@@ -21,11 +21,7 @@ import br.unisc.toolkit.classes.AssinaturaCaixa;
 import br.unisc.toolkit.entity.Persona;
 import br.unisc.toolkit.service.PersonaService;
 
-/**
- * TEST-02: PersonaController via MockMvc (POST de verdade -> binding -> validacao ->
- * redirect). Mocka so o service. Trava a validacao server-side da Onda 1 + o guard
- * de cookie, passando pelo stack real do Spring MVC. (CSRF nao entra no standalone.)
- */
+// TEST-02: PersonaController via MockMvc -- trava a validacao server-side + guard de cookie pelo stack real do Spring MVC.
 public class PersonaControllerTest {
 
 	private MockMvc mvc;

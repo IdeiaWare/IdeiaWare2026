@@ -28,10 +28,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * RetornaAudio: devolve os elementos do tipo AUD do storytelling ativo na
- * sessao. Sem storytellingId na sessao -> 400 (STM-04).
- */
+// RetornaAudio: devolve os elementos AUD do storytelling ativo na sessao -- sem storytellingId -> 400 (STM-04).
 public class RetornaAudioTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

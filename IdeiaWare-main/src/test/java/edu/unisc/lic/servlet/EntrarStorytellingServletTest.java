@@ -28,10 +28,7 @@ import edu.unisc.lic.domain.LogColaboracao;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04 (2026-07-03), Tier 1: EntrarStorytellingServlet -- sem bypass de admin
- * aqui (diferente do EntrarColaboracaoServlet), so participante de verdade entra.
- */
+// TEST-04, Tier 1: EntrarStorytellingServlet -- sem bypass de admin, so participante de verdade entra.
 public class EntrarStorytellingServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

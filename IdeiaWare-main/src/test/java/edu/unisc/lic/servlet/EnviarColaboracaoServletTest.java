@@ -23,11 +23,7 @@ import edu.unisc.lic.domain.ColaboracaoIdeia;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: EnviarColaboracaoServlet (COLM-02/COLM-03) -- exige sessao com
- * ideiaId e codigoUsuario antes de salvar a colaboracao; retorna o objeto salvo
- * (com o codigo ja gerado pelo Hibernate) direto como JSON.
- */
+// TEST-04, Tier 3: EnviarColaboracaoServlet (COLM-02/COLM-03) -- exige sessao antes de salvar, retorna o objeto salvo como JSON.
 public class EnviarColaboracaoServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

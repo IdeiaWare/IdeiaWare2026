@@ -18,12 +18,7 @@ import org.junit.Test;
 import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 2 (2026-07-05): ResetPasswordServlet. SEC-19 (anti-enumeracao): a
- * resposta tem que ser a MESMA exista ou nao o e-mail. Sem SENDGRID_API_KEY no ambiente
- * de teste, EnvioEmail.EnviaEmail sempre retorna false sem tentar rede -- o que ja
- * exercita o caminho "envio falhou" do RET-14-EMAIL (resposta nao muda mesmo assim).
- */
+// TEST-04, Tier 2/SEC-19: ResetPasswordServlet -- resposta e a MESMA exista ou nao o e-mail (anti-enumeracao).
 public class ResetPasswordServletTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

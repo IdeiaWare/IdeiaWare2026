@@ -572,6 +572,15 @@ VERIFICACAO: apos os 9 fixes, 2 greps de auditoria — `request.getParameter("id
    Fix: id renomeado pra "nav-logo" (unico, sem duplicar o do menu) em vez de removido, com as
    4 regras de style.css atualizadas pro mesmo seletor — mantem a correcao de HTML invalido do
    TK-39 sem perder o estilo. Aplicado em header.tag e no-container-header.tag (as 2 copias).
+[NAV-LOGO-02] 🔵 mesmo padrao do NAV-LOGO-01/TK-39, mas do lado do LIC: id="nav-mobile"
+   duplicado entre o `<ul>` do logo e o `<ul>` do menu de navegacao (desktop, hide-on-med-and-down)
+   em 12 arquivos (gerenciamento-ideia.jsp, gerenciar-usuarios.jsp, header/headerCookies.jsp,
+   header/headerCookiesCV.jsp, header/headerCookies_2.jsp, index.jsp, lista-caixa-de-
+   ferramentas.jsp, lista-canvas.jsp, lista-ideia-gerenciamento.jsp, lista-storytelling.jsp,
+   storytelling-show.jsp, validar-ideia.jsp) — HTML invalido, mas SEM consequencia funcional
+   (confirmado por grep: nenhum JS/CSS do LIC referencia #nav-mobile, diferente do caso do
+   Toolkit). Fix: id do logo renomeado pra "nav-logo" (mesmo nome usado no Toolkit), nos 12
+   arquivos.
 [FONT-TITLE-APP-01] 🔵 storytelling-finalizado.jsp (LIC): tela com header PROPRIO (nao usa os
    includes compartilhados, de proposito, pra nao carregar o JS pesado do Konva que essa tela
    nao precisa) — nunca carregou a fonte Google 'Condiment' nem a classe .title-app que TODO o

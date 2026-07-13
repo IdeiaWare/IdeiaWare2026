@@ -12,11 +12,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04: reativado a partir do scratch @Ignore original. Cobre tambem os 3
- * metodos do PERF-01 (listarTodasIdeiasStorytelling/listarCaixa/listarIdeiasCanva),
- * que nunca tiveram teste algum antes.
- */
+// TEST-04: reativado do scratch @Ignore original; cobre tambem os 3 metodos do PERF-01, que nunca tiveram teste.
 public class IdeiaUsuarioDAOTest {
 
 	private final IdeiaUsuarioDAO ideiaUsuarioDAO = new IdeiaUsuarioDAO();

@@ -10,10 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Test;
 
-/**
- * TEST-02: leitura do cookie ideiaId (AdminCookies). Trava a blindagem TK-01
- * (cookie vazio / nao-numerico nao deve lancar NumberFormatException).
- */
+// TEST-02: leitura do cookie ideiaId -- trava a blindagem TK-01 (cookie vazio/nao-numerico nao lanca NumberFormatException).
 public class AdminCookiesTest {
 
 	private final AdminCookies cookies = new AdminCookies();
@@ -41,8 +38,26 @@ public class AdminCookiesTest {
 	}
 
 	@Test
-	public void cookieNaoNumerico_naoLancaERetornaNull() { // TK-01
-		assertNull(cookies.getCookieIdeiaCodigo(reqCom(new Cookie("ideiaId", "abc"))));
+	public void cookieNaoNumerico_naoLancaERetornaNull() { // TK-01 -- assinatura valida p/ realmente exercitar o catch de NumberFormatException
+		assertNull(cookies.getCookieIdeiaCodigo(reqCom(
+				new Cookie("ideiaId", "abc"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("abc")))));
+	}
+
+	@Test
+	public void assinaturaAusente_retornaNull() { // SEC-23: ideiaId numerico valido, sem ideiaSig -- cookie forjado
+		assertNull(cookies.getCookieIdeiaCodigo(reqCom(new Cookie("ideiaId", "5"))));
+	}
+
+	@Test
+	public void assinaturaErrada_retornaNull() { // SEC-23: ideiaSig nao bate com nenhum HMAC valido
+		assertNull(cookies.getCookieIdeiaCodigo(reqCom(
+				new Cookie("ideiaId", "5"), new Cookie("ideiaSig", "assinatura-forjada"))));
+	}
+
+	@Test
+	public void assinaturaDeOutroValor_retornaNull() { // SEC-23: ideiaSig valido, mas assinando um ideiaId DIFERENTE
+		assertNull(cookies.getCookieIdeiaCodigo(reqCom(
+				new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("6")))));
 	}
 
 	@Test

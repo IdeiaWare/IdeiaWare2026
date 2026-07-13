@@ -32,11 +32,7 @@ import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: FinalizarColaboracaoServlet (RET-12/RET-14) -- exige login e
- * lideranca da ideia, nao deixa "re-finalizar" (regredir) uma ideia ja avancada, e
- * no fluxo feliz cria o Storytelling (COL-11: sem duplicar) e avanca a Ideia.
- */
+// TEST-04, Tier 3: FinalizarColaboracaoServlet (RET-12/RET-14) -- exige lideranca, nao re-finaliza, cria Storytelling sem duplicar (COL-11).
 public class FinalizarColaboracaoServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
@@ -71,12 +67,7 @@ public class FinalizarColaboracaoServletTest {
 		return request;
 	}
 
-	/**
-	 * O servlet chama getServletContext().getRealPath("") para criar diretorios de
-	 * imagens do storytelling -- fora de um container real isso da NPE se o servlet
-	 * nunca foi init()ializado. So o fluxo feliz (que passa por criaDiretorios) precisa
-	 * disso; os demais testes retornam antes desse ponto.
-	 */
+	// getRealPath("") pra criar diretorios de imagens da NPE sem init() -- so o fluxo feliz precisa disso.
 	private FinalizarColaboracaoServlet novoServletComContexto() throws Exception {
 		FinalizarColaboracaoServlet servlet = new FinalizarColaboracaoServlet();
 		ServletConfig config = mock(ServletConfig.class);
@@ -162,11 +153,7 @@ public class FinalizarColaboracaoServletTest {
 		assertEquals(1, criados.size());
 	}
 
-	/**
-	 * K.8 #3 (2026-07-06): a checagem "existentes" em criaStorytelling e um check-then-insert
-	 * em Java -- corrigido com UNIQUE(ideia_codigo) em Storytelling + catch no servlet. Prova
-	 * que 2 submits quase-simultaneos de "Finalizar Colaboracao" nao duplicam o Storytelling.
-	 */
+	// K.8 #3: UNIQUE(ideia_codigo) em Storytelling + catch no servlet -- prova que 2 submits simultaneos nao duplicam.
 	@Test
 	public void doisSubmitsSimultaneos_soUmStorytellingEhCriado() throws Exception {
 		Usuario autor = novoUsuario("AutC");

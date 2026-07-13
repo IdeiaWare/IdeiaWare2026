@@ -63,8 +63,7 @@
                     <div>
                         <!--                        aparece somente se está participando da ideia-->
                         <h5>Grupo</h5></p>
-                        <%-- UX-01: estado vazio do grupo de colaboradores, com icone (padrao
-                             ja usado nas demais listagens do sistema). --%>
+                        <%-- UX-01: estado vazio do grupo de colaboradores, com icone (padrao das demais listagens). --%>
                         <c:set var="grupoIdeia" value="${ideiaUsuarioDAO.listarParametro(ideiaUsuario)}" />
                         <c:if test="${empty grupoIdeia}">
                             <div class="center-align grey-text" style="padding: 40px 20px;">
@@ -160,8 +159,7 @@
                             <div class="col s3 offset-s3">
                                 <h6>Grupo</h6>
                                 <div style="text-align: left">
-                                    <%-- M.2 (2026-07-06): so membros APROVADOS podem ser escolhidos
-                                         lider (pendentes/rejeitados sao removidos ao fechar). --%>
+                                    <%-- M.2: so membros APROVADOS podem ser escolhidos lider (pendentes/rejeitados somem ao fechar). --%>
                                     <c:forEach var="usuario" items="${ideiaUsuarioDAO.listarParametro(ideiaUsuario)}" varStatus="id" >
                                         <c:if test="${usuario.flStatusVinculo ne 'P' and usuario.flStatusVinculo ne 'R'}">
                                             <c:if test="${usuario.flLider eq 'S'}" >
@@ -188,8 +186,7 @@
             </div>
         </div>
 
-        <%-- M.3 (2026-07-06): modal de REJEITAR a entrada de um membro -- motivo obrigatorio
-             (mesmo padrao de rejeitar uma ideia). Envia pro RejeitarMembroServlet. --%>
+        <%-- M.3: modal de REJEITAR a entrada de um membro -- motivo obrigatorio (mesmo padrao de rejeitar ideia). --%>
         <div id="modalRejeitarMembro" class="modal">
             <form name="rejeitarMembro" action="RejeitarMembroServlet" method="POST" onsubmit="return document.getElementById('motivoMembro').value.trim() !== '';">
                 <div class="modal-content">

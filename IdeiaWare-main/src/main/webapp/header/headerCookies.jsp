@@ -71,7 +71,7 @@
   <nav>
     <div class="nav-wrapper teal darken-2 z-depth-2">
       <a href="index.jsp" class="brand-logo" style="left: 50px">
-        <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
+        <ul style="width:300px" id="nav-logo" class="left hide-on-med-and-down">
           <div class="row" style="padding-left: 10px">
             <div class="col s1 teal lighten-1" style=" width: 50px;  height: 50px; 
                  margin-top: 5px;  padding: 6px 6px; 

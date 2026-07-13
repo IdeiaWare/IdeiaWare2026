@@ -12,10 +12,7 @@ import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-03: integracao REAL de IdeiaDAO contra H2. Alem do round-trip, exercita o
- * relacionamento Ideia -> Usuario (@ManyToOne / FK), que so um teste com banco pega.
- */
+// TEST-03: integracao real de IdeiaDAO contra H2 -- exercita o relacionamento Ideia->Usuario (@ManyToOne/FK).
 public class IdeiaDaoH2Test {
 
 	private static final String TITULO_TESTE = "Titulo Unico X";

@@ -22,16 +22,13 @@
         request.setAttribute("usuario", usuario.getUsuario());
     }
 
-    // RET-05: evita NullPointerException caso a conta tenha sido removida
-    // enquanto a sessão ainda estava ativa.
+    // RET-05: evita NullPointerException caso a conta tenha sido removida com a sessao ainda ativa.
     if (usuario == null) {
         response.sendRedirect("index.jsp");
         return;
     }
 
-    // RETENCAO-ACESSO: antes so admin acessava esta tela. Agora QUALQUER usuario
-    // logado ve a Retencao do Conhecimento; admin ve TODAS as ideias, colaborador
-    // ve so as que participa (a mesma logica de posse do EntrarCaixaServlet/etc).
+    // RETENCAO-ACESSO: QUALQUER logado ve a Retencao; admin ve TODAS, colaborador so as que participa (mesma logica do EntrarCaixaServlet).
     List<edu.unisc.lic.domain.Ideia> todasIdeiasList;
     if ("adm".equals(usuario.getPermissao())) {
         todasIdeiasList = new edu.unisc.lic.dao.IdeiaDAO().listar();
@@ -99,13 +96,12 @@
     <title>IdeiaWare - Gerenciamento de Ideias</title>
   </head>
   <body class="center-align ">
-    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
-         saida de volta pra tela inicial (index.jsp). --%>
+    <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial (index.jsp). --%>
     <a href="index.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
       <div class="nav-wrapper light-blue darken-2 knowledge z-depth-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
-          <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
+          <ul style="width:300px" id="nav-logo" class="left hide-on-med-and-down">
             <div class="row" style="padding-left: 10px">
               <div class="col s1 light-blue knowledge" style=" width: 50px;  height: 50px; 
                    margin-top: 5px;  padding: 6px 6px; 
@@ -129,15 +125,12 @@
       <div class="container">
         <div style="padding: 10px; border-radius: 0.2em" class="white">
 
-          <!--instanciando objetos-->
           <jsp:useBean id="ideiaDao" class="edu.unisc.lic.dao.IdeiaDAO" />
-          <%--<jsp:setProperty name="ideiaUsuario" property="usuario" value="${usuarioClasse}" />--%>
 
           <h1>Gerenciamento de Ideias</h1>
           <c:set var="todasIdeias" value="${todasIdeiasScriptlet}" />
 
-          <%-- UX-01: estado vazio com mensagem contextual -- busca e tabela so
-               aparecem quando ha ideias cadastradas. --%>
+          <%-- UX-01: estado vazio com mensagem contextual (busca e tabela so aparecem quando ha ideias). --%>
           <c:if test="${empty todasIdeias}">
             <div class="center-align grey-text" style="padding: 40px 20px;">
               <i class="material-icons" style="font-size: 3rem; display:block;">assignment</i>

@@ -31,12 +31,7 @@ import edu.unisc.lic.domain.Canvaexport;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: ExportCanvaServlet (CAN-10/CANM-03/CANM-06/CANM-07) -- recebe o
- * PDF (base64) do Canvas exportado pelo front, grava/atualiza o Canvaexport e finaliza
- * a ideia. K.8 #4 (2026-07-06): o check-then-insert-or-update agora tem UNIQUE(ideia_codigo)
- * em Canvaexport + catch no servlet (trata a corrida como update) -- teste abaixo prova.
- */
+// TEST-04/K.8 #4: ExportCanvaServlet (CAN-10/CANM-03/CANM-06/CANM-07) -- UNIQUE(ideia_codigo) em Canvaexport + catch trata a corrida como update.
 public class ExportCanvaServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

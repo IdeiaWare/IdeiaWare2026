@@ -26,11 +26,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: GerenciarIdeiaServlet (RETENCAO-ACESSO) -- exige login e, para
- * quem nao e admin, vinculo com a ideia (IDOR corrigido: nao dava mais para trocar
- * o ideiaId na URL e ver o historico de uma ideia de outro usuario).
- */
+// TEST-04, Tier 3: GerenciarIdeiaServlet (RETENCAO-ACESSO) -- exige vinculo com a ideia pra quem nao e admin (IDOR corrigido).
 public class GerenciarIdeiaServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

@@ -20,10 +20,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * M.2/M.3 (2026-07-06): RejeitarMembroServlet -- so o LIDER rejeita a entrada (P -> R) com
- * motivo; so vinculos pendentes. Regras checadas no servidor.
- */
+// M.2/M.3: RejeitarMembroServlet -- so o LIDER rejeita a entrada (P->R) com motivo, so vinculos pendentes.
 public class RejeitarMembroServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

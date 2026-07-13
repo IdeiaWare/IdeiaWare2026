@@ -1,4 +1,3 @@
-<%--<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>--%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@include file="header/headerCookies_2.jsp" %>
 
@@ -25,11 +24,6 @@
 
           <h5 class="center grey-text text-darken-3" style="padding-top: 10px; padding-bottom: 5px">Ferramentas</h5>
 
-          <!--<div class="story-tools">
-            <button class="btn indigo accent-2" id="carregar">Carregar</button>
-            <button class="btn indigo accent-2" id="imprimirNome">Imprimir nomes</button>
-            <button class="btn indigo accent-2" id="imprimirJSON">Imprimir JSON</button>
-          </div>-->
           <div class="story-tools">
             <button class="btn indigo accent-2" style="display: " id="deletarAlgo">Ativar borracha</button>
           </div>
@@ -62,7 +56,6 @@
                 <div class="center row">
                   <a class="col s4" id="b2_1" title="Quadrado"><img style="max-height: 4rem" src="imagens/quadradoPreto.png" ></a>
                   <a class="col s4" id="b2_2" title="Círculo"><img style="max-height: 4rem" src="imagens/circuloPreto.png" ></a>
-                  <!--<a class="col s4" id="b2_2" onclick="mostra('ob2_2')" title="Círculo"><img style="max-height: 4rem" src="imagens/circulo.png" ></a>-->
                   <a class="col s4" id="b2_3" title="Flecha"><img style="max-height: 4rem" src="imagens/flechaPreto.png" ></a>
                   <div class="col s12" style="padding: 5px"></div>
                   <a class="col s4" id="b2_4" title="Triângulo"><img style="max-height: 4rem" src="imagens/trianguloPreto.png" ></a>
@@ -128,23 +121,6 @@
               </div>
             </li>
 
-            <!--<li class="white">
-              <div id="b4" onclick="mostra('ob4')" class="collapsible-header"><i class="material-icons">edit</i>Desenho Livre </div>
-              <div class="collapsible-body">
-                <div class="fixed-action-btn">
-                  <a class="btn-floating btn-large yellow darken-2 "><i class="large material-icons">brush</i></a>
-                  <ul>
-                    <li><a class="btn-floating yellow darken-1"><i style="font-size: 2rem" class="material-icons">brightness_1</i></a></li>
-                    <li><a class="btn-floating yellow darken-1"><i style="font-size: 1.5rem" class="material-icons">brightness_1</i></a></li>
-                    <li><a class="btn-floating yellow darken-1"><i style="font-size: 1rem" class="material-icons">brightness_1</i></a></li>
-                    <li><a class="btn-floating yellow darken-1"><i style="font-size: 0.5rem" class="material-icons">brightness_1</i></a></li>
-                  </ul>
-                </div>
-                <p> # Seleciona Cor </p>
-                <p> # Adicionar botão 'Borracha'</p>
-              </div>
-            </li> -->
-
             <li class="white">
               <div id="b5" class="collapsible-header"><i class="material-icons">keyboard_voice</i>Adicionar Áudio</div>
               <div class="collapsible-body">
@@ -157,12 +133,10 @@
                 <ul id="recordingslist"></ul>
               </div>
             </li>
-          </ul> 
-          <!-- <div class="grey darken-3 divider" style="margin:15px"></div> -->
+          </ul>
         </div>
         <div class="col s9 ">
-          <div class="grey lighten-4 z-depth-2" id="workBoard" style="min-height: 85vh"> <!-- CANVAS -->
-            <!-- <canvas id="myCanvas"> /canvas>  -->
+          <div class="grey lighten-4 z-depth-2" id="workBoard" style="min-height: 85vh">
             <div id="container" class="mycanvas"></div>
           </div>
         </div>
@@ -171,9 +145,7 @@
     </div>
     <div id="modalDescricao" class="modal">
       <div class="grey-text text-darken-3 modal-content">
-        <div class="right">
-          <!--<button class="modal-action modal-close btn-floating red lighten-1"><i style="line-height: 42px" class="material-icons">close</i></button>-->
-        </div>
+        <div class="right"></div>
         <h4>Descrição da Ideia</h4>
         <p>
         <div class="input-field">

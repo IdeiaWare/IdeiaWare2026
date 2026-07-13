@@ -1,5 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%-- CAN-07: pageEncoding UTF-8 (era UTF-8, que corrompia os acentos) --%>
+<%-- CAN-07: pageEncoding UTF-8 (corrigia acentos corrompidos). --%>
 <%@page contentType="text/html" pageEncoding="UTF-8"  session="true"%>
 <!-- HEADER -->
 <%@include file="header/headerCookiesCV.jsp" %>
@@ -12,8 +12,7 @@
 	<body class="center-align">
 		<%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/canva-mapa.jsp. --%>
 		<a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
-		<%-- expõe o fluxo (retenção x finalização normal) para o geraPDFCanva.js
-		     decidir o redirect pós-export sem corte seco. --%>
+		<%-- expoe o fluxo (retencao x finalizacao normal) pro geraPDFCanva.js decidir o redirect pos-export. --%>
 		<script>window.isRetencaoCanva = ('${sessionScope.isRetencao}' === 'true');</script>
 		<div style="min-height: 80vh">
 			<!-- VARIAVEIS -->
@@ -33,8 +32,7 @@
 		  		</div>
 		  		
 		  		<!-- BOTÃO DE EXPORTAÇÃO -->
-		  		<%-- UX-COR: blue darken-4 (cor do proprio modulo Canvas); era red, sem
-		  		     nenhuma relacao com o header/footer azul deste modulo. --%>
+		  		<%-- UX-COR: blue darken-4 (cor do proprio modulo Canvas); era red, sem relacao com o header/footer. --%>
 		  		<div>
 					<button class="btn btn-lg blue darken-4 mt4" onclick="geraPDF()">Exportar</button>
 				</div>

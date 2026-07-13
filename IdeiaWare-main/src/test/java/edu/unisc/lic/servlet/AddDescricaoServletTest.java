@@ -28,10 +28,7 @@ import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 import edu.unisc.lic.dao.UsuarioDAO;
 
-/**
- * TEST-04 (2026-07-03), Tier 1: AddDescricaoServlet -- so o LIDER da ideia pode
- * "adicionar a descricao"; antes qualquer logado conseguia.
- */
+// TEST-04, Tier 1: AddDescricaoServlet -- so o LIDER pode adicionar a descricao (antes qualquer logado).
 public class AddDescricaoServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
@@ -134,12 +131,7 @@ public class AddDescricaoServletTest {
 		assertEquals("ad", colaboracaoIdeiaDAO.buscar(colab.getCodigo()).getFlSalvado());
 	}
 
-	/**
-	 * K.8 #8 (2026-07-06): duplo-POST (duplo-clique, retry de rede) na MESMA colaboracao
-	 * nao deve reaplicar o texto 2x na descricao oficial da ideia. "ad" (flSalvado) serve
-	 * de marcador de idempotencia -- na 2a chamada, o servlet devolve a descricao ja
-	 * calculada em vez de acrescentar de novo.
-	 */
+	// K.8 #8: duplo-POST na mesma colaboracao nao reaplica o texto 2x -- "ad" (flSalvado) e o marcador de idempotencia.
 	@Test
 	public void duploPostNaMesmaColaboracao_naoDuplicaTextoNaDescricao() throws Exception {
 		Usuario autor = novoUsuario("Autor3");

@@ -24,11 +24,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04 (2026-07-03), Tier 1: AbrirPersona -- exigia login mas NAO checava dono do
- * PDF exportado (IDOR: qualquer logado baixava a Persona de qualquer ideia). Admin
- * mantem bypass.
- */
+// TEST-04, Tier 1: AbrirPersona exigia login mas nao checava dono do PDF (IDOR); admin mantem bypass.
 public class AbrirPersonaTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

@@ -24,11 +24,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04 (2026-07-03), Tier 1 (servlets com IDOR ja corrigido -- B.9): cobre o
- * EntrarColaboracaoServlet, incluindo o bypass de admin (retencao) e o bloqueio de
- * quem nao participa da ideia.
- */
+// TEST-04, Tier 1: EntrarColaboracaoServlet -- cobre o bypass de admin (retencao) e o bloqueio de quem nao participa.
 public class EntrarColaboracaoServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

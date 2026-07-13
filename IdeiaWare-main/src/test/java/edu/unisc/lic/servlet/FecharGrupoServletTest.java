@@ -23,12 +23,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3 (2026-07-05): FecharGrupoServlet. Nota (K.8): a acao inteira roda em
- * varias transacoes separadas sem uma unica transacao guarda-chuva (achado K.8 #1,
- * ainda nao corrigido) -- estes testes cobrem o caminho sequencial feliz (sem falha no
- * meio), que ja funciona hoje.
- */
+// TEST-04, Tier 3/K.8 #1: FecharGrupoServlet -- acao roda em varias transacoes separadas (ainda nao corrigido); testes cobrem o caminho feliz sequencial.
 public class FecharGrupoServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
@@ -144,8 +139,7 @@ public class FecharGrupoServletTest {
 
 	@Test
 	public void fecharGrupo_removeVinculosPendentesERejeitados() throws Exception {
-		// M.2 (2026-07-06): ao fechar, quem nao foi aprovado (P/R) e removido; sobram so os
-		// aprovados (A) -- assim as checagens de participacao ja existentes seguem valendo.
+		// M.2: ao fechar, quem nao foi aprovado (P/R) e removido; sobram so os aprovados (A).
 		Usuario lider = novoUsuario("LiderClean");
 		Ideia ideia = novaIdeia(lider);
 		vincula(lider, ideia, "S", StatusIdeia.VINCULO_APROVADO);
@@ -171,8 +165,7 @@ public class FecharGrupoServletTest {
 
 	@Test
 	public void fecharGrupo_naoPromovePendenteALider() throws Exception {
-		// M.2: um POST forjado com o id de um PENDENTE nao pode torna-lo lider (a tela so
-		// mostra aprovados no radio, mas o servidor tambem barra).
+		// M.2: POST forjado com id de PENDENTE nao pode torna-lo lider (servidor barra, nao so a UI).
 		Usuario lider = novoUsuario("LiderP");
 		Ideia ideia = novaIdeia(lider);
 		vincula(lider, ideia, "S", StatusIdeia.VINCULO_APROVADO);

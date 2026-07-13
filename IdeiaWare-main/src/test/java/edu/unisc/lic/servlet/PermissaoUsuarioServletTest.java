@@ -19,10 +19,7 @@ import org.junit.Test;
 import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 2 (2026-07-05): PermissaoUsuarioServlet (RKM-01) -- so admin pode
- * promover/rebaixar outros usuarios.
- */
+// TEST-04, Tier 2: PermissaoUsuarioServlet (RKM-01) -- so admin promove/rebaixa outros usuarios.
 public class PermissaoUsuarioServletTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

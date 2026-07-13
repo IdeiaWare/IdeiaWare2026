@@ -47,8 +47,7 @@ public class PointOfViewController {
 	
 	AdminCookies cookie = new AdminCookies();
 	
-	// Recebe as personas via query string (?personas=...) em vez de path variable.
-	// Nomes de persona contem espacos e "+", que no path causavam 404 no Tomcat 9.
+	// TK-45b: personas via query string (?personas=...) em vez de path variable (espaco/"+" dava 404 no Tomcat).
 	@GetMapping("/criar-pov")
 	public String showPOVTemplate(@RequestParam("personas") List<String> personas, Model theModel, HttpServletRequest request){
 		// TK-COOKIE-GUARD: guard de cookie (unico GET deste controller que nao conferia antes).
@@ -109,11 +108,9 @@ public class PointOfViewController {
 			
 			theModel.addAttribute("pageTitle", "Point Of Views - Lista");
 			
-			//Get all personas for poit of view autocomplete on edit
 			List<Persona> allPersonas = personaService.getPersonas(ideiaCodigo);
 			theModel.addAttribute("personas", allPersonas);
-			
-			// Trecho para atualizar o Point Of View
+
 			PointOfView thePOV = new PointOfView();
 			theModel.addAttribute("pov", thePOV);
 			
@@ -127,8 +124,7 @@ public class PointOfViewController {
 	
 	@GetMapping("/visao-geral")
 	public String showFilledPOVOverview(@RequestParam("povId") int theId, Model theModel, HttpServletRequest request){
-		// SEC-23: exige o cookie (assinado) e ESCOPA o POV por ideia -> nao da p/ ver o
-		// POV de outra ideia chutando o povId.
+		// SEC-23: exige o cookie assinado e escopa o POV por ideia (nao da pra ver POV de outra ideia chutando o povId).
 		Long ideiaCodigo = cookie.getCookieIdeiaCodigo(request);
 		if (ideiaCodigo == null) {
 			theModel.addAttribute("pageTitle", "Erro");
@@ -205,8 +201,7 @@ public class PointOfViewController {
 	}
 	
 	private void displayPointOfView(Model theModel, List<Object> povItemsList){
-		// LinkedHashMap (nao HashMap): preserva a ordem de insercao = a ordem da
-		// query (pov_id DESC) -> os POV mais novos aparecem em cima na lista.
+		// TK-ORD: LinkedHashMap (nao HashMap) preserva a ordem da query (pov_id DESC), mais novos em cima.
 		Map<Integer, PointOfViewInfo> pointOfViewsInfo = new LinkedHashMap<Integer, PointOfViewInfo>();
 		List<PointOfViewInfo> infosList = new ArrayList<PointOfViewInfo>();
 		

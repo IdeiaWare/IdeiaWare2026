@@ -27,11 +27,7 @@ import edu.unisc.lic.domain.Canva;
 import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: VisaoGeralCanvaServlet (CAN-09) -- confia no ideiaId ja validado na
- * sessao (nao repete o check de participacao, que e feito antes pelo EntrarCanvaServlet);
- * so protege contra ideiaId ausente/inexistente.
- */
+// TEST-04, Tier 3: VisaoGeralCanvaServlet (CAN-09) -- confia no ideiaId ja validado na sessao, so protege contra ideiaId ausente.
 public class VisaoGeralCanvaServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

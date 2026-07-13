@@ -15,12 +15,10 @@ import br.unisc.toolkit.classes.Data;
 @SuppressWarnings("serial")
 @Entity
 public class Ideia extends GenericDomain{
-	//Chave estrangeira
     @ManyToOne
-    @JoinColumn(nullable = false) // chave estrangeira é obrigatória
+    @JoinColumn(nullable = false)
     private Usuario usuario;
 
-    //Atributos
     @Column(length = 50, nullable = false)
     private String titulo;
 
@@ -57,10 +55,9 @@ public class Ideia extends GenericDomain{
     private Date dtRejeicao;
     
     @ManyToOne
-    @JoinColumn(nullable = true) // chave estrangeira é obrigatória
+    @JoinColumn(nullable = true)
     private Usuario gestor;
 
-    //Métodos Construtores
     public Ideia() {
         usuario = new Usuario();
     }
@@ -73,13 +70,11 @@ public class Ideia extends GenericDomain{
         this.statusGrupo = statusGrupo;
     }
 
-    //Métodos
     @Override
     public String toString() {
         return "Ideia{" + "usuario=" + usuario + ", titulo=" + titulo + ", descricao=" + descricao + ", motivoRejeicao=" + motivoRejeicao + ", status=" + status + ", statusGrupo=" + statusGrupo + ", dtCriacao=" + dtCriacao + ", dtInicioDesenv=" + dtInicioDesenv + ", dtFimDesenv=" + dtFimDesenv + '}';
     }
 
-    //Getters and Setters
     public Usuario getUsuario() {
         return usuario;
     }

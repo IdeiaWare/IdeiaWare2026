@@ -47,13 +47,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     </head>
     <style>
-        /* TEST-04 (2026-07-06): footer flutuando quase no meio da tela quando o form
-           visivel eh curto (ex.: Anonimizar dados). ".form" nao tem altura minima e o
-           body/html nao tinha layout de coluna, entao o footer so seguia o fluxo normal
-           do documento e "subia" conforme o conteudo acima encolhia. Escopado soh nesta
-           pagina (nao mexe em css/style.css) pra nao afetar outras telas que usam .form
-           (ex.: login.jsp). margin:0 auto do .form continua centralizando no eixo
-           cruzado de um flex column normalmente. */
+        /* TEST-04: footer flutuava no meio da tela com form curto -- layout flex column escopado so nesta pagina (nao mexe em css/style.css). */
         body {
             display: flex;
             flex-direction: column;
@@ -183,8 +177,7 @@
     </style>
 
     <body class="blue-grey lighten-5">
-        <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/Canvas -- faltava
-             saida de volta pra tela inicial (index.jsp). --%>
+        <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial (index.jsp). --%>
         <a href="index.jsp" class="btn-floating btn-large blue-grey darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
         <nav>
             <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
@@ -394,8 +387,7 @@
         </script>
     <script src="js/csrf.js"></script>
   </body>
-  <%-- UX: footer padronizado com a cor do header (blue-grey, igual home) -- antes
-       esta tela nao tinha footer nenhum. --%>
+  <%-- UX: footer padronizado com a cor do header (blue-grey, igual home) -- antes nao tinha footer nenhum. --%>
   <footer class="center blue-grey lighten-1 page-footer">
     <div class="container">
       <div class="row">

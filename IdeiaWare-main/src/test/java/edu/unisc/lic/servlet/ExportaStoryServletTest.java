@@ -23,11 +23,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: ExportaStoryServlet -- blindagem contra sessao sem storytellingId
- * (NPE), id nao-numerico (NumberFormatException) e corpo vazio, alem do fluxo feliz
- * que finaliza o Storytelling e avanca a Ideia para a Caixa de Ferramentas.
- */
+// TEST-04, Tier 3: ExportaStoryServlet -- blindagem contra sessao sem storytellingId, id nao-numerico e corpo vazio.
 public class ExportaStoryServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

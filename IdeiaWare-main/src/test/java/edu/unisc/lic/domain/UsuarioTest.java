@@ -8,11 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-/**
- * TEST-04: logica pura de Usuario (sem banco) -- hash bcrypt de senha (SEC-22) e
- * anonimizacao de dados pessoais (LGPD). Nenhum dos dois tinha teste unitario
- * direto; so eram exercitados de raspao pelo round-trip do UsuarioDaoH2Test.
- */
+// TEST-04: logica pura de Usuario -- hash bcrypt (SEC-22) e anonimizacao (LGPD), nenhum tinha teste unitario direto.
 public class UsuarioTest {
 
 	@Test

@@ -24,10 +24,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04 (2026-07-03), Tier 1: AbrirPointOfView -- mesmo padrao/mesmo fix do
- * AbrirPersona (SRV-IDOR-07), so muda o nome do parametro (codigoPOV).
- */
+// TEST-04, Tier 1: AbrirPointOfView -- mesmo fix do AbrirPersona (SRV-IDOR-07), so muda o parametro.
 public class AbrirPointOfViewTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();

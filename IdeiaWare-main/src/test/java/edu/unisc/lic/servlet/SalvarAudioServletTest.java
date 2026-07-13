@@ -27,14 +27,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.Storytelling;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * SalvarAudioServlet: salva/substitui o audio unico do storytelling ativo na
- * sessao. Blindagens: sessao sem storytellingId -> 401; id nao numerico ->
- * 400; storytelling inexistente -> 404 (ver comentario "BLINDAGEM" no
- * servlet). Nota: a exclusao do audio antigo e a insercao do novo sao 2
- * chamadas de DAO separadas (gap de concorrencia ja documentado, nao e
- * escopo deste teste).
- */
+// SalvarAudioServlet: salva/substitui o audio unico do storytelling ativo -- blindagens de sessao/id/existencia (ver "BLINDAGEM" no servlet).
 public class SalvarAudioServletTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

@@ -11,11 +11,7 @@ import org.junit.Test;
 
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-03: integracao REAL de UsuarioDAO contra H2 (em memoria). Exercita o
- * round-trip de persistencia (salvar -> id gerado -> buscar) e o listar, usando o
- * mesmo GenericDAO/HibernateUtil de producao (so o banco e H2, via cfg de teste).
- */
+// TEST-03: integracao real de UsuarioDAO contra H2 -- exercita o round-trip de persistencia com o GenericDAO/HibernateUtil de producao.
 public class UsuarioDaoH2Test {
 
 	private final UsuarioDAO dao = new UsuarioDAO();
@@ -53,7 +49,7 @@ public class UsuarioDaoH2Test {
 		assertEquals(antes + 1, dao.listar().size());
 	}
 
-	// TEST-04 (2026-07-03): reativado do scratch @Ignore original (UsuarioDAOTest.excluir/editar/listarParametro).
+	// TEST-04: reativado do scratch @Ignore original (UsuarioDAOTest.excluir/editar/listarParametro).
 	@Test
 	public void excluir_removeORegistro() {
 		Usuario u = novo("Vai ser apagado");
@@ -98,15 +94,13 @@ public class UsuarioDaoH2Test {
 		assertTrue(dao.listarParametro(filtro, false).isEmpty());
 	}
 
-	// RACE-01 (2026-07-03): a UNIQUE do banco (nao so a checagem em Java) e a trava de
-	// verdade contra 2 cadastros simultaneos com o mesmo login/email.
+	// RACE-01: a UNIQUE do banco (nao so a checagem em Java) e a trava de verdade contra 2 cadastros simultaneos.
 	@Test(expected = org.hibernate.exception.ConstraintViolationException.class)
 	public void salvar_loginDuplicado_bancoRejeitaMesmoSemChecagemEmJava() {
 		String login = "login_dup_" + System.nanoTime();
 		dao.salvar(new Usuario("Primeiro", login, "s", "usr", "primeiro_" + System.nanoTime() + "@x.com"));
 
-		// mesmo login, email diferente -- simula a JANELA de corrida onde a checagem em
-		// Java (feita ANTES desse salvar) ja tinha passado pros dois.
+		// mesmo login, email diferente -- simula a JANELA de corrida onde a checagem em Java ja tinha passado pros dois.
 		dao.salvar(new Usuario("Segundo", login, "s", "usr", "segundo_" + System.nanoTime() + "@x.com"));
 	}
 

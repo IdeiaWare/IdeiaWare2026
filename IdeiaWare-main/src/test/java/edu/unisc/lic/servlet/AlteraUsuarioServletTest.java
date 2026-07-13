@@ -27,13 +27,7 @@ import org.junit.Test;
 import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 2 (2026-07-05): AlteraUsuarioServlet (RKM-04/SEC-22) -- edicao de
- * perfil: nome, e-mail (com checagem de duplicidade) e senha (com checagem da senha
- * atual e confirmacao). K.8 #6 (2026-07-06): a checagem de e-mail duplicado e um
- * check-then-update em Java -- corrigido com o mesmo catch de ConstraintViolationException
- * ja usado no CadastroUsuarioServlet (a UNIQUE uk_usuario_email ja existe desde o RACE-01).
- */
+// TEST-04/K.8 #6: AlteraUsuarioServlet (RKM-04/SEC-22) -- edicao de perfil com checagem de e-mail duplicado via UNIQUE + catch (mesmo padrao do RACE-01).
 public class AlteraUsuarioServletTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();
@@ -133,9 +127,7 @@ public class AlteraUsuarioServletTest {
 		verify(request).setAttribute("respostaSucesso", true);
 		Usuario recarregado = usuarioDAO.buscar(u.getCodigo());
 		assertEquals("Nome Novo", recarregado.getNome());
-		// TEST-04 (2026-07-06): achado real testando -- o header (index.jsp) le
-		// sessionScope.nomeUsuario, que so era gravado no login; editar o nome aqui
-		// persistia no banco mas o header continuava com o nome antigo ate relogar.
+		// TEST-04: header (index.jsp) le sessionScope.nomeUsuario, so gravado no login -- editar o nome persistia mas o header ficava desatualizado ate relogar.
 		verify(request.getSession(true)).setAttribute("nomeUsuario", "Nome Novo");
 	}
 

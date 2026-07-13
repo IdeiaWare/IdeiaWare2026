@@ -26,10 +26,7 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 
-/**
- * TEST-04, Tier 3: EntrarCaixaServlet (SEC-23) -- exige login + participacao na ideia
- * antes de assinar (HMAC) o cookie ideiaId consumido pelo Toolkit.
- */
+// TEST-04, Tier 3: EntrarCaixaServlet (SEC-23) -- exige login + participacao antes de assinar o cookie ideiaId.
 public class EntrarCaixaServletTest {
 
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
