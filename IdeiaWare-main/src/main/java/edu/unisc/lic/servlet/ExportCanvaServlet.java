@@ -1,4 +1,6 @@
 package edu.unisc.lic.servlet;
+import edu.unisc.lic.classes.ArquivoExport;
+import edu.unisc.lic.classes.Constantes;
 import edu.unisc.lic.classes.StatusIdeia;
 
 import edu.unisc.lic.dao.IdeiaDAO;
@@ -50,6 +52,10 @@ public class ExportCanvaServlet extends HttpServlet {
                 return;
             }
 
+            // PDF-DISCO
+            String caminhoRelativo = Constantes.CAMINHO_EXPORT_CANVA + ideia.getCodigo() + ".pdf";
+            ArquivoExport.salvar(fileData, caminhoRelativo);
+
             CanvaexportDAO canvaDAO = new CanvaexportDAO();
             Canvaexport canva = new Canvaexport();
             canva.setIdeia(ideia);
@@ -58,11 +64,11 @@ public class ExportCanvaServlet extends HttpServlet {
             List<Canvaexport> existentes = canvaDAO.listarParametro(canva);
             if (existentes != null && !existentes.isEmpty()) {
                 canva = existentes.get(0);
-                canva.setFile(fileData);
+                canva.setFile(caminhoRelativo);
                 canva.setDate();
                 canvaDAO.editar(canva);
             } else {
-                canva.setFile(fileData);
+                canva.setFile(caminhoRelativo);
                 canva.setDate();
                 try {
                     canvaDAO.salvar(canva);
@@ -71,7 +77,7 @@ public class ExportCanvaServlet extends HttpServlet {
                     List<Canvaexport> agora = canvaDAO.listarParametro(canva);
                     if (agora != null && !agora.isEmpty()) {
                         Canvaexport existente = agora.get(0);
-                        existente.setFile(fileData);
+                        existente.setFile(caminhoRelativo);
                         existente.setDate();
                         canvaDAO.editar(existente);
                     }
@@ -79,8 +85,8 @@ public class ExportCanvaServlet extends HttpServlet {
             }
             ideia.setStatus(StatusIdeia.FINALIZADO);
             new IdeiaDAO().editar(ideia);
-        } catch (RuntimeException e) {
-            // CAN-10: falha ao salvar (ex.: PDF > max_allowed_packet) retorna 500 explicito.
+        } catch (RuntimeException | IOException e) {
+            // CAN-10: falha ao salvar (ex.: base64 invalido, disco cheio) retorna 500 explicito.
             System.out.println("Erro ao exportar canva: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }

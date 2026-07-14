@@ -2,24 +2,31 @@ package edu.unisc.lic.dao;
 
 import edu.unisc.lic.domain.Canva;
 import edu.unisc.lic.util.HibernateUtil;
+import java.util.Collections;
 import java.util.List;
-import org.hibernate.Criteria;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
 
 public class CanvaDAO extends GenericDAO<Canva> {
 
+    // DAO-FAIL-CLOSED: sem ideia definida nao ha o que listar (antes voltava a tabela inteira).
     public List<Canva> listarParametro(Canva canva) {
+        if (canva.getIdeia().getCodigo() == null) {
+            return Collections.emptyList();
+        }
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(Canva.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<Canva> consulta = builder.createQuery(Canva.class);
+            Root<Canva> raiz = consulta.from(Canva.class);
 
-            if (canva.getIdeia().getCodigo() != null) {
-                filtro.add(Restrictions.eq("ideia", canva.getIdeia()));
-            }
+            consulta.select(raiz).where(builder.equal(raiz.get("ideia"), canva.getIdeia()));
 
-            return filtro.list();
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();
@@ -30,13 +37,16 @@ public class CanvaDAO extends GenericDAO<Canva> {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(Canva.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<Canva> consulta = builder.createQuery(Canva.class);
+            Root<Canva> raiz = consulta.from(Canva.class);
 
-            filtro.add(Restrictions.eq("ideia", canva.getIdeia()));
+            Predicate porIdeia = builder.equal(raiz.get("ideia"), canva.getIdeia());
+            Predicate porAtributo = builder.equal(raiz.get("attribute"), element);
 
-            filtro.add(Restrictions.eq("attribute", element));
+            consulta.select(raiz).where(builder.and(porIdeia, porAtributo));
 
-            return filtro.list();
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();

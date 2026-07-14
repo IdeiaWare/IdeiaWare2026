@@ -12,6 +12,7 @@
   </head>
 
   <body class="center-align teal darken-1">
+    <main>
     <div class="white" style="min-height: 90vh" role="main">
       <div class="container">
         <div style="padding: 10px;" class="white">
@@ -225,7 +226,8 @@
       </div>
     </div>
   <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
 
   <%@include file="header/footer.jsp" %>
   <script type="text/javascript">

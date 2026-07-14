@@ -2,7 +2,7 @@
 					</div>
 				</div>
 			</div>
-		</div>
+		</main>
 		
 		<footer class="center red darken-1 page-footer">
 	    <div class="container">

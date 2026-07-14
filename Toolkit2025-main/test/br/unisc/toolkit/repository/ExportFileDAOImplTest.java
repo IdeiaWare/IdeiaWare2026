@@ -54,14 +54,11 @@ public class ExportFileDAOImplTest {
 	}
 
 	@Test
-	public void saveExportedFile_persisteConteudoLongo() { // E1: columnDefinition=longtext
-		StringBuilder base64Longo = new StringBuilder("data:application/pdf;base64,");
-		for (int i = 0; i < 5000; i++) {
-			base64Longo.append('A');
-		}
+	public void saveExportedFile_persisteCaminhoDeArquivo() { // PDF-DISCO
+		String caminhoRelativo = "conhecimento/1/" + "a".repeat(64) + ".pdf";
 		ExportFile f = new ExportFile();
 		f.setFileName("Grande.pdf");
-		f.setFileLocation(base64Longo.toString());
+		f.setFileLocation(caminhoRelativo);
 		f.setFileTypeIdentification("persona");
 		f.setIdeiaCodigo(1L);
 		f.setCreated(new Date());
@@ -69,6 +66,6 @@ public class ExportFileDAOImplTest {
 		exportFileDAO.saveExportedFile(f);
 
 		ExportFile recarregado = exportFileDAO.getFiles(1L).get(0);
-		assertEquals(base64Longo.length(), recarregado.getFileLocation().length());
+		assertEquals(caminhoRelativo, recarregado.getFileLocation());
 	}
 }

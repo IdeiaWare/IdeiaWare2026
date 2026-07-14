@@ -23,8 +23,8 @@ public class ExportFile {
 	@Column(name="file_name")
 	private String fileName;
 
-	// E1: longtext -- PDF em base64 ultrapassa os 255 chars do VARCHAR padrao.
-	@Column(name="file_location", columnDefinition="longtext")
+	// PDF-DISCO
+	@Column(name="file_location", length=255)
 	private String fileLocation;
 	
 	@Column(name="file_type_identification")

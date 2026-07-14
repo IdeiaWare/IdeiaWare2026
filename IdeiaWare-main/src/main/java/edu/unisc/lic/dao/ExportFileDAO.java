@@ -2,27 +2,38 @@ package edu.unisc.lic.dao;
 
 import edu.unisc.lic.domain.ExportFile;
 import edu.unisc.lic.util.HibernateUtil;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import org.hibernate.Criteria;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
 
 public class ExportFileDAO extends GenericDAO<ExportFile> {
 
+    // DAO-FAIL-CLOSED: sem ideia definida nao ha o que listar (antes voltava a tabela inteira).
     public List<ExportFile> listarParametro(ExportFile ef) {
+        if (ef.getIdeia().getCodigo() == null) {
+            return Collections.emptyList();
+        }
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(ExportFile.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<ExportFile> consulta = builder.createQuery(ExportFile.class);
+            Root<ExportFile> raiz = consulta.from(ExportFile.class);
 
-            if (ef.getIdeia().getCodigo() != null) {
-                filtro.add(Restrictions.eq("ideia", ef.getIdeia()));
-            }
+            List<Predicate> predicados = new ArrayList<>();
+            predicados.add(builder.equal(raiz.get("ideia"), ef.getIdeia()));
             if (ef.getFileTypeIdentification() != null) {
-                filtro.add(Restrictions.eq("fileTypeIdentification", ef.getFileTypeIdentification()));
+                predicados.add(builder.equal(raiz.get("fileTypeIdentification"), ef.getFileTypeIdentification()));
             }
 
-            return filtro.list();
+            consulta.select(raiz).where(predicados.toArray(new Predicate[0]));
+
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();

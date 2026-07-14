@@ -11,13 +11,8 @@ blockquote{
 }
 .fa-file-pdf-o {color:red;}
 
-/* UX-ACOES-TOOLKIT: os botoes de acao (ver/editar/excluir) usavam "btn-floating
-   btn-small", mas esta versao do Materialize nao define .btn-small -- entao
-   renderizavam no tamanho padrao (40px, circulo cheio). O icone da lixeira
-   ainda tinha um color:#f44336 direto (quase a mesma cor do fundo vermelho do
-   botao = icone invisivel, so a bolinha aparecia). Aqui: tamanho reduzido de
-   verdade + cantos menos arredondados (quadradinho) + icone branco (herda do
-   .btn-floating, igual os outros 2 botoes). */
+/* UX-TOOLKIT-ACOES/UX-TOOLKIT-ICONE-LIXEIRA: esta versao do Materialize nao define .btn-small
+   (renderizava no tamanho padrao); icone da lixeira era quase invisivel (cor igual ao fundo). */
 .personas-list .btn-floating,
 .pov-list .btn-floating {
   width: 30px;
@@ -153,16 +148,10 @@ a.empathy-overview:hover{
 #attribute {margin-top:15px;}
 
 .persona-all-data-detailed{display:inline-table; width:100%}
-/* UI-EMP (fix 2026-06-23): inline-table e INLINE-level -> width:100% nao estica e o mapa
-   ficava encolhido no canto. display:table (block-level) com width:100% enche a largura
-   de verdade (centraliza o mapa). O export (custom.js TK-16) passa width/height explicitos
-   ao html2canvas, entao a captura do PDF continua completa. */
+/* UI-EMP: inline-table e INLINE-level, width:100% nao estica (mapa ficava encolhido no canto); display:table resolve. */
 .persona-all-data-overview{display:table; width:100%}
 .persona-overview{display:table; width:100%;}
-/* UI-EMP (2026-06-23): min-height deixa os quadrantes mais altos/quadrados (menos
-   "achatado"). E min-height (nao height): com muitos cards a celula CRESCE, sem quebrar
-   o visual; o footer fica em fluxo normal logo apos #content, entao so e empurrado pra
-   baixo (sem overlap). */
+/* UI-EMP: min-height (nao height) deixa os quadrantes mais quadrados sem quebrar quando ha muitos cards. */
 .persona-overview .section{border:1px solid #212121; position:relative; min-height:160px;}
 .persona-overview .card:hover{cursor:pointer;}
 .persona-overview .card .card-content{padding:5px;}
@@ -224,13 +213,12 @@ a.empathy-overview:hover{
 	}
 }
 
-/*-- BEGIN - Point Of View --*/
+/*-- BEGIN - Point of View --*/
 .pov-list .ellipsed-data a{
 	display: inline-block;
 	width: 9rem;
 }
-/* UI-POV (2026-06-23): width:100% + border-collapse fecha a borda DIREITA (antes a tabela
-   nao chegava na borda e parecia "aberta" na direita) e deixa a tabela limpa p/ o export. */
+/* UI-POV: width:100% + border-collapse fecha a borda direita (antes a tabela parecia "aberta"). */
 .pov-all-data-overview table{border-collapse:collapse; width:100%;}
 .pov-all-data-overview thead, .pov-all-data-overview tbody,
 .pov-all-data-overview th, .pov-all-data-overview td{border:1px solid #757575;}
@@ -268,7 +256,7 @@ a.empathy-overview:hover{
 	border-bottom: 0;
 	margin:0 !important;
 }
-/*-- END - Point Of View --*/
+/*-- END - Point of View --*/
 
 #success{
 	margin-top:10%;

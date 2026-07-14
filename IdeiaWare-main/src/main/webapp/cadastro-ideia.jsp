@@ -7,6 +7,7 @@
     <title>Cadastro de Ideia</title>
   </head>
   <body class="center-align teal darken-1">
+    <main>
     <%-- UX-VOLTAR-V2: icone flutuante padrao do resto do app. --%>
     <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <div class="white" style="min-height: 90vh" role="main">
@@ -62,7 +63,8 @@
       </div>
     </div>
   <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
   <%@include file="header/footer.jsp" %>
   <script>
     function check(form) {

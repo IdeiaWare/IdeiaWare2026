@@ -2,31 +2,39 @@ package edu.unisc.lic.dao;
 
 import edu.unisc.lic.domain.ElementosStorytelling;
 import edu.unisc.lic.util.HibernateUtil;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.hibernate.Criteria;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 
 public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> {
 
+    // DAO-FAIL-CLOSED: sem storytelling definido nao ha o que listar (antes voltava a tabela inteira).
     public List<ElementosStorytelling> listarParametro(ElementosStorytelling est) {
+        if (est.getStorytelling().getCodigo() == null) {
+            return Collections.emptyList();
+        }
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(ElementosStorytelling.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<ElementosStorytelling> consulta = builder.createQuery(ElementosStorytelling.class);
+            Root<ElementosStorytelling> raiz = consulta.from(ElementosStorytelling.class);
 
-            if (est.getStorytelling().getCodigo() != null) {
-                filtro.add(Restrictions.eq("storytelling", est.getStorytelling()));
-            }
-
+            List<Predicate> predicados = new ArrayList<>();
+            predicados.add(builder.equal(raiz.get("storytelling"), est.getStorytelling()));
             if (est.getTipo() != null) {
-                filtro.add(Restrictions.eq("tipo", est.getTipo()));
+                predicados.add(builder.equal(raiz.get("tipo"), est.getTipo()));
             }
 
-            return filtro.list();
+            consulta.select(raiz).where(predicados.toArray(new Predicate[0]));
+
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();
@@ -34,24 +42,28 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
     }
 
     public ElementosStorytelling ultimoAdicionado(ElementosStorytelling est) {
+        if (est.getStorytelling().getCodigo() == null) {
+            return null;
+        }
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(ElementosStorytelling.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<ElementosStorytelling> consulta = builder.createQuery(ElementosStorytelling.class);
+            Root<ElementosStorytelling> raiz = consulta.from(ElementosStorytelling.class);
 
-            if (est.getStorytelling().getCodigo() != null) {
-                filtro.add(Restrictions.eq("storytelling", est.getStorytelling()));
-            }
-
+            List<Predicate> predicados = new ArrayList<>();
+            predicados.add(builder.equal(raiz.get("storytelling"), est.getStorytelling()));
             if (est.getTipo() != null) {
-                filtro.add(Restrictions.eq("tipo", est.getTipo()));
+                predicados.add(builder.equal(raiz.get("tipo"), est.getTipo()));
             }
 
-            filtro.addOrder(Order.desc("codigo"));
-            filtro.setMaxResults(1);
+            consulta.select(raiz)
+                    .where(predicados.toArray(new Predicate[0]))
+                    .orderBy(builder.desc(raiz.get("codigo")));
 
             // STM-03: evita IndexOutOfBounds quando não há elementos.
-            List<ElementosStorytelling> resultado = filtro.list();
+            List<ElementosStorytelling> resultado = sessao.createQuery(consulta).setMaxResults(1).getResultList();
             return resultado.isEmpty() ? null : resultado.get(0);
 
         } finally {
@@ -60,7 +72,6 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
     }
 
     // PERF-02: busca varios por codigo NUMA SO query (elimina o N+1 do autosave).
-    @SuppressWarnings("unchecked")
     public List<ElementosStorytelling> buscarPorCodigos(List<Long> codigos) {
         if (codigos == null || codigos.isEmpty()) {
             return Collections.emptyList();
@@ -68,10 +79,13 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(ElementosStorytelling.class);
-            filtro.add(Restrictions.in("codigo", codigos));
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<ElementosStorytelling> consulta = builder.createQuery(ElementosStorytelling.class);
+            Root<ElementosStorytelling> raiz = consulta.from(ElementosStorytelling.class);
 
-            return filtro.list();
+            consulta.select(raiz).where(raiz.<Long>get("codigo").in(codigos));
+
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();

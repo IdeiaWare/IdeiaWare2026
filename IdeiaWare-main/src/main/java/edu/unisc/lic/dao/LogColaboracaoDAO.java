@@ -2,11 +2,13 @@ package edu.unisc.lic.dao;
 
 import edu.unisc.lic.domain.LogColaboracao;
 import edu.unisc.lic.util.HibernateUtil;
+import java.util.ArrayList;
 import java.util.List;
-import org.hibernate.Criteria;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 
 public class LogColaboracaoDAO extends GenericDAO<LogColaboracao> {
 
@@ -14,16 +16,21 @@ public class LogColaboracaoDAO extends GenericDAO<LogColaboracao> {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(LogColaboracao.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<LogColaboracao> consulta = builder.createQuery(LogColaboracao.class);
+            Root<LogColaboracao> raiz = consulta.from(LogColaboracao.class);
 
+            List<Predicate> predicados = new ArrayList<>();
             if (lc.getUsuario().getCodigo() != null) {
-                filtro.add(Restrictions.eq("usuario", lc.getUsuario()));
+                predicados.add(builder.equal(raiz.get("usuario"), lc.getUsuario()));
             }
             if (lc.getIdeia().getCodigo() != null) {
-                filtro.add(Restrictions.eq("ideia", lc.getIdeia()));
+                predicados.add(builder.equal(raiz.get("ideia"), lc.getIdeia()));
             }
 
-            return filtro.list();
+            consulta.select(raiz).where(predicados.toArray(new Predicate[0]));
+
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();
@@ -35,18 +42,23 @@ public class LogColaboracaoDAO extends GenericDAO<LogColaboracao> {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(LogColaboracao.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<LogColaboracao> consulta = builder.createQuery(LogColaboracao.class);
+            Root<LogColaboracao> raiz = consulta.from(LogColaboracao.class);
 
+            List<Predicate> predicados = new ArrayList<>();
             if (lc.getUsuario().getCodigo() != null) {
-                filtro.add(Restrictions.eq("usuario", lc.getUsuario()));
+                predicados.add(builder.equal(raiz.get("usuario"), lc.getUsuario()));
             }
             if (lc.getIdeia().getCodigo() != null) {
-                filtro.add(Restrictions.eq("ideia", lc.getIdeia()));
+                predicados.add(builder.equal(raiz.get("ideia"), lc.getIdeia()));
             }
 
-            filtro.addOrder(Order.desc("codigo"));
+            consulta.select(raiz)
+                    .where(predicados.toArray(new Predicate[0]))
+                    .orderBy(builder.desc(raiz.get("codigo")));
 
-            List<LogColaboracao> resultado = filtro.list();
+            List<LogColaboracao> resultado = sessao.createQuery(consulta).getResultList();
 
             return resultado.isEmpty() ? null : resultado.get(0);
 

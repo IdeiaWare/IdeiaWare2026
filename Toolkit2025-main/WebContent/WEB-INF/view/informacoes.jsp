@@ -79,7 +79,7 @@
 		
 			<li>
 				<div class="collapsible-header">
-					<h3>O que é Point Of View</h3>
+					<h3>O que é Point of View</h3>
 				</div>
 				<div class="collapsible-body">
 					<p>De acordo com Dam e Siang (2017) o Point of View é responsável por definir e declarar problemas significativos e acionáveis, que permitem a idealização de maneira que seja orientada ao objetivo; e isto é o que o torna um bom POV, sem perder o foco em seus usuários (users), suas necessidades (needs) e introspecções (insights).</p>

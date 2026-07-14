@@ -146,13 +146,5 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #90a4ae
 }
-/* BUG-CLICK: body:before e #video eram resto de um fundo de video decorativo que
-   NUNCA foi implementado (nenhuma pagina do projeto tem <video id="video">). O
-   body:before criava uma camada position:fixed cobrindo A TELA INTEIRA (100% x
-   100%), sem pointer-events:none -- em paginas cujo conteudo real nao tem
-   z-index proprio (como erros/404.jsp e 500.jsp), essa camada invisivel ficava
-   por cima e ENGOLIA OS CLIQUES (o botao "Ir para o inicio" parecia nao
-   funcionar). Em login.jsp/index-perfil.jsp nao dava pra notar pois .form/
-   .container ja tem z-index:1 proprio, protegendo o conteudo por acidente.
-   Removido -- nao tinha efeito visual nenhum (fundo transparente), so causava
-   esse bug. */
+/* CSS-CLICK-BLOQUEADO: body:before (resto de fundo de video nunca implementado) cobria a tela
+   sem pointer-events:none -- engolia cliques em paginas sem z-index proprio (erros/404,500). */

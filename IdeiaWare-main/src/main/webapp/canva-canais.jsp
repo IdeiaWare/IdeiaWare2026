@@ -6,11 +6,12 @@
 <html lang="pt-BR">
 	<head>
         <title>IdeiaWare - Canva</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+        <link rel="stylesheet" href="css/materialize.min.css">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <script src="js/jquery-3.2.1.min.js"></script>
     </head>
     <body >
+    <main>
 	    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/canva-mapa.jsp. --%>
 	    <a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
 	    <div style="min-height: 80vh">
@@ -113,7 +114,8 @@
 	    </div>
 	    <%@include file="header/canva-footer.jsp" %>
     <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
     
 </html>
 

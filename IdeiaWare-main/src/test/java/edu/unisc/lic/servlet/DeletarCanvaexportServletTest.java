@@ -1,5 +1,6 @@
 package edu.unisc.lic.servlet;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -8,14 +9,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import edu.unisc.lic.classes.ArquivoExport;
+import edu.unisc.lic.classes.Constantes;
 import edu.unisc.lic.classes.Data;
 import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.CanvaexportDAO;
@@ -31,6 +38,11 @@ public class DeletarCanvaexportServletTest {
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 	private final CanvaexportDAO canvaexportDAO = new CanvaexportDAO();
+
+	@Before
+	public void redirecionaExportsParaTmpdir() {
+		System.setProperty("ideiaware.exports.dir", System.getProperty("java.io.tmpdir"));
+	}
 
 	private Usuario novoUsuario(String nome, String permissao) {
 		Usuario u = new Usuario(nome, nome + "_" + System.nanoTime(), "s", permissao, nome + "_" + System.nanoTime() + "@x.com");
@@ -117,7 +129,9 @@ public class DeletarCanvaexportServletTest {
 		Usuario admin = novoUsuario("Admin4", "adm");
 		Usuario autor = novoUsuario("Autor", "usr");
 		Ideia ideia = novaIdeia(autor);
-		Canvaexport export = new Canvaexport(ideia, "conteudo-canva-export", Data.horaAtual());
+		String base64 = Base64.getEncoder().encodeToString("x".getBytes(StandardCharsets.UTF_8));
+		String caminhoRelativo = ArquivoExport.salvar(base64, "canva" + File.separator + System.nanoTime() + ".pdf");
+		Canvaexport export = new Canvaexport(ideia, caminhoRelativo, Data.horaAtual());
 		canvaexportDAO.salvar(export);
 
 		HttpServletRequest request = mockRequest(admin.getCodigo(), export.getCodigo().toString());
@@ -126,5 +140,7 @@ public class DeletarCanvaexportServletTest {
 		new DeletarCanvaexportServlet().doPost(request, response);
 
 		assertNull("canvaexport deve ter sido excluido", canvaexportDAO.buscar(export.getCodigo()));
+		assertFalse("arquivo em disco tambem deve ter sido excluido",
+				new File(Constantes.caminhoExports() + caminhoRelativo).exists());
 	}
 }

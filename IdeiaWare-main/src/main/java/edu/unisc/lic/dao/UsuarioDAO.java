@@ -2,10 +2,13 @@ package edu.unisc.lic.dao;
 
 import edu.unisc.lic.domain.Usuario;
 import edu.unisc.lic.util.HibernateUtil;
+import java.util.ArrayList;
 import java.util.List;
-import org.hibernate.Criteria;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
 
 public class UsuarioDAO extends GenericDAO<Usuario> {
 
@@ -13,36 +16,42 @@ public class UsuarioDAO extends GenericDAO<Usuario> {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(Usuario.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<Usuario> consulta = builder.createQuery(Usuario.class);
+            Root<Usuario> raiz = consulta.from(Usuario.class);
+
+            List<Predicate> predicados = new ArrayList<>();
 
             if (usuario.getUsuario() != null) {
                 if (like) {
-                    filtro.add(Restrictions.like("usuario", "%" + usuario.getUsuario() + "%"));
+                    predicados.add(builder.like(raiz.get("usuario"), "%" + usuario.getUsuario() + "%"));
                 } else {
-                    filtro.add(Restrictions.eq("usuario", usuario.getUsuario()));
+                    predicados.add(builder.equal(raiz.get("usuario"), usuario.getUsuario()));
                 }
             }
             if (usuario.getNome() != null) {
                 if (like) {
-                    filtro.add(Restrictions.like("nome", "%" + usuario.getNome() + "%"));
+                    predicados.add(builder.like(raiz.get("nome"), "%" + usuario.getNome() + "%"));
                 } else {
-                    filtro.add(Restrictions.eq("nome", usuario.getNome()));
+                    predicados.add(builder.equal(raiz.get("nome"), usuario.getNome()));
                 }
             }
             if (usuario.getSenha() != null) {
-                filtro.add(Restrictions.eq("senha", usuario.getSenha()));
+                predicados.add(builder.equal(raiz.get("senha"), usuario.getSenha()));
             }
             if (usuario.getPermissao() != null) {
-                filtro.add(Restrictions.eq("permissao", usuario.getPermissao()));
+                predicados.add(builder.equal(raiz.get("permissao"), usuario.getPermissao()));
             }
-            if (usuario.getEmail() != null){
-                filtro.add(Restrictions.eq("email", usuario.getEmail()));
+            if (usuario.getEmail() != null) {
+                predicados.add(builder.equal(raiz.get("email"), usuario.getEmail()));
             }
-            if (usuario.getAnonimizado()!= null){
-                filtro.add(Restrictions.eq("anonimizado", usuario.getAnonimizado()));
+            if (usuario.getAnonimizado() != null) {
+                predicados.add(builder.equal(raiz.get("anonimizado"), usuario.getAnonimizado()));
             }
 
-            return filtro.list();
+            consulta.select(raiz).where(predicados.toArray(new Predicate[0]));
+
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();

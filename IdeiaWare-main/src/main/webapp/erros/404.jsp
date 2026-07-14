@@ -59,6 +59,7 @@
   </style>
 
   <body class="blue-grey lighten-5" style="display:flex; flex-direction:column; min-height:100vh;">
+    <main>
     <nav>
       <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
         <a href="${pageContext.request.contextPath}/index.jsp" class="brand-logo" style="left: 50px">
@@ -80,5 +81,6 @@
       <a href="${pageContext.request.contextPath}/index.jsp" class="btn teal darken-2">Ir para o início</a>
     </div>
     <jsp:include page="../header/footer.jsp"/>
-  </body>
+  </main>
+    </body>
 </html>

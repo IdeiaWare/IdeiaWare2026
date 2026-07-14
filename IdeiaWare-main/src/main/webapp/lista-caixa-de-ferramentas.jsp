@@ -81,6 +81,7 @@
     <title>IdeiaWare - Lista Caixa de Ferramentas</title>
   </head>
   <body class="red darken-1">
+    <main>
     <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial (index.jsp). --%>
     <a href="index.jsp" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
@@ -165,7 +166,8 @@
 
 
   <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
   <script type="text/javascript">
       $(document).ready(function () {
         $('.modal').modal({

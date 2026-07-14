@@ -1,5 +1,6 @@
 package edu.unisc.lic.servlet;
 
+import edu.unisc.lic.classes.ArquivoExport;
 import edu.unisc.lic.dao.CanvaexportDAO;
 import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.Canvaexport;
@@ -49,7 +50,9 @@ public class DeletarCanvaexportServlet extends HttpServlet {
 
         // Evita excluir(null) quando o codigo nao existe.
         if (canvaexport != null) {
+            String caminho = canvaexport.getFile();
             canvaexportDAO.excluir(canvaexport);
+            ArquivoExport.excluir(caminho);
         }
     }
 

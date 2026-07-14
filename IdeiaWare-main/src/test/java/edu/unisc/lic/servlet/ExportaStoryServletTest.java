@@ -6,14 +6,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Base64;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import edu.unisc.lic.classes.Constantes;
 import edu.unisc.lic.classes.Data;
 import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.IdeiaDAO;
@@ -29,6 +35,13 @@ public class ExportaStoryServletTest {
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 	private final StorytellingDAO storytellingDAO = new StorytellingDAO();
+
+	@Before
+	public void redirecionaExportsParaTmpdir() {
+		System.setProperty("ideiaware.exports.dir", System.getProperty("java.io.tmpdir"));
+	}
+
+	private static final String PDF_BASE64 = Base64.getEncoder().encodeToString("conteudo-pdf-fake".getBytes(StandardCharsets.UTF_8));
 
 	private Usuario novoUsuario(String nome) {
 		Usuario u = new Usuario(nome, nome + "_" + System.nanoTime(), "s", "usr", nome + "_" + System.nanoTime() + "@x.com");
@@ -99,14 +112,17 @@ public class ExportaStoryServletTest {
 	@Test
 	public void dadosValidos_finalizaStorytellingEAvancaIdeiaParaCaixaFerramentas() throws Exception {
 		Storytelling st = novoStorytelling();
-		HttpServletRequest request = mockRequest(st.getCodigo(), "base64PdfConteudoFake");
+		HttpServletRequest request = mockRequest(st.getCodigo(), PDF_BASE64);
 		HttpServletResponse response = mock(HttpServletResponse.class);
 
 		new ExportaStoryServlet().doPost(request, response);
 
 		Storytelling atualizado = storytellingDAO.buscar(st.getCodigo());
 		assertEquals(StatusIdeia.FINALIZADO, atualizado.getStatus());
-		assertEquals("base64PdfConteudoFake", atualizado.getCaminhoFinalizado());
+		String caminhoEsperado = Constantes.CAMINHO_EXPORT_STORYTELLING + st.getIdeia().getCodigo() + ".pdf";
+		assertEquals(caminhoEsperado, atualizado.getCaminhoFinalizado());
+		byte[] gravado = Files.readAllBytes(new File(Constantes.caminhoExports() + caminhoEsperado).toPath());
+		assertEquals("conteudo-pdf-fake", new String(gravado, StandardCharsets.UTF_8));
 
 		Ideia ideiaAtualizada = ideiaDAO.buscar(st.getIdeia().getCodigo());
 		assertEquals(StatusIdeia.CAIXA_FERRAMENTAS, ideiaAtualizada.getStatus());

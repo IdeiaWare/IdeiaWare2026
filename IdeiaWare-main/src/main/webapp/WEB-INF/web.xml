@@ -184,6 +184,14 @@
         <servlet-class>edu.unisc.lic.servlet.AbrirPersona</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>AbrirCanvaExport</servlet-name>
+        <servlet-class>edu.unisc.lic.servlet.AbrirCanvaExport</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>AbrirStorytellingServlet</servlet-name>
+        <servlet-class>edu.unisc.lic.servlet.AbrirStorytellingServlet</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>EntrarCaixaServlet</servlet-name>
         <servlet-class>edu.unisc.lic.servlet.EntrarCaixaServlet</servlet-class>
     </servlet>
@@ -358,6 +366,14 @@
     <servlet-mapping>
         <servlet-name>AbrirPersona</servlet-name>
         <url-pattern>/AbrirPersona</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AbrirCanvaExport</servlet-name>
+        <url-pattern>/AbrirCanvaExport</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AbrirStorytellingServlet</servlet-name>
+        <url-pattern>/AbrirStorytellingServlet</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>EntrarCaixaServlet</servlet-name>

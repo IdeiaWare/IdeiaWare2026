@@ -2,28 +2,35 @@ package edu.unisc.lic.dao;
 
 import edu.unisc.lic.domain.ColaboracaoIdeia;
 import edu.unisc.lic.util.HibernateUtil;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import org.hibernate.Criteria;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 
 public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
 
+    // DAO-FAIL-CLOSED: sem ideia definida nao ha o que listar (antes voltava a tabela inteira).
     public List<ColaboracaoIdeia> listarParametro(ColaboracaoIdeia ci) {
+        if (ci.getIdeia().getCodigo() == null) {
+            return Collections.emptyList();
+        }
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(ColaboracaoIdeia.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<ColaboracaoIdeia> consulta = builder.createQuery(ColaboracaoIdeia.class);
+            Root<ColaboracaoIdeia> raiz = consulta.from(ColaboracaoIdeia.class);
 
-            if (ci.getIdeia().getCodigo() != null) {
-                filtro.add(Restrictions.eq("ideia", ci.getIdeia()));
-            }
+            consulta.select(raiz)
+                    .where(builder.equal(raiz.get("ideia"), ci.getIdeia()))
+                    .orderBy(builder.asc(raiz.get("codigo")));
 
-            filtro.addOrder(Order.asc("codigo"));
-
-            return filtro.list();
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();
@@ -32,18 +39,26 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
 
     // M.6: colaboracoes com codigo > ultimoCodigo (antes, protocolo por contagem perdia/duplicava).
     public List<ColaboracaoIdeia> listarAposCodigo(ColaboracaoIdeia ci, Long ultimoCodigo) {
+        if (ci.getIdeia().getCodigo() == null) {
+            return Collections.emptyList();
+        }
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(ColaboracaoIdeia.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<ColaboracaoIdeia> consulta = builder.createQuery(ColaboracaoIdeia.class);
+            Root<ColaboracaoIdeia> raiz = consulta.from(ColaboracaoIdeia.class);
 
-            if (ci.getIdeia().getCodigo() != null) {
-                filtro.add(Restrictions.eq("ideia", ci.getIdeia()));
-            }
-            filtro.add(Restrictions.gt("codigo", ultimoCodigo == null ? 0L : ultimoCodigo));
-            filtro.addOrder(Order.asc("codigo"));
+            List<Predicate> predicados = new ArrayList<>();
+            predicados.add(builder.equal(raiz.get("ideia"), ci.getIdeia()));
+            Path<Long> codigoPath = raiz.get("codigo");
+            predicados.add(builder.greaterThan(codigoPath, ultimoCodigo == null ? 0L : ultimoCodigo));
 
-            return filtro.list();
+            consulta.select(raiz)
+                    .where(predicados.toArray(new Predicate[0]))
+                    .orderBy(builder.asc(raiz.get("codigo")));
+
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();
@@ -51,20 +66,22 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
     }
 
     public ColaboracaoIdeia ultimaColab(ColaboracaoIdeia ci) {
+        if (ci.getIdeia().getCodigo() == null) {
+            return null;
+        }
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(ColaboracaoIdeia.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<ColaboracaoIdeia> consulta = builder.createQuery(ColaboracaoIdeia.class);
+            Root<ColaboracaoIdeia> raiz = consulta.from(ColaboracaoIdeia.class);
 
-            if (ci.getIdeia().getCodigo() != null) {
-                filtro.add(Restrictions.eq("ideia", ci.getIdeia()));
-            }
-
-            filtro.addOrder(Order.desc("dtModificacao"));
-            filtro.setMaxResults(1);
+            consulta.select(raiz)
+                    .where(builder.equal(raiz.get("ideia"), ci.getIdeia()))
+                    .orderBy(builder.desc(raiz.get("dtModificacao")));
 
             // RET-14: retorna null em vez de estourar se nao houver colaboracoes.
-            List<ColaboracaoIdeia> resultado = filtro.list();
+            List<ColaboracaoIdeia> resultado = sessao.createQuery(consulta).setMaxResults(1).getResultList();
             return resultado.isEmpty() ? null : resultado.get(0);
 
         } finally {
@@ -74,18 +91,19 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
 
     // GT-12: renomeado de quantidadeMes (nunca filtrou por mes) + COUNT no banco em vez de carregar tudo.
     public int quantidadeTotal(ColaboracaoIdeia ci) {
+        if (ci.getIdeia().getCodigo() == null) {
+            return 0;
+        }
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(ColaboracaoIdeia.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<Long> consulta = builder.createQuery(Long.class);
+            Root<ColaboracaoIdeia> raiz = consulta.from(ColaboracaoIdeia.class);
 
-            if (ci.getIdeia().getCodigo() != null) {
-                filtro.add(Restrictions.eq("ideia", ci.getIdeia()));
-            }
+            consulta.select(builder.count(raiz)).where(builder.equal(raiz.get("ideia"), ci.getIdeia()));
 
-            filtro.setProjection(Projections.rowCount());
-
-            return ((Number) filtro.uniqueResult()).intValue();
+            return sessao.createQuery(consulta).getSingleResult().intValue();
 
         } finally {
             sessao.close();

@@ -7,6 +7,7 @@
         <title>IdeiaWare - Detalhes da Ideia</title>
     </head>
     <body class="center-align teal darken-1">
+    <main>
         <%-- UX-VOLTAR-V2: icone flutuante padrao (antes era um botao inline facil de perder). --%>
         <c:choose>
             <c:when test="${sessionScope.lider eq 'S'}">
@@ -205,7 +206,8 @@
             </form>
         </div>
     <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
 
     <%@include file="header/footer.jsp" %>
 

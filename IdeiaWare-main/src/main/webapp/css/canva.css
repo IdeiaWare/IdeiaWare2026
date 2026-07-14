@@ -54,7 +54,7 @@
 }
 
 .referencia{
-	size: 1.6em;
+	font-size: 1.6em;
 }
 
 .main_title{
@@ -159,11 +159,6 @@
   -ms-flex-wrap: wrap;
   flex-wrap: wrap;
   flex-direction: row;
-}
-
-.row.equal-cols:before,
-.row.equal-cols:after {
-  display: block;
 }
 
 .col_margin{

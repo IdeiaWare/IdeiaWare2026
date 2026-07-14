@@ -1,19 +1,26 @@
 package edu.unisc.lic.servlet;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import edu.unisc.lic.classes.ArquivoExport;
+import edu.unisc.lic.classes.Constantes;
 import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.ExportFileDAO;
 import edu.unisc.lic.dao.IdeiaDAO;
@@ -29,18 +36,25 @@ public class DeletarExportedFileServletTest {
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 	private final ExportFileDAO exportFileDAO = new ExportFileDAO();
 
+	@Before
+	public void redirecionaExportsParaTmpdir() {
+		System.setProperty("ideiaware.exports.dir", System.getProperty("java.io.tmpdir"));
+	}
+
 	private Usuario novoUsuario(String nome, String permissao) {
 		Usuario u = new Usuario(nome, nome + "_" + System.nanoTime(), "s", permissao, nome + "_" + System.nanoTime() + "@x.com");
 		usuarioDAO.salvar(u);
 		return u;
 	}
 
-	private ExportFile novoExportFile() {
+	private ExportFile novoExportFile() throws Exception {
 		Usuario autor = novoUsuario("Dono", "usr");
 		Ideia ideia = new Ideia(autor, "Ideia Export", "desc", StatusIdeia.CAIXA_FERRAMENTAS, StatusIdeia.GRUPO_ABERTO);
 		ideia.setDtCriacao();
 		ideiaDAO.salvar(ideia);
-		ExportFile ef = new ExportFile(ideia, "conteudo-fake-base64");
+		String base64 = Base64.getEncoder().encodeToString("x".getBytes(StandardCharsets.UTF_8));
+		String caminhoRelativo = ArquivoExport.salvar(base64, "conhecimento" + File.separator + System.nanoTime() + ".pdf");
+		ExportFile ef = new ExportFile(ideia, caminhoRelativo);
 		ef.setFileTypeIdentification("persona");
 		exportFileDAO.salvar(ef);
 		return ef;
@@ -117,6 +131,7 @@ public class DeletarExportedFileServletTest {
 	public void adminValido_excluiArquivoExportado() throws Exception {
 		Usuario admin = novoUsuario("Admin4", "adm");
 		ExportFile export = novoExportFile();
+		String caminhoRelativo = export.getFileLocation();
 
 		HttpServletRequest request = mockRequest(admin.getCodigo(), export.getId().toString());
 		HttpServletResponse response = mock(HttpServletResponse.class);
@@ -124,5 +139,7 @@ public class DeletarExportedFileServletTest {
 		new DeletarExportedFileServlet().doPost(request, response);
 
 		assertNull(exportFileDAO.buscar(export.getId()));
+		assertFalse("arquivo em disco tambem deve ter sido excluido",
+				new File(Constantes.caminhoExports() + caminhoRelativo).exists());
 	}
 }

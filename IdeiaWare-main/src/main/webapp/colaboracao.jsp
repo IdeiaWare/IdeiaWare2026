@@ -7,6 +7,7 @@
     <title>IdeiaWare - Colaboração</title>
   </head>
   <body class="center-align teal darken-1">
+    <main>
     <div class="white" style="min-height: 90vh" role="main">
       <div class="container">
         <div style="padding: 10px;" class="white">
@@ -145,7 +146,8 @@
       </div>
     </div>
   <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
 
   <script>
     // TEST-04: revela a tabela e esconde a mensagem de vazio, chamado apos o 1o appendTo bem-sucedido.
@@ -194,7 +196,7 @@
       $span.hide();
       $btn.hide();
 
-      var $ta = $("<textarea class='edit-colab-ta' maxlength='1500' style='width:100%; min-height:60px;'></textarea>").val(textoAtual);
+      var $ta = $("<textarea class='edit-colab-ta' maxlength='1500' style='width:100%; min-height:60px;' aria-label='Editar colaboração'></textarea>").val(textoAtual);
       var $salvar = $("<a class='btn green lighten-1' href='javascript:;' style='margin-right:6px;'>Salvar</a>");
       var $cancelar = $("<a class='btn-flat' href='javascript:;'>Cancelar</a>");
       var $acoes = $("<div style='text-align:right; margin-top:6px;'></div>").append($salvar).append($cancelar);

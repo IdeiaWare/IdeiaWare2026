@@ -1,4 +1,6 @@
 package edu.unisc.lic.servlet;
+import edu.unisc.lic.classes.ArquivoExport;
+import edu.unisc.lic.classes.Constantes;
 import edu.unisc.lic.classes.StatusIdeia;
 
 import edu.unisc.lic.dao.IdeiaDAO;
@@ -55,14 +57,24 @@ public class ExportaStoryServlet extends HttpServlet {
             return;
         }
 
-        storytelling.setCaminhoFinalizado(fileData);
-        storytelling.setDtFinalizacao();
-        storytelling.setStatus(StatusIdeia.FINALIZADO);
-        storytellingDAO.editar(storytelling);
+        try {
+            // PDF-DISCO
+            String caminhoRelativo = Constantes.CAMINHO_EXPORT_STORYTELLING + storytelling.getIdeia().getCodigo() + ".pdf";
+            ArquivoExport.salvar(fileData, caminhoRelativo);
 
-        Ideia ideia = storytelling.getIdeia();
-        ideia.setStatus(StatusIdeia.CAIXA_FERRAMENTAS);
-        new IdeiaDAO().editar(ideia);
+            storytelling.setCaminhoFinalizado(caminhoRelativo);
+            storytelling.setDtFinalizacao();
+            storytelling.setStatus(StatusIdeia.FINALIZADO);
+            storytellingDAO.editar(storytelling);
+
+            Ideia ideia = storytelling.getIdeia();
+            ideia.setStatus(StatusIdeia.CAIXA_FERRAMENTAS);
+            new IdeiaDAO().editar(ideia);
+        } catch (RuntimeException | IOException e) {
+            // CAN-10: falha ao salvar (ex.: base64 invalido, disco cheio) retorna 500 explicito.
+            System.out.println("Erro ao exportar storytelling: " + e.getMessage());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override

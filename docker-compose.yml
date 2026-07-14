@@ -37,6 +37,9 @@ services:
       CAIXA_HMAC_SECRET: ${CAIXA_HMAC_SECRET:-7f3a9c1e8b5d2406af91e7c3b8d54a02e6f1a9c4d7b3e80f}
     ports:
       - "8080:8080"
+    volumes:
+      - storytelling_images:/usr/local/tomcat/webapps/LIC/imagensStorytelling
+      - exports_data:/data/ideiaware-exports
     depends_on:
       db:
         condition: service_healthy
@@ -44,3 +47,5 @@ services:
 
 volumes:
   dbdata:
+  storytelling_images:
+  exports_data:

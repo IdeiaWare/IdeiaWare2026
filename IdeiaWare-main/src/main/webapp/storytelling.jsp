@@ -12,7 +12,8 @@
 
     <link type="text/css" rel="stylesheet" href="css/storytelling.css" >
   </head>
-  <body class="indigo lighten-5"> 
+  <body class="indigo lighten-5">
+    <main> 
     <div id="overlay">
       <div class="loader"></div>
     </div>
@@ -182,7 +183,8 @@
       </div>
     </div>
   <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
 
   <script type="text/javascript">
       $(document).ready(function () {

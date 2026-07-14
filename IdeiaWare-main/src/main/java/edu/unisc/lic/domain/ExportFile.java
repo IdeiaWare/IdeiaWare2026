@@ -30,8 +30,8 @@ public class ExportFile {
     @Temporal(TemporalType.TIMESTAMP)
     private java.util.Date created;
 
-    // E1: longtext -- o PDF exportado (base64) ultrapassa os 255 chars do VARCHAR padrao.
-    @Column(name = "file_location", columnDefinition = "longtext", nullable = false)
+    // PDF-DISCO
+    @Column(name = "file_location", length = 255, nullable = false)
     private String fileLocation;
 
     @Column(name = "file_type_identification", length = 14, nullable = false)

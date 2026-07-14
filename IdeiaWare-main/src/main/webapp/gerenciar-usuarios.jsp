@@ -115,6 +115,7 @@
         <title>IdeiaWare - Gerenciar usuários</title>
     </head>
     <body class="center-align blue-grey lighten-5">
+    <main>
         <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial. --%>
         <a href="index.jsp" class="btn-floating btn-large blue-grey darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
         <nav>
@@ -198,7 +199,8 @@
         </div>
 
     <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
     <%-- UX: footer padronizado com a cor do header da home (antes era o teal do colaborativo, destoante). --%>
     <footer class="center blue-grey lighten-1 page-footer">
         <div class="container">

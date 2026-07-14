@@ -30,6 +30,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	</head>
 	<body class="center-align">
+    <main>
 		<nav>
 			<div class="nav-wrapper indigo lighten-1 z-depth-2">
 				<a href="index.jsp" class="brand-logo" style="left: 50px">
@@ -69,7 +70,8 @@
 	<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 	<script type="text/javascript" src="js/materialize.min.js"></script>
 	<script src="js/csrf.js"></script>
-	</body>
+	</main>
+    </body>
 	<footer class="center indigo lighten-1 page-footer">
 		<div class="container">
 			<div class="row">

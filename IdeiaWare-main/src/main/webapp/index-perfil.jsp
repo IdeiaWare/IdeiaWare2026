@@ -44,7 +44,7 @@
         <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" href="css/style.css">
         <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+        <script src="js/materialize.min.js"></script>
     </head>
     <style>
         /* TEST-04: footer flutuava no meio da tela com form curto -- layout flex column escopado so nesta pagina (nao mexe em css/style.css). */
@@ -177,6 +177,7 @@
     </style>
 
     <body class="blue-grey lighten-5">
+    <main>
         <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial (index.jsp). --%>
         <a href="index.jsp" class="btn-floating btn-large blue-grey darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
         <nav>
@@ -386,7 +387,8 @@
             }
         </script>
     <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
   <%-- UX: footer padronizado com a cor do header (blue-grey, igual home) -- antes nao tinha footer nenhum. --%>
   <footer class="center blue-grey lighten-1 page-footer">
     <div class="container">

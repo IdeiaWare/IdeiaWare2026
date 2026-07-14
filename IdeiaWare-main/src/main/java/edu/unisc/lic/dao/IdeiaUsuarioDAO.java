@@ -5,12 +5,15 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.LogColaboracao;
 import edu.unisc.lic.util.HibernateUtil;
+import java.util.ArrayList;
 import java.util.List;
-import org.hibernate.Criteria;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 
 public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
 
@@ -18,22 +21,27 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(IdeiaUsuario.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<IdeiaUsuario> consulta = builder.createQuery(IdeiaUsuario.class);
+            Root<IdeiaUsuario> raiz = consulta.from(IdeiaUsuario.class);
 
+            List<Predicate> predicados = new ArrayList<>();
             if (iu.getUsuario().getCodigo() != null) {
-                filtro.add(Restrictions.eq("usuario", iu.getUsuario()));
+                predicados.add(builder.equal(raiz.get("usuario"), iu.getUsuario()));
             }
             if (iu.getIdeia().getCodigo() != null) {
-                filtro.add(Restrictions.eq("ideia", iu.getIdeia()));
+                predicados.add(builder.equal(raiz.get("ideia"), iu.getIdeia()));
             }
             if (iu.getFlLider() != null) {
-                filtro.add(Restrictions.eq("flLider", iu.getFlLider()));
+                predicados.add(builder.equal(raiz.get("flLider"), iu.getFlLider()));
             }
 
             // Ordena "Minhas Ideias" do mais NOVO pro mais antigo.
-            filtro.addOrder(Order.desc("ideia"));
+            consulta.select(raiz)
+                    .where(predicados.toArray(new Predicate[0]))
+                    .orderBy(builder.desc(raiz.get("ideia")));
 
-            return filtro.list();
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();
@@ -45,13 +53,19 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(IdeiaUsuario.class);
-            filtro.createAlias("ideia", "i");
-            filtro.add(Restrictions.eq("usuario", iu.getUsuario()));
-            filtro.add(Restrictions.eq("i.status", StatusIdeia.STORYTELLING));
-            filtro.addOrder(Order.desc("ideia")); // listagem com as ideias mais novas em cima
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<IdeiaUsuario> consulta = builder.createQuery(IdeiaUsuario.class);
+            Root<IdeiaUsuario> raiz = consulta.from(IdeiaUsuario.class);
+            Join<IdeiaUsuario, Ideia> i = raiz.join("ideia");
 
-            return filtro.list();
+            Predicate porUsuario = builder.equal(raiz.get("usuario"), iu.getUsuario());
+            Predicate porStatus = builder.equal(i.get("status"), StatusIdeia.STORYTELLING);
+
+            consulta.select(raiz)
+                    .where(builder.and(porUsuario, porStatus))
+                    .orderBy(builder.desc(raiz.get("ideia"))); // listagem com as ideias mais novas em cima
+
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();
@@ -62,15 +76,20 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(IdeiaUsuario.class);
-            filtro.createAlias("ideia", "i");
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<IdeiaUsuario> consulta = builder.createQuery(IdeiaUsuario.class);
+            Root<IdeiaUsuario> raiz = consulta.from(IdeiaUsuario.class);
+            Join<IdeiaUsuario, Ideia> i = raiz.join("ideia");
 
-            filtro.add(Restrictions.eq("usuario", iu.getUsuario()));
+            Predicate porUsuario = builder.equal(raiz.get("usuario"), iu.getUsuario());
             // TK-LIST: a Caixa aparece p/ TODOS os participantes, nao so o lider.
-            filtro.add(Restrictions.eq("i.status", StatusIdeia.CAIXA_FERRAMENTAS));
-            filtro.addOrder(Order.desc("ideia")); // listagem com as ideias mais novas em cima
+            Predicate porStatus = builder.equal(i.get("status"), StatusIdeia.CAIXA_FERRAMENTAS);
 
-            return filtro.list();
+            consulta.select(raiz)
+                    .where(builder.and(porUsuario, porStatus))
+                    .orderBy(builder.desc(raiz.get("ideia"))); // listagem com as ideias mais novas em cima
+
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();
@@ -81,18 +100,23 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(IdeiaUsuario.class);
-            filtro.createAlias("ideia", "i");
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<IdeiaUsuario> consulta = builder.createQuery(IdeiaUsuario.class);
+            Root<IdeiaUsuario> raiz = consulta.from(IdeiaUsuario.class);
+            Join<IdeiaUsuario, Ideia> i = raiz.join("ideia");
 
             // CAN-ACESSO-V2: antes so o LIDER via a ideia na listagem do Canvas, agora todos.
-            filtro.add(Restrictions.eq("usuario", iu.getUsuario()));
+            Predicate porUsuario = builder.equal(raiz.get("usuario"), iu.getUsuario());
             // Status "CV" é definido pelo projeto Toolkit2025 (Caixa de Ferramentas) no
             // método IdeiaDAOImpl.finalize() quando a ideia sai da caixa. É o status
             // correto para listar no Canvas — NÃO alterar.
-            filtro.add(Restrictions.eq("i.status", StatusIdeia.CANVAS));
-            filtro.addOrder(Order.desc("ideia")); // listagem com as ideias mais novas em cima
+            Predicate porStatus = builder.equal(i.get("status"), StatusIdeia.CANVAS);
 
-            return filtro.list();
+            consulta.select(raiz)
+                    .where(builder.and(porUsuario, porStatus))
+                    .orderBy(builder.desc(raiz.get("ideia"))); // listagem com as ideias mais novas em cima
+
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();

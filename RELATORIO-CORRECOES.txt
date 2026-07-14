@@ -35,8 +35,8 @@ RESUMO QUANTITATIVO (~380 itens): bugs/robustez ~100; seguranca ~75; UI/UX ~110;
 infra/build/encoding ~21; limpeza ~16; performance ~9. Ganhos-chave: senha SHA-256->bcrypt;
 0->CSRF nos 2 projetos; 0->headers de seguranca; XSS escapado em ~45 telas (incl. 4 achados
 de RE-INJECAO client-side, mais sutis que XSS cru); ~50 MB de codigo morto/libs removidos;
-Toolkit build manual->Maven; encoding misto->UTF-8 (34 arquivos); 0->334 testes (LIC 304 +
-Toolkit 30); cookie ideiaId forjavel->assinado (HMAC-SHA256); ~15 DAOs com race condition de
+Toolkit build manual->Maven; encoding misto->UTF-8 (34 arquivos); 0->427 testes (LIC 311 +
+Toolkit 116); cookie ideiaId forjavel->assinado (HMAC-SHA256); ~15 DAOs com race condition de
 Session/Transaction corrigida; ~25 IDOR fechados nos 2 projetos; todos os 51 servlets do LIC
 + os 13 controllers do Toolkit revisados e testados; 2 N+1 corrigidos (Storytelling); Docker
 completo (multi-stage, roda os testes no build); todos os 9 endpoints de exclusao/finalizacao
@@ -612,7 +612,9 @@ Evolucao: screenshot blindado -> PDF NATIVO (vetorial).
    grade de post-its coloridos pro Mapa de Empatia, quadro BMC 2D completo pro Canvas (9
    blocos, 4 faixas de grupo, encolhimento de fonte com piso).
 [ITEM-1/RKM-FIX] "Abrir PDF" da persona/POV esperava caminho de arquivo, mas o conteudo e
-   base64. Fix: decodifica e escreve os bytes na resposta.
+   base64. Fix: decodifica e escreve os bytes na resposta. SUPERSEDIDO em 2026-07-13 pelo
+   PDF-DISCO (K.0) — voltou a ser caminho de arquivo, so que agora de verdade (com storage
+   em disco de verdade por tras, nao a mistura que causou esse bug original).
 [TK-36] 🟡 geraPDFCanva.js: post-its que nao coubessem no bloco eram descartados em silencio,
    sem indicador — o PDF (documento nao-editavel depois) podia sair faltando post-it sem o
    usuario saber. Fix: indicador "+N nao exibido(s)" no rodape do bloco quando ha corte.
@@ -1135,6 +1137,150 @@ COMPOSE: base prod-safe (db+app, depends_on healthy, restart:always) + .dev.yml 
 K. PENDENCIAS
 ################################################################################
 
+--- K.0 FEITO NESTA REVISAO (2026-07-13) ---
+[PDF-DISCO] 🟡 Canvaexport.file / Storytelling.caminhoFinalizado / Export_File.file_location
+   (compartilhada LIC+Toolkit) guardavam o PDF exportado em base64 dentro de LONGTEXT. Agora
+   o PDF vai pra disco (ArquivoExport.salvar/excluir, caminho fixo fora das pastas de webapp —
+   LIC e Toolkit rodam como WARs separados no mesmo Tomcat, cada um com seu proprio
+   getRealPath("")) e o banco guarda so o caminho relativo (VARCHAR 255). AbrirPDF passou a
+   ler do disco em vez de decodificar base64. As 4 telas que inlinhavam o PDF inteiro em
+   base64 num atributo onclick do HTML (gerenciamento-ideia.jsp) foram trocadas por link
+   direto pra servlet — 2 servlets novos (AbrirCanvaExport/AbrirStorytellingServlet) espelham
+   o padrao de auth/IDOR (SEC-17/SRV-IDOR-07) que AbrirPersona/AbrirPointOfView ja tinham.
+   docker-compose.yml ganhou volume novo pro caminho compartilhado + persistiu de brinde um
+   gap PRE-EXISTENTE (imagensStorytelling do Storytelling, que ja gravava em disco mas sem
+   volume, perdendo tudo a cada rebuild). Sem migracao de dados antigos (banco recriado do
+   zero, por decisao do usuario). Testes: LIC 309/309, Toolkit 116/116.
+[CRITERIA-JPA] 🟡 os 10 arquivos LIC que usavam org.hibernate.Criteria/Restrictions
+   (deprecado desde o Hibernate 5) foram migrados pra javax.persistence.criteria.
+   CriteriaBuilder/CriteriaQuery (JPA puro): CanvaDAO, CanvaexportDAO, ColaboracaoIdeiaDAO,
+   ElementosStorytellingDAO, ExportFileDAO, IdeiaDAO, IdeiaUsuarioDAO, LogColaboracaoDAO,
+   StorytellingDAO, UsuarioDAO. Toolkit ja nao usava (HQL/SQL nativo). Migracao mecanica
+   (Restrictions.eq/gt/like -> builder.equal/greaterThan/like; createAlias -> root.join;
+   Projections.rowCount -> CriteriaQuery<Long> com builder.count). Zero uso residual
+   confirmado via grep. Testes: 309/309.
+[MAT-CONSOLIDA] 🔵 Materialize tinha ate 4 versoes coexistindo (0.100.1/0.100.2/1.0.0 no LIC
+   + 0.99.0 no Toolkit), incluindo um mismatch grave em login.jsp/index-perfil.jsp (CSS
+   v0.100.1 local + JS v1.0.0 via CDN na MESMA pagina). Consolidado: LIC 100% v0.100.1 local
+   (10 telas canva-*.jsp/index.jsp trocaram CDN v0.100.2 por local; login.jsp/index-perfil.jsp
+   trocaram CDN v1.0.0 por local), Toolkit ja era 100% v0.99.0 local (sem mudanca). Zero CDN
+   externa restante pro Materialize. Nao ha versao corrigida do Materialize pra migrar (ver
+   K.2 -- XSS conhecido CVE-2022-25349 sem fix upstream), entao consolidar versao nao resolve
+   vulnerabilidade, so elimina a inconsistencia entre paginas.
+[POM-PROVIDED] 🔵 javaee-web-api:7.0 no pom.xml do LIC ia inteiro pro WAR (Java EE 7 completo:
+   EJB/JMS/JAX-RS etc., nunca usados) por falta de <scope>. Mudado pra provided. Validado com
+   mvn dependency:tree (JPA API vem transitivo do hibernate-core, nao do javaee-web-api) +
+   build real do WAR + inspecao do WEB-INF/lib (jar sumiu, resto intacto) + suite completa.
+[INFRA-09] 🟡 `Data.formatarData/formatarHora/formatarDataHoraCompleta(null)` mostrava a data de
+   HOJE em vez de vazio — em telas como "Data de rejeicao"/"Data de validacao" (gerenciamento-
+   ideia.jsp), um campo NUNCA preenchido (ideia nunca rejeitada/validada) aparecia com uma data
+   que nunca aconteceu. Corrigido: null agora retorna "" nos 3 metodos de formatacao (o campo
+   fica em branco na tela, sem data nenhuma). `diferencaDatas(x, null)` NAO foi mexido —
+   confirmado (gerenciamento-ideia.jsp:745, "Tempo no aguardo") que esse metodo especifico usa
+   null=AGORA de proposito, pra calcular tempo decorrido desde x ate o momento atual quando a
+   segunda data ainda nao aconteceu. Testes atualizados (DataFormatacaoTest).
+[INFRA-TZ] 🔵 formatacao de data usava o TimeZone DEFAULT da JVM (variava dependendo de onde
+   rodava — o Docker ja fixa TZ=America/Sao_Paulo via env, mas fora dele o host podia usar
+   outro fuso). Agora todo SimpleDateFormat em Data.java usa America/Sao_Paulo explicito,
+   independente do host. `horaAtual()` (o instante gravado no banco) nao precisou mudar --
+   Timestamp/epoch millis ja e timezone-agnostico, o problema era so na hora de EXIBIR.
+[DAO-FAIL-CLOSED] 🟡 DAOs que filtram por uma associacao "dona" (ideia/storytelling) pulavam o
+   filtro quando o codigo vinha null, devolvendo a TABELA INTEIRA em vez de nada. Corrigido nos
+   5 DAOs onde a associacao e SEMPRE obrigatoria e nenhum caller real depende do null (guard no
+   inicio do metodo, retorna vazio/null/0 sem nem abrir sessao): CanvaDAO.listarParametro,
+   CanvaexportDAO.listarParametro, ColaboracaoIdeiaDAO (listarParametro/listarAposCodigo/
+   ultimaColab/quantidadeTotal), ElementosStorytellingDAO (listarParametro/ultimoAdicionado),
+   ExportFileDAO.listarParametro. NAO MEXIDO (achado importante, investigado a fundo antes de
+   decidir) em IdeiaUsuarioDAO.listarParametro, StorytellingDAO.listarParametro e
+   LogColaboracaoDAO.listarParametro — nesses 3, "codigo null = nao filtra por esse campo" e
+   USADO DE PROPOSITO por codigo real: FecharGrupoServlet.java:68/80 chama
+   `listarParametro(new IdeiaUsuario(null, ideia, "S"))` pra pegar TODOS os membros do grupo
+   sem filtrar por usuario; EntrarStorytellingServlet.java:63/73 passa `new Usuario()` (codigo
+   null) do mesmo jeito pro Storytelling e pro LogColaboracao. "Corrigir" esses 3 quebraria
+   fechamento de grupo e entrada no Storytelling de verdade — a avaliacao original do relatorio
+   ("sem exploracao conhecida") estava certa, e agora tem evidencia concreta do porque. IdeiaDAO
+   e UsuarioDAO tambem NAO mexidos: sao busca multi-criterio genuina (status/titulo/usuario e
+   usuario/nome/senha/etc. todos opcionais por design, nao "associacao dona" nenhuma). Testes:
+   311/311.
+[CSS-BUGS-2026-07-13] 🟡 revisao dedicada do CSS proprio (nunca tinha tido, ver K.5) achou 2
+   bugs reais em canva.css: `.referencia{size:1.6em}` usava uma propriedade CSS que NAO EXISTE
+   (`size` nao e valido; `.referencia` e usada de verdade em canva-mapa.jsp — a citacao de
+   referencia bibliografica renderizava no tamanho herdado/padrao em vez de 1.6em). Corrigido
+   pra `font-size`. Tambem removido `.row.equal-cols:before/:after{display:block}` — regra
+   morta (pseudo-elemento sem `content` nunca gera caixa, entao `display` nao tem efeito
+   nenhum) e redundante (o elemento pai ja usa `display:flex`, que nao precisa de clearfix).
+   storytelling.css tinha um comentario errado (`/* Red */` do lado de `#3f51b5`, que e
+   indigo, nao vermelho) — corrigido o comentario. Toolkit style.css revisado, nada encontrado.
+[TK-48-COMPLETO] 🔵 capitalizacao de "Point of View" padronizada (era "Point Of View" em
+   metade dos lugares) em 11 arquivos: header.tag, no-container-header.tag, form-pov.jsp,
+   list-point-of-view.jsp, informacoes.jsp, point-of-view-overview.jsp, style.css,
+   PointOfViewController.java (pageTitle), list-personas.jsp (tooltip), gerenciamento-ideia.jsp
+   (LIC). Zero ocorrencia de "Point Of View" restante nos 2 projetos.
+[ACESS-COLAB-LABEL] 🔵 textarea criado dinamicamente na edicao inline de colaboracao
+   (colaboracao.jsp, .edit-colab-ta) nao tinha nome acessivel pra leitor de tela. Adicionado
+   aria-label="Editar colaboração".
+[HTML-SEMANTICO] 🔵 os 4 arquivos de template compartilhado do Toolkit (header.tag/
+   footer.tag/no-container-header.tag/no-container-footer.tag) trocaram `<div id="content"
+   role="main">` por `<main id="content">` (elemento nativo em vez de ARIA role — beneficia
+   TODAS as paginas do Toolkit de uma vez, mesmo CSS por ID; as 17 JSPs consumidoras usam
+   <t:header>/<t:no-container-header> via tagdir, entao herdam sozinhas, so index.jsp e um
+   redirect puro sem body). LIC nao tem esse template compartilhado (cada JSP monta o proprio
+   <body>) — investigado a fundo: 3 variantes de header (headerCookies(CV|_2).jsp) + 2 de
+   footer (footer.jsp/canva-footer.jsp) SO cobrem o <nav>, cada pagina ainda tem seu proprio
+   <body>...</body>. Confirmado (script) que toda pagina real (33 JSPs, exceto wait.jsp que e
+   so um <c:redirect> sem HTML) tem exatamente 1 <body> e 1 </body> proprios — entao a mesma
+   ideia (envolver o conteudo com <main>...</main> logo apos abrir e logo antes de fechar o
+   proprio <body> de cada pagina) foi aplicada em TODAS elas via script (verificado par a par
+   antes de gravar). NAO mexe na mistura pre-existente de tag <body> duplicada que o header
+   injeta (headerCookies*.jsp ja fecha seu proprio <body> antes do <!DOCTYPE> da pagina — bug
+   estrutural antigo, navegadores toleram por leniencia do parser HTML5; fora de escopo do
+   pedido de "HTML semantico", nao e piorado por essa mudanca). Testes: LIC 309/309.
+
+--- K.0b FEITO EM 2026-07-14 (code review do que foi feito em 2026-07-13) ---
+[TEST-TZ] 🔴 DataFormatacaoTest construia as datas com Calendar.getInstance() (fuso DEFAULT da
+   JVM), mas Data.java (INFRA-TZ) agora formata sempre em America/Sao_Paulo -- o teste so
+   passava por coincidencia numa maquina ja nesse fuso. No estagio de BUILD do Dockerfile
+   (`mvn clean package`, imagem maven:3.9-eclipse-temurin-21) nao ha TZ setado (isso so existe
+   no `app` do docker-compose.yml, pro runtime) -- a imagem base usa UTC, entao os testes de
+   hora (14:05 UTC != 14:05 America/Sao_Paulo) quebrariam o build inteiro. Corrigido: o helper
+   `data()` do teste agora usa Calendar.getInstance(TimeZone "America/Sao_Paulo") explicito,
+   independente do host. Tambem adicionado `ENV TZ=America/Sao_Paulo` no estagio de build do
+   Dockerfile, de brinde (defesa em profundidade, o mesmo valor que ja era usado no runtime).
+[CAN-10 em ExportaStoryServlet] 🟡 ArquivoExport.salvar (PDF-DISCO) era chamado sem try/catch
+   em ExportaStoryServlet, ao contrario do irmao ExportCanvaServlet que ja tinha essa protecao
+   (base64 invalido ou disco cheio = 500 explicito, nao stack trace cru). Corrigido: mesmo
+   try/catch (RuntimeException | IOException) replicado.
+[CONC-01] 🟡 ArquivoExport.salvar (LIC) escrevia direto no caminho final e deterministico
+   (codigo da ideia + ".pdf") via FileOutputStream sem lock -- 2 exports quase-simultaneos da
+   mesma ideia podiam intercalar escrita e corromper o PDF no disco, mesmo com banco e HTTP
+   dizendo sucesso. Corrigido: agora escreve num arquivo temporario (nome com UUID) e so troca
+   pro destino final com Files.move(..., ATOMIC_MOVE) -- o pior caso vira "ultimo a terminar
+   vence" (limpo), nunca mais bytes intercalados. Toolkit ja usa UUID no proprio nome de
+   arquivo (Toolkit2025-main/.../ArquivoExport.java) — nunca teve esse problema, nao mexido.
+[INFRA-09/INFRA-TZ no Toolkit] 🔵 o Data.java do Toolkit e uma classe SEPARADA da do LIC, nao
+   tocada na revisao de 2026-07-13 -- ainda tinha os 2 bugs ja corrigidos no lado do LIC (null
+   virava "hoje" em vez de vazio; SimpleDateFormat sem fuso explicito). Aplicado o mesmo fix.
+   Confirmado por grep: formatarData/formatarHora/formatarDataHoraCompleta do Toolkit nao tem
+   NENHUM caller hoje (so horaAtual() e usado, em Ideia.java) -- entao na pratica isso era
+   codigo morto, nao um bug ativo visivel pro usuario; corrigido mesmo assim por consistencia
+   entre os 2 projetos e pra nao virar um bug ativo se algum dia alguem passar a chamar.
+[DAOs limpeza de check morto] 🔵 os 5 DAOs que ganharam o guard fail-closed em 2026-07-13
+   (DAO-FAIL-CLOSED) mantiveram o `if (associacao.getCodigo() != null)` antigo dentro do metodo,
+   agora sempre verdadeiro (o guard no topo ja garante isso) -- removido nos 5 arquivos
+   (CanvaDAO, CanvaexportDAO, ColaboracaoIdeiaDAO x4 metodos, ElementosStorytellingDAO x2
+   metodos, ExportFileDAO), o predicado da associacao agora entra direto e incondicional no
+   `.where(...)`, List<Predicate> ficou so onde ha um segundo filtro genuinamente opcional.
+   Testes: LIC 311/311, Toolkit 116/116.
+   NAO MEXIDO (achados de menor severidade, avaliados e conscientemente adiados): (1)
+   DeletarCanvaexportServlet pode, em teoria, apagar do disco um arquivo que um export
+   concorrente da MESMA ideia acabou de escrever (janela estreita, exige acao de admin
+   simultanea a um re-export -- mecanismo real mas baixa probabilidade pratica, mesmo espirito
+   do [Corrida teorica de AUTO_INCREMENT] ja aceito em K.3); (2) o guard fail-closed, o
+   boilerplate de sessao/CriteriaBuilder (repetido em 10 DAOs) e a checagem de auth/IDOR
+   (duplicada em 4 servlets Abrir*) nao tem um helper compartilhado em GenericDAO -- funciona,
+   mas um DAO/servlet novo copiado de um desses corre risco de esquecer o padrao; refactor
+   maior (mexe em GenericDAO + 10 DAOs + 4 servlets), fica pra K.2 se um dia quiser atacar.
+
 --- K.1 SEGURANCA ---
 [#5] 🔴 SEGREDOS HARDCODED -> EXTERNALIZADOS via env/.env: chave SendGrid (revogar a antiga, ja
    vazou no Git, e por a nova no .env — acao do usuario); chave AES (efetivamente morta);
@@ -1153,20 +1299,56 @@ K. PENDENCIAS
    em aberto.
 
 --- K.2 QUALIDADE / ARQUITETURA (sem pressa) ---
-   - org.hibernate.Criteria DEPRECIADA (Hibernate 5) -> CriteriaBuilder/JPQL.
-   - PDFs base64 em LONGTEXT (canvas/story/persona) -> salvar ARQUIVO em disco/storage + so o
-     caminho (resolve tambem o max_allowed_packet).
-   - LIC: cada metodo de DAO abre/fecha Session; reuso de Session/OpenSessionInView.
-   - HTML semantico (<main>/<section>/<button> nativos).
-   - Libs front antigas: KONVA 1.6.5 (2017, usado em controle.js/controleAdd.js — upar
-     removeria varios workarounds ja documentados, mas exige QA manual completo do
-     Storytelling); JSPDF 1.0.272 (causa-raiz ja documentada de 3 bugs corrigidos via
-     workaround); MATERIALIZE com ATE 4 versoes diferentes coexistindo no sistema
-     (0.100.1/0.100.2/1.0.0 no LIC + 0.99.0 no Toolkit) — maior raio de impacto, decisao de
-     produto pendente (consolidar em qual versao); Quill 1.3.2 (baixa prioridade). Toolkit tem
-     sua PROPRIA arvore de libs (html2canvas em uso ATIVO, ao contrario do LIC onde estava
-     morto; jsPDF numa build diferente da do LIC; corejs-typeahead, enjoyhint, masonry,
-     materialize-tags nunca mapeados) — pendente repetir o mesmo tratamento dado ao LIC.
+   - LIC: cada metodo de DAO abre/fecha Session; reuso de Session/OpenSessionInView. Avaliado
+     em 2026-07-13 (ganho/perda/perigo): GANHO -- menos overhead de abrir/fechar conexao por
+     chamada dentro da mesma requisicao (hoje uma tela com 3-4 consultas abre 3-4 sessoes
+     separadas), mas o app nao parece ter gargalo de conexao hoje, entao o ganho e
+     provavelmente pequeno. PERDA/ESFORCO -- toca a base inteira (GenericDAO + todos os
+     metodos de todos os DAOs), exige um filtro novo abrindo a sessao no inicio da requisicao
+     e fechando no fim + HibernateUtil.getCurrentSession() configurado com
+     hibernate.current_session_context_class=thread. PERIGO -- real: pode introduzir
+     LazyInitializationException em pontos que hoje funcionam por acidente, pode vazar sessao
+     se algum caminho de excecao nao fechar direito, muda comportamento de transacao em
+     metodos que hoje fazem salvar+editar em sessoes separadas. Nao valida com a suite atual
+     (H2 em memoria nao expoe bug de sessao compartilhada sob carga real/concorrencia). NAO
+     mexido -- fica pra uma sessao dedicada com QA manual, nao "de passagem".
+   - HTML semantico: `<section>`/`<button>` nativos em vez de `<div>` generico ainda nao
+     revisado (diferente do `<main>`, ja feito — ver K.0/[HTML-SEMANTICO]) — escopo maior
+     (troca de elemento por elemento em cada tela), nao avaliado ainda.
+   - Libs front antigas -- CVEs pesquisadas em 2026-07-13 (WebSearch):
+     KONVA 1.6.5 (2017, controle.js/controleAdd.js): nenhuma CVE conhecida encontrada, risco
+     e so manutencao parada. E o modulo mais complexo e historicamente mais fragil do projeto
+     (5 tentativas de fix ja revertidas, ver L.1/[BRAVE]). Avaliado (ganho/perda/perigo):
+     GANHO -- remove workarounds documentados, mas sem risco de seguranca concreto pra
+     resolver. PERDA/ESFORCO -- upgrade de major version, API muda. PERIGO -- alto: exige QA
+     manual completo do Storytelling (desenhar, mover, redimensionar, upload de imagem,
+     audio, exportar) porque nao tem teste automatizado que cubra renderizacao visual do
+     canvas. NAO mexido -- so com sessao dedicada e navegador de verdade pra testar.
+     JSPDF 1.0.272 no LIC / build "1.x-master" no Toolkit (mesma era, ambos anteriores a
+     2020): tem CVEs REAIS documentadas em versoes atuais (CVE-2025-68428 path traversal,
+     CVE-2026-24040 race condition, CVE-2026-24737/CVE-2026-31898 XSS via Acroform/
+     createAnnotation) mas todas em versoes 3.x/4.x -- as versoes usadas aqui sao muito
+     anteriores, e o uso e 100% client-side no navegador (as CVEs assumem majoritariamente
+     Node.js server-side). O plugin AcroForm (alvo de 2 das CVEs) esta fisicamente no bundle
+     do Toolkit mas NAO e chamado em nenhum lugar do custom.js -- nao exploravel hoje, mas
+     essas versoes antigas tambem nunca receberam os patches. Avaliado (ganho/perda/perigo):
+     GANHO -- pegaria os patches reais, mesmo nao exploraveis agora. PERDA/ESFORCO -- os 3
+     bugs ja documentados e corrigidos via workaround (geraPDFCanva.js/custom.js) foram
+     causados por comportamento especifico dessa versao antiga; atualizar pode resolver ou
+     recriar workarounds de um jeito novo (API de paginacao mudou entre majors). PERIGO --
+     medio-alto: exige gerar e inspecionar visualmente um PDF de cada um dos 5 fluxos de
+     exportacao (Canvas, Storytelling, Persona overview/detailed, Mapa de Empatia, tabela
+     POV) -- regressao de PDF cortado/desalinhado nao aparece em teste automatizado. NAO
+     mexido -- vale fazer, mas com QA manual dedicado.
+     MATERIALIZE: CVE-2022-25349 (XSS via Toast/Autocomplete/Tooltip) confirmada, SEM VERSAO
+     CORRIGIDA -- o projeto esta sem manutencao, nao ha pra onde migrar. Afeta LIC e Toolkit
+     igualmente (ver MAT-CONSOLIDA em K.0 -- consolidar versao nao resolve isso, so tira a
+     inconsistencia entre paginas). Mitigado so pela disciplina de escapar output no proprio
+     app, nao pela lib.
+     html2canvas 0.5.0-beta3, corejs-typeahead 0.11.1, masonry v4.2.0 (Toolkit): nenhuma CVE
+     conhecida encontrada, risco e so manutencao parada.
+     enjoyhint / materialize-tags: dados insuficientes nas bases publicas de CVE (baixa
+     adocao). Quill 1.3.2 (baixa prioridade, sem mudanca).
    - Sanitizacao server-side do rich-text (Quill) -> lib jsoup/OWASP (necessario se algum dia
      habilitar listas no editor — avaliado e descartado por ora: o ganho pareceu pequeno pro
      trabalho envolvido, ver K.4).
@@ -1175,35 +1357,39 @@ K. PENDENCIAS
    - CSP (Content-Security-Policy): mapeados os dominios externos reais em uso, mas precisaria
      de 'unsafe-inline' (o app usa <script>/<style> inline em quase toda pagina) — reduz o
      ganho real, e testar errado quebra fonte/icone/script em silencio. Nao aplicado, decisao
-     de nao fazer "de passagem".
+     de nao fazer "de passagem". Reconfirmado em 2026-07-13: usuario decidiu nao implementar
+     por ora (sistema e uso local/interno de empresas, nao SaaS exposto).
+   - GenericDAO sem helper compartilhado pro guard fail-closed / boilerplate de sessao e
+     CriteriaBuilder (repetido em 10 DAOs) / checagem de auth+IDOR (duplicada em 4 servlets
+     Abrir*) — achado em code review de 2026-07-14, ver K.0/[DAOs limpeza de check morto].
+     Funciona, mas um DAO/servlet novo copiado de um existente corre risco de esquecer o
+     padrao. Refactor maior (GenericDAO + 10 DAOs + 4 servlets), nao atacado agora.
    - PostOnlyFilter.POST_ONLY e uma allowlist mantida a mao — todo servlet de escrita novo
      precisa lembrar de entrar na lista (varios pre-existentes nao entraram, ver GT-05/06).
      Sugestao futura: inverter a logica (leitura em allowlist, escrita bloqueada por padrao) ou
      um teste que falha se um servlet com doPost sem guard no doGet nao estiver na lista.
 
 --- K.3 PEQUENAS / DECISAO (propositalmente nao mexidas) ---
-   [INFRA-09] formatarData(null) mostra a data de HOJE (mudaria comportamento em todas as
-     telas se corrigido).
+   [INFRA-09] RESOLVIDO em 2026-07-13 — ver K.0/[INFRA-09].
    [RET-06] JSP/JSTL dentro de JavaScript (gerenciamento-ideia.jsp) — fragil, alto risco mexer.
-   [RET-08] lista-ideia-gerenciamento.jsp sem paginacao (limitacao, nao bug).
-   [E3/E4] AbrirPersona/AbrirPointOfView — codigo morto latente (esperam arquivo, recebem
-     base64; o AbrirPDF irmao ja foi corrigido).
+   [RET-08] lista-ideia-gerenciamento.jsp sem paginacao — avaliado em 2026-07-13, mantido como
+     esta por decisao do usuario (nao e prioridade agora).
+   [E3/E4] RESOLVIDO em 2026-07-13 pelo PDF-DISCO — AbrirPersona/AbrirPointOfView esperavam
+     arquivo e recebiam base64 (codigo morto latente); agora recebem caminho de arquivo de
+     verdade. Ver K.0/[PDF-DISCO].
    [DUVIDA-1] Membro REJEITADO no grupo nao consegue re-solicitar entrada enquanto o grupo esta
      aberto (a rejeicao e "definitiva" ate o grupo fechar, por simplicidade de implementacao) —
-     decisao do usuario ainda pendente sobre se um rejeitado deveria poder pedir de novo (ex.:
-     lider reconsiderar). Se sim, o botao "Participar" de um rejeitado teria que reabrir o
-     vinculo em vez de barrar.
+     reconfirmado em 2026-07-13: usuario decidiu manter como esta por ora (nao e prioridade).
+     Se um dia quiser mudar: o botao "Participar" de um rejeitado teria que reabrir o vinculo em
+     vez de barrar.
    [DUVIDA-2] Motivo de rejeicao de membro exigido no client (modal) mas nao no servidor antes
      do GT-04 — agora exige no servidor tambem, consistente com o resto do app (que em geral so
      valida no client). Baixo risco (acao de lider).
-   [DAOs listarParametro fail-open] se o codigo da associacao vier null, o filtro nao e
-     aplicado e a query volta a tabela inteira — callers atuais sempre setam a chave, contrato
-     fragil mas sem exploracao conhecida. Avaliado e descartado (tocaria 8+ arquivos por um
-     risco hipotetico).
-   [Data.horaAtual() TZ da JVM] usa o TZ default da JVM vs serverTimezone=UTC do driver — no
-     Docker (JVM=UTC) fica ok; numa JVM em fuso local as datas podem deslocar. So importa fora
-     do Docker (que ja roda em UTC). Baixo retorno pro esforco de mexer em toda gravacao de
-     data do sistema.
+   [DAOs listarParametro fail-open] 5 de 8 DAOs corrigidos em 2026-07-13 (ver
+     K.0/[DAO-FAIL-CLOSED]). IdeiaUsuarioDAO/StorytellingDAO/LogColaboracaoDAO ficam DE PROPOSITO
+     como estao — o "null nao filtra" e usado por codigo real (FecharGrupoServlet,
+     EntrarStorytellingServlet), corrigir quebraria essas telas.
+   [INFRA-TZ] RESOLVIDO em 2026-07-13 — ver K.0/[INFRA-TZ].
    [TK-lic_bd-hardcoded] "lic_bd." hardcoded nas native queries do Toolkit — confirmado sem
      risco de SQL injection (parametros bindados), so fragilidade se o nome do schema mudar.
    [TK-materialtags] o 'names' do POV vai pro plugin materialtags — render de terceiros, vetor
@@ -1217,38 +1403,47 @@ K. PENDENCIAS
    [Corrida teorica de AUTO_INCREMENT no polling] sob certas configuracoes de lock do InnoDB, o
      codigo pode commitar fora de ordem (id 6 antes do id 5); quem ja avancou ultimoCodigo pra
      6 nunca mais veria o 5 sem F5 completo. Edge case raro, nao mexido.
+   [DeletarCanvaexportServlet x export concorrente] achado em code review de 2026-07-14: um
+     admin excluindo um Canvaexport da retencao pode, em teoria, apagar do disco o arquivo que
+     um re-export CONCORRENTE da mesma ideia acabou de escrever (mesmo caminho deterministico),
+     deixando uma linha nova no banco apontando pra um arquivo que sumiu. Janela estreita, exige
+     acao de admin simultanea a um re-export do usuario. Mesmo espirito do item acima (corrida
+     teorica, baixa probabilidade pratica), nao mexido.
    [FecharGrupoServlet.processRequest] complexidade alta apos as features de lista de espera —
      testado (6+ testes) e funciona, mesmo padrao de outros servlets longos do projeto (ex.:
      AlteraUsuarioServlet). Candidato a refactor (extrair a logica de transferencia de
      lideranca pra um metodo privado), nao feito pra nao arriscar regressao sem necessidade.
-   [Edicao inline de colaboracao sem <label>] o textarea criado dinamicamente na edicao inline
-     nao tem <label> associado (acessibilidade) — e transitorio (some ao salvar/cancelar).
-     Menor.
+   [ACESS-COLAB-LABEL] RESOLVIDO em 2026-07-13 — ver K.0/[ACESS-COLAB-LABEL].
 
 --- K.4 UI/UX A REVISITAR ---
    [POV-DESCOBERTA] criacao de POV tem baixa descoberta (nao ha botao "Novo POV" na lista de
-     POV; o caminho e via checkbox de Persona) — modelo mental quebrado. Fix recomendado: botao
-     "Novo Point of View" abrindo modal com checkbox de personas. Decisao de produto pendente.
-   [TK-ORFAOS] 2 arquivos orfaos pra limpeza (sem urgencia): WebContent/error.jsp na raiz do
-     Toolkit (o web.xml usa /error -> WEB-INF/view/error.jsp) e WEB-INF/view/success.jsp
-     (nenhum controller retorna "success", o feedback de export virou toast).
+     POV; o caminho e via checkbox de Persona) — modelo mental quebrado. Proposta pronta
+     (2026-07-13, aprovada em conversa, implementacao adiada): FAB "+" direto em
+     list-point-of-view.jsp abrindo modal, reaproveitando o widget materialtags que o modal de
+     EDICAO ja usa, submetendo pro /point-of-view/salvar-pov ja existente (ja trata create
+     quando id=0). O fluxo antigo (checkbox de Persona -> FAB de POV) pode ser removido quando
+     isso for feito.
+   [TK-ORFAOS] RESOLVIDO em 2026-07-13 — os 2 arquivos orfaos (WebContent/error.jsp na raiz do
+     Toolkit e WEB-INF/view/success.jsp) foram removidos.
    [HTTP-PROD-MIC] gravacao de audio do Storytelling exige contexto seguro (HTTPS ou
      localhost) — restricao do proprio navegador, sem contorno via codigo. O sistema roda em
      HTTP puro em producao hoje, entao o microfone continua bloqueado la mesmo com a API
      corrigida. Adiado ate haver HTTPS em producao.
-   [TK-39, menu mobile] fix aplicado (ver C) mas NAO testado visualmente ainda — entra no
-     escopo de uma revisao futura de responsividade completa do Toolkit, nao uma verificacao
-     pontual isolada.
-   [TK-48, "point of view"] inconsistencia de capitalizacao entre ~9 arquivos ainda nao
-     padronizados (so custom.tour.js foi) — baixa prioridade, cosmetico.
+   [TK-39, menu mobile] RESOLVIDO em 2026-07-13 — fix aplicado e validado visualmente pelo
+     usuario em ambiente local (nao so o codigo, o comportamento real foi testado).
+   [TK-48-COMPLETO] RESOLVIDO em 2026-07-13 — ver K.0/[TK-48-COMPLETO].
    [M.8] habilitar listas (bolinha/numerada) no editor de descricao (Quill) — hoje o toolbar
      tem a opcao comentada e uma classe que bloqueia formatacao de lista. Avaliado: precisa
      andar junto da sanitizacao server-side do rich-text (K.2) pra nao abrir XSS armazenado.
      Decisao de produto pendente (ganho pequeno pro esforco, por ora descartado).
-   [Edicao de colaboracao nao propaga ao vivo] quem edita ve na hora, o resto precisa de F5 (o
-     protocolo de polling so retorna colaboracoes NOVAS por codigo, nao as editadas). Aceito
-     como limitacao conhecida por decisao do usuario — exigiria redesenhar o protocolo pra
-     considerar dtModificacao. Revisitar se incomodar no uso real.
+   [Edicao de colaboracao nao propaga ao vivo] VERIFICADO em 2026-07-13 (usuario perguntou se
+     era igual ao resto do sistema — nao e): RetornaMensagensServlet.listarAposCodigo filtra
+     estritamente por `codigo > ultimoCodigo`, entao COLABORACOES NOVAS aparecem sozinhas via
+     polling a cada 2s pra todo mundo, sem precisar de F5. So EDICOES em colaboracoes ja
+     existentes (mesmo codigo, texto mudou) nao sao pegas por essa query — so aparecem quando
+     alguem der F5. E uma assimetria real, nao um "tudo precisa de F5" generico. Mantido como
+     limitacao conhecida (exigiria redesenhar o protocolo pra considerar dtModificacao) — nao e
+     prioridade agora.
 
 --- K.6 IDEIAS FUTURAS (anotadas, SEM urgencia, nao mapeadas a fundo) ---
    [FUT-01] Convite por e-mail: o lider convida pessoas pro grupo por e-mail (ou link).
@@ -1270,21 +1465,10 @@ K. PENDENCIAS
      complexos e MENOS cobertos — historico de 5 tentativas de fix REVERTIDAS aqui, ver L.1/
      [BRAVE]) + canva.js + geraPDF.js/geraPDFCanva.js + master.js JA receberam uma rodada
      dedicada (ver B.3/B.7/C, achados TK-29 a TK-38/TK-45); csrf.js ja tinha sido lido antes.
-   [PENDENTE, baixa prioridade] CSS proprios do LIC (style.css, colaboracao.css,
-     storytelling.css, canva.css) — nunca teve passada dedicada, so ajuste reativo a bug
-     visual pontual.
    Toolkit: controllers, services, repositories, entities, JSPs, tags e custom.js JA passaram
      por uma varredura completa dedicada (ver A/B/C, achados TK-19 a TK-48) — cobertura
-     equivalente a do LIC agora.
-   [PENDENTE] CSS proprio do Toolkit (style.css) sem passada dedicada.
-   [PENDENTE] validacao VISUAL do fix de menu mobile (TK-39) — sem acesso a navegador nesta
-     sessao.
-   [PENDENTE] mapeamento completo das libs front do Toolkit (ver K.2 — html2canvas/jsPDF/
-     corejs-typeahead/enjoyhint/masonry/materialize-tags nunca mapeados individualmente).
-   [PENDENTE, config/infra nunca lida por completo] IdeiaWare-main/pom.xml (deps/versoes —
-     parte ja revisada, mas nao o arquivo inteiro) e web.xml do LIC (88 mapeamentos de servlet
-     + filtros, editado varias vezes mas nunca lido inteiro procurando inconsistencia — ex.:
-     servlet declarado sem mapping, ou mapping orfao).
+     equivalente a do LIC agora. CSS proprio de LIC e Toolkit, libs front do Toolkit, pom.xml e
+     web.xml do LIC ja tiveram passada dedicada — ver K.0.
 
 
 
@@ -1430,8 +1614,8 @@ K.5 junto das outras pendencias; esta secao fica so como indice rapido por camad
    LIC JS proprios (8 arquivos): controle.js/controleAdd.js/controleAudio.js + canva.js +
      geraPDF.js/geraPDFCanva.js + master.js ja receberam rodada dedicada (TK-29 a TK-38/TK-45).
      csrf.js ja tinha sido lido antes.
-   LIC CSS proprios: nunca teve passada dedicada, so ajuste reativo — baixa prioridade.
+   LIC CSS proprios: passada dedicada em 2026-07-13, ver K.0/[CSS-BUGS-2026-07-13].
    Toolkit (controllers, services, repositories, entities, JSPs, tags, custom.js): passou por
      varredura completa dedicada (TK-19 a TK-48) — cobertura equivalente a do LIC agora.
-   Toolkit CSS proprio + libs front (K.2) + validacao visual do menu mobile (TK-39): pendentes,
-     ver K.5.
+   Toolkit CSS proprio + libs front: feito em 2026-07-13, ver K.0/K.2. Validacao visual do
+     menu mobile (TK-39): feita em 2026-07-13 (usuario testou local, confirmado), ver K.5.

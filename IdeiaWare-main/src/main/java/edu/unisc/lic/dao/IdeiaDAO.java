@@ -4,12 +4,14 @@ import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.domain.IdeiaUsuario;
 import edu.unisc.lic.domain.Usuario;
 import edu.unisc.lic.util.HibernateUtil;
+import java.util.ArrayList;
 import java.util.List;
-import org.hibernate.Criteria;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 
 public class IdeiaDAO extends GenericDAO<Ideia> {
 
@@ -18,9 +20,11 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
     public List<Ideia> listar() {
         Session s = HibernateUtil.getFabricaDeSessoes().openSession();
         try {
-            Criteria filtro = s.createCriteria(Ideia.class);
-            filtro.addOrder(Order.desc("codigo"));
-            return filtro.list();
+            CriteriaBuilder builder = s.getCriteriaBuilder();
+            CriteriaQuery<Ideia> consulta = builder.createQuery(Ideia.class);
+            Root<Ideia> raiz = consulta.from(Ideia.class);
+            consulta.select(raiz).orderBy(builder.desc(raiz.get("codigo")));
+            return s.createQuery(consulta).getResultList();
         } finally {
             s.close();
         }
@@ -30,22 +34,27 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
         try {
-            Criteria filtro = sessao.createCriteria(Ideia.class);
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<Ideia> consulta = builder.createQuery(Ideia.class);
+            Root<Ideia> raiz = consulta.from(Ideia.class);
 
+            List<Predicate> predicados = new ArrayList<>();
             if (ideia.getStatus() != null) {
-                filtro.add(Restrictions.eq("status", ideia.getStatus()));
+                predicados.add(builder.equal(raiz.get("status"), ideia.getStatus()));
             }
             if (ideia.getTitulo() != null) {
-                filtro.add(Restrictions.eq("titulo", ideia.getTitulo()));
+                predicados.add(builder.equal(raiz.get("titulo"), ideia.getTitulo()));
             }
             if (ideia.getUsuario().getCodigo() != null) {
-                filtro.add(Restrictions.eq("usuario", ideia.getUsuario()));
+                predicados.add(builder.equal(raiz.get("usuario"), ideia.getUsuario()));
             }
 
             // Mais NOVO pro mais antigo ('codigo' e auto-incremento).
-            filtro.addOrder(Order.desc("codigo"));
+            consulta.select(raiz)
+                    .where(predicados.toArray(new Predicate[0]))
+                    .orderBy(builder.desc(raiz.get("codigo")));
 
-            return filtro.list();
+            return sessao.createQuery(consulta).getResultList();
 
         } finally {
             sessao.close();

@@ -34,7 +34,8 @@ public class Storytelling extends GenericDomain {
     @Column(length = 2, nullable = false)
     private String status;
 
-    @Column(columnDefinition = "longtext")
+    // PDF-DISCO
+    @Column(length = 255)
     private String caminhoFinalizado;
 
     public Storytelling() {

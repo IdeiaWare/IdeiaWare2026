@@ -14,6 +14,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import javax.servlet.http.Cookie;
 
 import org.junit.Before;
@@ -41,6 +44,7 @@ public class EmpathyExportControllerTest {
 
 	@Before
 	public void setup() {
+		System.setProperty("ideiaware.exports.dir", System.getProperty("java.io.tmpdir"));
 		EmpathyExportController controller = new EmpathyExportController();
 		empathyService = mock(EmpathyService.class);
 		personaService = mock(PersonaService.class);
@@ -96,8 +100,10 @@ public class EmpathyExportControllerTest {
 
 	@Test
 	public void exportarGeral_comCookie_salvaERedireciona() throws Exception {
+		String base64 = Base64.getEncoder().encodeToString("conteudo-pdf-fake".getBytes(StandardCharsets.UTF_8));
 		mvc.perform(post("/persona/empatia/exportar-geral")
-				.cookie(new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("5"))))
+				.cookie(new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("5")))
+				.param("fileLocation", "data:application/pdf;base64," + base64))
 				.andExpect(status().is3xxRedirection());
 		verify(exportFileService).saveFile(any(ExportFile.class));
 	}

@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS `colaboracaoideia` (
 -- 2x quase-simultaneo (FinalizarColaboracaoServlet) podia criar 2 linhas duplicadas.
 CREATE TABLE IF NOT EXISTS `storytelling` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
-  `caminhoFinalizado` longtext COLLATE utf8mb4_unicode_ci,
+  `caminhoFinalizado` varchar(255) COLLATE utf8mb4_unicode_ci,
   `dtCriacao` datetime DEFAULT NULL,
   `dtFinalizacao` datetime DEFAULT NULL,
   `status` varchar(2) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -281,7 +281,7 @@ CREATE TABLE IF NOT EXISTS `canva` (
 CREATE TABLE IF NOT EXISTS `canvaexport` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
   `created` datetime DEFAULT NULL,
-  `file` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `ideia_codigo` bigint(20) NOT NULL,
   PRIMARY KEY (`codigo`),
   UNIQUE KEY `uk_canvaexport_ideia` (`ideia_codigo`),
@@ -297,7 +297,7 @@ CREATE TABLE IF NOT EXISTS `canvaexport` (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `export_file` (
   `file_id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `file_location` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_location` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `file_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `file_type_identification` varchar(14) COLLATE utf8mb4_unicode_ci NOT NULL,
   `ideia_codigo` bigint(20) NOT NULL,

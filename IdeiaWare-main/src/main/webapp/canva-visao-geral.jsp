@@ -10,6 +10,7 @@
 		<title>Visão Geral</title>
 	</head>
 	<body class="center-align">
+    <main>
 		<%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/canva-mapa.jsp. --%>
 		<a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
 		<%-- expoe o fluxo (retencao x finalizacao normal) pro geraPDFCanva.js decidir o redirect pos-export. --%>
@@ -338,6 +339,7 @@
 		    <!-- FIM DA DIV DE EXPORTAÇÃO -->
 	    </div>
 	<script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
 	<%@include file="header/canva-footer.jsp" %>
 </html>

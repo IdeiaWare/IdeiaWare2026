@@ -9,7 +9,7 @@
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
-	        <span class="breadcrumb active">Formulário Point Of View</span>
+	        <span class="breadcrumb active">Formulário Point of View</span>
 	    </div>
   	</nav>
   	

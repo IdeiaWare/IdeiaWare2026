@@ -133,11 +133,13 @@
             <version>4.0.1</version>
             <scope>test</scope>
         </dependency>
+        <!-- POM-PROVIDED -->
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
             <version>7.0</version>
             <type>jar</type>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

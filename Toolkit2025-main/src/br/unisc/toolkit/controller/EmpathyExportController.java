@@ -1,5 +1,6 @@
 package br.unisc.toolkit.controller;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.unisc.toolkit.classes.AdminCookies;
+import br.unisc.toolkit.classes.ArquivoExport;
 import br.unisc.toolkit.entity.Empathy;
 import br.unisc.toolkit.entity.ExportFile;
 import br.unisc.toolkit.entity.Persona;
@@ -62,10 +64,12 @@ public class EmpathyExportController {
 	}
 	
 	@PostMapping("/exportar-geral")
-	public String saveOverview(@ModelAttribute("overview") ExportFile file, HttpServletRequest request, Model theModel, RedirectAttributes redirectAttrs){
+	public String saveOverview(@ModelAttribute("overview") ExportFile file, HttpServletRequest request, Model theModel, RedirectAttributes redirectAttrs) throws IOException {
 		if(cookie.getCookieIdeiaCodigo(request) != null){
-		   file.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
+		   Long ideiaCodigo = cookie.getCookieIdeiaCodigo(request);
+		   file.setIdeiaCodigo(ideiaCodigo);
 		   file.setCreated(new Date());
+		   file.setFileLocation(ArquivoExport.salvar(file.getFileLocation(), ideiaCodigo));
 
 		   exportFileService.saveFile(file);
 
@@ -75,14 +79,16 @@ public class EmpathyExportController {
 		}
 		else{
 			return "redirect";
-		}		
+		}
 	}
-	
+
 	@PostMapping("/exportar-detalhada")
-	public String saveDetailed(@ModelAttribute("detailed") ExportFile file, HttpServletRequest request, Model theModel, RedirectAttributes redirectAttrs){
+	public String saveDetailed(@ModelAttribute("detailed") ExportFile file, HttpServletRequest request, Model theModel, RedirectAttributes redirectAttrs) throws IOException {
 		if(cookie.getCookieIdeiaCodigo(request) != null){
-		   file.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
+		   Long ideiaCodigo = cookie.getCookieIdeiaCodigo(request);
+		   file.setIdeiaCodigo(ideiaCodigo);
 		   file.setCreated(new Date());
+		   file.setFileLocation(ArquivoExport.salvar(file.getFileLocation(), ideiaCodigo));
 
 		   exportFileService.saveFile(file);
 
@@ -92,7 +98,7 @@ public class EmpathyExportController {
 		}
 		else{
 			return "redirect";
-		}		
+		}
 	}
 	
 	// TK-02: getPersona() pode voltar null; boolean permite ao caller redirecionar em vez de renderizar quebrado.

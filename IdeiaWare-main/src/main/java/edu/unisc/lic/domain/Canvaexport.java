@@ -20,7 +20,8 @@ public class Canvaexport extends GenericDomain {
     @JoinColumn(name = "ideia_codigo", nullable = false, unique = true)
     private Ideia ideia;
 
-    @Column(columnDefinition = "longtext",nullable = false)
+    // PDF-DISCO
+    @Column(length = 255, nullable = false)
     private String file;
 
     @Column

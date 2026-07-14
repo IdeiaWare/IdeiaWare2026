@@ -7,7 +7,7 @@
 	<a href="${pageContext.request.contextPath}/point-of-view/lista" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
-	        <a href="${pageContext.request.contextPath}/point-of-view/lista" class="breadcrumb">Point Of View</a>
+	        <a href="${pageContext.request.contextPath}/point-of-view/lista" class="breadcrumb">Point of View</a>
 	        <span class="breadcrumb active">Visão Geral</span>
 	    </div>
   	</nav>

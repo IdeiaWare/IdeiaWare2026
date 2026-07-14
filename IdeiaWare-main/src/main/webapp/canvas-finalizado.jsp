@@ -9,6 +9,7 @@
 		<title>Canvas finalizado</title>
 	</head>
 	<body class="center-align">
+    <main>
 		<div style="min-height: 80vh">
 			<div id="success">
 				<div class="row">
@@ -28,6 +29,7 @@
 			</div>
 		</div>
 	<script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
 	<%@include file="header/canva-footer.jsp" %>
 </html>

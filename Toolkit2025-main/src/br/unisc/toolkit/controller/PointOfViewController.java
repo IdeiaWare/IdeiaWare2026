@@ -1,5 +1,6 @@
 package br.unisc.toolkit.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.unisc.toolkit.classes.AdminCookies;
+import br.unisc.toolkit.classes.ArquivoExport;
 import br.unisc.toolkit.classes.ToolkitValidacao;
 import org.springframework.validation.BindingResult;
 import br.unisc.toolkit.entity.ExportFile;
@@ -106,7 +108,7 @@ public class PointOfViewController {
 			if (thePointOfViews.size() > 0)
 				displayPointOfView(theModel, thePointOfViews);
 			
-			theModel.addAttribute("pageTitle", "Point Of Views - Lista");
+			theModel.addAttribute("pageTitle", "Point of Views - Lista");
 			
 			List<Persona> allPersonas = personaService.getPersonas(ideiaCodigo);
 			theModel.addAttribute("personas", allPersonas);
@@ -145,10 +147,12 @@ public class PointOfViewController {
 	}
 	
 	@PostMapping("/exportar-geral")
-	public String saveOverview(@ModelAttribute("overview") ExportFile file, Model theModel, HttpServletRequest request, RedirectAttributes redirectAttrs){
+	public String saveOverview(@ModelAttribute("overview") ExportFile file, Model theModel, HttpServletRequest request, RedirectAttributes redirectAttrs) throws IOException {
 		if(cookie.getCookieIdeiaCodigo(request) != null){
-			file.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
+			Long ideiaCodigo = cookie.getCookieIdeiaCodigo(request);
+			file.setIdeiaCodigo(ideiaCodigo);
 			file.setCreated(new Date());
+			file.setFileLocation(ArquivoExport.salvar(file.getFileLocation(), ideiaCodigo));
 
 			exportFileService.saveFile(file);
 

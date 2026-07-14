@@ -1,4 +1,5 @@
 FROM maven:3.9-eclipse-temurin-21 AS build
+ENV TZ=America/Sao_Paulo
 WORKDIR /src
 COPY IdeiaWare-main/    IdeiaWare-main/
 COPY Toolkit2025-main/  Toolkit2025-main/

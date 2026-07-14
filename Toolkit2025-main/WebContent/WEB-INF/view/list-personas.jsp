@@ -32,7 +32,7 @@
 	    </a>
 	    <ul>
 	    	<li><a class="btn-floating tooltipped light-blue lighten-1 criar-pov disabled"
-	      		data-position="left" data-delay="50" data-tooltip="Criar Point Of View">
+	      		data-position="left" data-delay="50" data-tooltip="Criar Point of View">
 	      		<i class="fa fa-eye" aria-hidden="true"></i></a>
 	      	</li>
 	    	<li><a class="btn-floating tooltipped light-blue lighten-1 criar-persona"

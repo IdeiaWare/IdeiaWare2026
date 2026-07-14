@@ -80,6 +80,7 @@
     <title>IdeiaWare - Validar Ideias</title>
   </head>
   <body class="center-align light-blue darken-1 knowledge">
+    <main>
     <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial da colaboracao. --%>
     <a href="index-colaboracao.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
@@ -244,7 +245,8 @@
     </div>
 
   <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
   <footer class="light-blue darken-2 page-footer">
     <div class="container">
       <div class="row">

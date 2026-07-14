@@ -6,9 +6,7 @@
 .my-ideas .name{
     max-width: 1px;
 }
-/* M.5 (2026-07-06): titulo (max 50 chars) estava sendo cortado com "..." por causa do
-   max-width:1px + .ellipsis. Agora mostra completo (quebra em ate 2 linhas se precisar).
-   A descricao continua com ellipsis (tem o "!"/info pra ver tudo num modal). */
+/* M.5: titulo (max 50) cortava com "..." por causa do max-width:1px+.ellipsis -- agora mostra completo. */
 .my-ideas .title{
     max-width: none;
     white-space: normal;

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.Base64;
 
 import javax.servlet.ServletOutputStream;
@@ -12,8 +13,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import edu.unisc.lic.classes.ArquivoExport;
 import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.ExportFileDAO;
 import edu.unisc.lic.dao.IdeiaDAO;
@@ -32,6 +35,11 @@ public class AbrirPointOfViewTest {
 	private final IdeiaUsuarioDAO ideiaUsuarioDAO = new IdeiaUsuarioDAO();
 	private final ExportFileDAO exportFileDAO = new ExportFileDAO();
 
+	@Before
+	public void redirecionaExportsParaTmpdir() {
+		System.setProperty("ideiaware.exports.dir", System.getProperty("java.io.tmpdir"));
+	}
+
 	private Usuario novoUsuario(String nome, String permissao) {
 		Usuario u = new Usuario(nome, nome + "_" + System.nanoTime(), "s", permissao, nome + "_" + System.nanoTime() + "@x.com");
 		usuarioDAO.salvar(u);
@@ -45,9 +53,10 @@ public class AbrirPointOfViewTest {
 		return ideia;
 	}
 
-	private ExportFile novoExport(Ideia ideia) {
+	private ExportFile novoExport(Ideia ideia) throws Exception {
 		String base64 = Base64.getEncoder().encodeToString("conteudo-pdf-fake".getBytes());
-		ExportFile ef = new ExportFile(ideia, base64);
+		String caminhoRelativo = ArquivoExport.salvar(base64, "conhecimento" + File.separator + System.nanoTime() + ".pdf");
+		ExportFile ef = new ExportFile(ideia, caminhoRelativo);
 		ef.setFileTypeIdentification("pov");
 		exportFileDAO.salvar(ef);
 		return ef;

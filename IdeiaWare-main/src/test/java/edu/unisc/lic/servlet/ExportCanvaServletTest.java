@@ -9,7 +9,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -20,8 +24,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import edu.unisc.lic.classes.Constantes;
 import edu.unisc.lic.classes.Data;
 import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.CanvaexportDAO;
@@ -37,6 +43,13 @@ public class ExportCanvaServletTest {
 	private final IdeiaDAO ideiaDAO = new IdeiaDAO();
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 	private final CanvaexportDAO canvaexportDAO = new CanvaexportDAO();
+
+	@Before
+	public void redirecionaExportsParaTmpdir() {
+		System.setProperty("ideiaware.exports.dir", System.getProperty("java.io.tmpdir"));
+	}
+
+	private static final String PDF_BASE64 = Base64.getEncoder().encodeToString("conteudo-pdf-fake".getBytes(StandardCharsets.UTF_8));
 
 	private Usuario novoUsuario(String nome) {
 		Usuario u = new Usuario(nome, nome + "_" + System.nanoTime(), "s", "usr", nome + "_" + System.nanoTime() + "@x.com");
@@ -99,7 +112,7 @@ public class ExportCanvaServletTest {
 		Usuario autor = novoUsuario("Autor");
 		Ideia ideia = novaIdeia(autor);
 
-		HttpServletRequest request = mockRequest(ideia.getCodigo(), "conteudoPdfBase64");
+		HttpServletRequest request = mockRequest(ideia.getCodigo(), PDF_BASE64);
 		HttpServletResponse response = mock(HttpServletResponse.class);
 
 		new ExportCanvaServlet().doPost(request, response);
@@ -110,7 +123,10 @@ public class ExportCanvaServletTest {
 		filtro.setIdeia(ideia);
 		List<Canvaexport> exports = canvaexportDAO.listarParametro(filtro);
 		assertEquals(1, exports.size());
-		assertEquals("conteudoPdfBase64", exports.get(0).getFile());
+		String caminhoEsperado = Constantes.CAMINHO_EXPORT_CANVA + ideia.getCodigo() + ".pdf";
+		assertEquals(caminhoEsperado, exports.get(0).getFile());
+		byte[] gravado = Files.readAllBytes(new File(Constantes.caminhoExports() + caminhoEsperado).toPath());
+		assertEquals("conteudo-pdf-fake", new String(gravado, StandardCharsets.UTF_8));
 
 		Ideia ideiaAtualizada = ideiaDAO.buscar(ideia.getCodigo());
 		assertEquals(StatusIdeia.FINALIZADO, ideiaAtualizada.getStatus());
@@ -120,10 +136,10 @@ public class ExportCanvaServletTest {
 	public void exportExistente_atualizaEmVezDeCriarNovo() throws Exception {
 		Usuario autor = novoUsuario("Autor2");
 		Ideia ideia = novaIdeia(autor);
-		Canvaexport existente = new Canvaexport(ideia, "conteudoAntigo", Data.horaAtual());
+		Canvaexport existente = new Canvaexport(ideia, "canva/caminho-antigo.pdf", Data.horaAtual());
 		canvaexportDAO.salvar(existente);
 
-		HttpServletRequest request = mockRequest(ideia.getCodigo(), "conteudoNovo");
+		HttpServletRequest request = mockRequest(ideia.getCodigo(), PDF_BASE64);
 		HttpServletResponse response = mock(HttpServletResponse.class);
 
 		new ExportCanvaServlet().doPost(request, response);
@@ -132,7 +148,7 @@ public class ExportCanvaServletTest {
 		filtro.setIdeia(ideia);
 		List<Canvaexport> exports = canvaexportDAO.listarParametro(filtro);
 		assertEquals("deve atualizar o existente, nao criar um segundo", 1, exports.size());
-		assertEquals("conteudoNovo", exports.get(0).getFile());
+		assertEquals(Constantes.CAMINHO_EXPORT_CANVA + ideia.getCodigo() + ".pdf", exports.get(0).getFile());
 	}
 
 	@Test
@@ -162,7 +178,7 @@ public class ExportCanvaServletTest {
 			AtomicReference<Throwable> escapou) {
 		return () -> {
 			try {
-				HttpServletRequest request = mockRequest(ideia.getCodigo(), "conteudoPdfBase64");
+				HttpServletRequest request = mockRequest(ideia.getCodigo(), PDF_BASE64);
 				HttpServletResponse response = mock(HttpServletResponse.class);
 				largada.await(5, TimeUnit.SECONDS);
 				new ExportCanvaServlet().doPost(request, response);

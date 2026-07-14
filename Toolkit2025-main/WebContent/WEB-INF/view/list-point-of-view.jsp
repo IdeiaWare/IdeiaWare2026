@@ -9,13 +9,13 @@
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
-	        <span class="breadcrumb active">Point Of View</span>
+	        <span class="breadcrumb active">Point of View</span>
 	    </div>
   	</nav>
   	
   	<div class="row">
   		<div class="col s12 m5">
-			<h2 class="title-page">Point Of Views - Lista</h2>
+			<h2 class="title-page">Point of Views - Lista</h2>
 		</div>
 	</div>
 	<div id="editor"></div>

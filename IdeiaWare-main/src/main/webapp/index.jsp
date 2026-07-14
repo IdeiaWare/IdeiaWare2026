@@ -24,7 +24,7 @@
   </head>
 
   <!-- Compiled and minified CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+  <link rel="stylesheet" href="css/materialize.min.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
@@ -81,6 +81,7 @@
     }
   </style>
   <body class="blue-grey lighten-5">
+    <main>
     <nav>
       <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
@@ -231,7 +232,8 @@
       </div>
     </div>
   <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
   <footer class="center blue-grey lighten-1 page-footer">
     <div class="container">
       <div class="row">

@@ -3,9 +3,14 @@ package edu.unisc.lic.classes;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 public class Data {
+
+    // INFRA-TZ: formatacao sempre em America/Sao_Paulo, independente do TZ default da JVM
+    // (fora do Docker, que ja fixa TZ=America/Sao_Paulo via env, o default variava com o host).
+    private static final TimeZone FUSO = TimeZone.getTimeZone("America/Sao_Paulo");
 
     public Data() {
     }
@@ -15,30 +20,36 @@ public class Data {
         return new Timestamp(date.getTime());
     }
 
-    public static String dataAtualFormatada() {
-        Date date = new Date();
-        return new SimpleDateFormat("dd/MM/yyyy").format(date);
+    private static SimpleDateFormat formato(String padrao) {
+        SimpleDateFormat sdf = new SimpleDateFormat(padrao);
+        sdf.setTimeZone(FUSO);
+        return sdf;
     }
 
+    public static String dataAtualFormatada() {
+        return formato("dd/MM/yyyy").format(new Date());
+    }
+
+    // INFRA-09: null nao vira mais "hoje" (mostrava uma data que nunca aconteceu) -- vira vazio.
     public static String formatarData(Date dt) {
         if (dt == null) {
-            dt = horaAtual();
+            return "";
         }
-        return new SimpleDateFormat("dd/MM/yyyy").format(dt);
+        return formato("dd/MM/yyyy").format(dt);
     }
 
     public static String formatarHora(Date dt) {
         if (dt == null) {
-            dt = horaAtual();
+            return "";
         }
-        return new SimpleDateFormat("HH:mm").format(dt);
+        return formato("HH:mm").format(dt);
     }
 
     public static String formatarDataHoraCompleta(Date dt) {
         if (dt == null) {
-            dt = horaAtual();
+            return "";
         }
-        return new SimpleDateFormat("dd/MM/yyyy HH:mm").format(dt);
+        return formato("dd/MM/yyyy HH:mm").format(dt);
     }
 
     public static String diferencaDatas(Date dt1, Date dt2) {

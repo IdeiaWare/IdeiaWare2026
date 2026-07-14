@@ -88,6 +88,7 @@
     <title>IdeiaWare - Gerenciamento de Ideias</title>
   </head>
   <body class="center-align light-blue darken-1">
+    <main>
     <%-- UX-VOLTAR-V2: icone flutuante (antes nao tinha nenhuma saida de volta pra listagem). --%>
     <a href="lista-ideia-gerenciamento.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
@@ -370,7 +371,7 @@
                           <a href="#modalGenerico" id="pointOfView" class="modal-trigger red lighten-2" data-target="pov" data-titulo="Seleção Point of View">
                             <div><i class="large material-icons">person_pin</i></div>
                           </a>
-                          <div>Point Of View</div>
+                          <div>Point of View</div>
                         </div>
                         <c:set var="canva" value="true"/>
                     </c:if>
@@ -418,7 +419,8 @@
     </div>
     <!--fim do modal-->
   <script src="js/csrf.js"></script>
-  </body> 
+  </main>
+    </body> 
   <footer class="light-blue darken-2 page-footer">
     <div class="container">
       <div class="row">
@@ -509,10 +511,7 @@
           html += " ${data.formatarDataHoraCompleta(pov.created)}";
           html += "</td>";
           html += "<td>";
-          html += " <form id='abrirPOV' action='AbrirPointOfView' method='post' target='_blank' style='margin-bottom:0;'>";
-          html += "     <input hidden='true'  value='${pov.id}'  name='codigoPOV' />";
-          html += "     <a class='btn red darken-1' onclick='openFileData(\"${pov.fileLocation}\")' href='javascript:;' target='_blank'>Entrar<a/>";
-          html += " </form>";
+          html += " <a class='btn red darken-1' href='AbrirPointOfView?codigoPOV=${pov.id}' target='_blank'>Entrar</a>";
           html += "</td>";
           html += "<td>";
           html += " <i class='material-icons' title='Excluir' data-id='${pov.id}' onclick='deleteFile(${pov.id})' style='color:#f44336; cursor: pointer; display: inline-block; font-size:21px;'>delete</i>";
@@ -561,10 +560,7 @@
           html += " ${data.formatarDataHoraCompleta(persona.created)}";
           html += "</td>";
           html += "<td>";
-          html += " <form id='abrirPOV' action='AbrirPointOfView' method='post' target='_blank' style='margin-bottom:0;'>";
-          html += "     <input hidden='true'  value='${persona.id}' name='codigoPOV' />";
-          html += "     <a class='btn red darken-1' onclick='openFileData(\"${persona.fileLocation}\")' href='javascript:;' target='_blank'>Entrar</a>";
-          html += " </form>";
+          html += " <a class='btn red darken-1' href='AbrirPersona?codigoPersona=${persona.id}' target='_blank'>Entrar</a>";
           html += "</td>";
           html += "<td>";
           html += " <i class='material-icons' title='Excluir' data-id='${persona.id}' onclick='deleteFile(${persona.id})' style='color:#f44336; cursor: pointer; display: inline-block; font-size:21px;'>delete</i>";
@@ -608,7 +604,7 @@
           // UX-RETENCAO-BOTOES: botao "Abrir quadro" removido (nao servia pra nada util aqui, PDF ja mostra tudo).
           // UX-ALINHAMENTO: tabela so tem 2 colunas -- sem align, o botao caia colado na esquerda.
           // UX-COR-MODULO: indigo lighten-1 (cor EXATA do header/footer do Storytelling, nao o darken-1).
-          html += "             <a class='btn indigo lighten-1' onclick='openFileData(\"${storytelling.caminhoFinalizado}\")' href='javascript:;' target='_blank'>Visualizar PDF</a>";
+          html += "             <a class='btn indigo lighten-1' href='AbrirStorytellingServlet?id=${storytelling.codigo}' target='_blank'>Visualizar PDF</a>";
           html += "       </td>";
           html += "   </tr>";
           html += "</c:forEach>";
@@ -653,7 +649,7 @@
             html += "       <td> ${data.formatarDataHoraCompleta(canva.date)}</td>";
             html += "       <td>";
             // UX-COR: blue darken-4 (cor do proprio modulo Canvas), era red generico.
-            html += "           <a class='btn blue darken-4' onclick='openFileData(\"${canva.file}\")' href='javascript:;' target='_blank'>Entrar</a>";
+            html += "           <a class='btn blue darken-4' href='AbrirCanvaExport?id=${canva.codigo}' target='_blank'>Entrar</a>";
             html += "       </td>";
             html += "       <td>";
             html += "           <i class='material-icons' title='Excluir' data-id='${canva.codigo}' onclick='deleteCanvaExport(${canva.codigo})' style='color:#f44336; cursor: pointer; display: inline-block; font-size:21px;'>delete</i>";

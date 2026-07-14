@@ -1,5 +1,6 @@
 package edu.unisc.lic.servlet;
 
+import edu.unisc.lic.classes.ArquivoExport;
 import edu.unisc.lic.dao.ExportFileDAO;
 import edu.unisc.lic.dao.UsuarioDAO;
 import edu.unisc.lic.domain.ExportFile;
@@ -48,7 +49,9 @@ public class DeletarExportedFileServlet extends HttpServlet {
 
         // RKM-02: evita excluir(null) quando o id não existe
         if (exportFile != null) {
+            String caminho = exportFile.getFileLocation();
             exportFileDAO.excluir(exportFile);
+            ArquivoExport.excluir(caminho);
         }
     }
 

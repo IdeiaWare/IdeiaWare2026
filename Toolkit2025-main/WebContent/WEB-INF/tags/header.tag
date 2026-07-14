@@ -46,7 +46,7 @@
 		      </form>
 		      <ul id="nav-mobile" class="right hide-on-med-and-down">
 		        <li><a href="${pageContext.request.contextPath}/persona/lista">Persona</a></li>
-		        <li><a href="${pageContext.request.contextPath}/point-of-view/lista">Point Of View</a></li>
+		        <li><a href="${pageContext.request.contextPath}/point-of-view/lista">Point of View</a></li>
 		        <li><a href="${pageContext.request.contextPath}/informacoes">Informações</a></li>
 		        <li><a href="javascript:;" onclick="if (confirm('Finalizar a Caixa de Ferramentas conclui esta etapa da ideia e não pode ser desfeito. Deseja continuar?')) document.getElementById('finalizeIdeiaFormDesktop').submit();">Finalizar Caixa</a></li>
 		        <li><a href="javascript:;" class="logout-link">Sair<i class="fa fa-sign-out" aria-hidden="true"></i></a></li>
@@ -58,13 +58,13 @@
 	    </form>
 	  	<ul class="side-nav" id="nav-mobile-drawer">
 	        <li><a href="${pageContext.request.contextPath}/persona/lista">Persona</a></li>
-	        <li><a href="${pageContext.request.contextPath}/point-of-view/lista">Point Of View</a></li>
+	        <li><a href="${pageContext.request.contextPath}/point-of-view/lista">Point of View</a></li>
 	        <li><a href="${pageContext.request.contextPath}/informacoes">Informações</a></li>
 	        <li><a href="javascript:;" onclick="if (confirm('Finalizar a Caixa de Ferramentas conclui esta etapa da ideia e não pode ser desfeito. Deseja continuar?')) document.getElementById('finalizeIdeiaFormMobile').submit();">Finalizar Caixa</a></li>
 	        <li><a href="javascript:;" class="logout-link">Sair<i class="fa fa-sign-out" aria-hidden="true"></i></a></li>
 	    </ul>
 
-	  	<div id="content" role="main" style="flex:1;">
+	  	<main id="content" style="flex:1;">
 			<div class="container">
 				<div class="row">
 					<div class="col s12">

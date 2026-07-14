@@ -28,7 +28,7 @@
         <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" href="css/style.css">
         <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+        <script src="js/materialize.min.js"></script>
     </head>
     <style>
         .title-app {
@@ -160,6 +160,7 @@
     </style>
 
     <body class="blue-grey lighten-5" id="app">
+    <main>
         <nav>
             <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
                 <a  class="brand-logo" style="left: 50px">
@@ -458,6 +459,7 @@
             });
         </script>
     <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
 </html>
 

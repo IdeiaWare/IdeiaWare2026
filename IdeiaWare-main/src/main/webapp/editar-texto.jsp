@@ -14,6 +14,7 @@
     </style>
   </head>
   <body class="center-align">
+    <main>
     <%-- UX-VOLTAR-V2: icone flutuante padrao (antes so tinha o "Cancelar" no fim do form). --%>
     <a href="colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <div class="white" style="min-height: 90vh;">
@@ -43,7 +44,8 @@
       </div>
       <div style="height: 90px"></div>
   <script src="js/csrf.js"></script>
-  </body>
+  </main>
+    </body>
   <%@include file="header/footer.jsp" %>
 </html>
 <!-- Include the Quill library -->
