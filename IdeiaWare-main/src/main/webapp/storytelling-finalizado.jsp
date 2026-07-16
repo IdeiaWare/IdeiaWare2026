@@ -29,7 +29,7 @@
 		<style>.title-app { color:#fff; font-family: 'Condiment'; font-size: 42px; line-height: 25px; }</style>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	</head>
-	<body class="center-align">
+	<body class="center-align blue-grey lighten-5">
     <main>
 		<nav>
 			<div class="nav-wrapper indigo lighten-1 z-depth-2">

@@ -24,6 +24,8 @@
 <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
+<%-- TITULO-MODULO-POPPINS: fonte dos titulos de modulo (ver K.4). --%>
+<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@700' rel='stylesheet'>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <script type="text/javascript" src="js/Bibliotecas/jquery-3.2.1.js"></script>
@@ -48,6 +50,13 @@
   .knowledge .icon .fa-database {color:#0288d1;}
   .fa-hand-o-right {border-radius:50%; box-shadow: 0 0 0 rgba(255,255,255, 0.4); animation: pulse 2s infinite;}
   .fa-hand-o-right:hover {animation: none;}
+
+  /* TITULO-MODULO-POPPINS: Poppins no lugar do Arial padrao do Materialize. */
+  .titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }
+
+  /* LISTAGEM-CINZA: fundo quase-branco + sombra, no lugar do #fff puro. */
+  ul.collapsible { box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12); }
+  .collapsible-header, .collapsible-body { background-color: #f5f5f5; }
 
   @-webkit-keyframes pulse {
       0% {
@@ -80,7 +89,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>IdeiaWare - Lista Canvas</title>
   </head>
-  <body class="blue darken-4">
+  <body class="blue-grey lighten-5">
     <main>
     <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial (index.jsp). --%>
     <a href="index.jsp" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
@@ -89,7 +98,7 @@
         <a href="index.jsp" class="brand-logo" style="left: 50px">
           <ul style="width:300px" id="nav-logo" class="left hide-on-med-and-down">
             <div class="row" style="padding-left: 10px">
-              <div class="col s1 blue darken-4" style=" width: 50px;  height: 50px; 
+              <div class="col s1 blue lighten-1" style=" width: 50px;  height: 50px;
                    margin-top: 5px;  padding: 6px 6px; 
                    border-radius: 100%;  box-sizing: border-box;">
                 <img style="display: block;  width: 62%;  margin-left: 7px; margin-top: -1px" src="imagens/idea.png" alt="IdeiaWare"/>
@@ -105,10 +114,10 @@
     </nav>
     <!--final do cabeçalho-->
 
-    <div class="white" style="min-height: 90vh" role="main">
+    <div class="" style="min-height: 90vh" role="main">
       <div class="container">
-        <div style="padding: 10px; border-radius: 0.2em" class="white">
-          <h1 class="center">Canva</h1>
+        <div style="padding: 10px; border-radius: 0.2em" class="">
+          <h1 class="center blue-grey-text text-darken-2 titulo-modulo">Canva</h1>
           <jsp:useBean id="ideiaDAO" class="edu.unisc.lic.dao.IdeiaUsuarioDAO" />
           <jsp:useBean id="logDAO" class="edu.unisc.lic.dao.LogColaboracaoDAO" />
           <jsp:useBean id="log" class="edu.unisc.lic.domain.LogColaboracao" />

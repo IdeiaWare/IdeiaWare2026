@@ -104,6 +104,8 @@
           <c:if test="${usuario.permissao eq 'adm'}">
             <li><a href="gerenciar-usuarios.jsp">Gerenciar Usuários<i style="padding-left: 10px" class="fa fa-users" aria-hidden="true"></i></a></li>
           </c:if>
+          <%-- FUT-02: feedback/sugestao, abre modal em vez de navegar. --%>
+          <li><a href="#feedback-modal" class="modal-trigger">Feedback<i style="padding-left: 10px" class="fa fa-comment-o" aria-hidden="true"></i></a></li>
           <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
         </ul>
       </div>
@@ -231,6 +233,42 @@
         </div>
       </div>
     </div>
+
+    <div id="feedback-modal" class="modal">
+      <div class="modal-content">
+        <h4>Feedback e Sugestões</h4>
+        <p>Sua opinião ajuda a melhorar o IdeiaWare. Conta pra gente o que achou ou o que podia ser diferente.</p>
+        <form id="feedback-form" action="EnviarFeedbackServlet" method="POST">
+          <textarea id="sugestao" name="sugestao" aria-label="Sua sugestão" class="materialize-textarea" required maxlength="2000" placeholder="Escreva sua sugestão aqui..."></textarea>
+          <div class="modal-footer" style="padding:0; margin-top:10px; text-align:right;">
+            <a href="#!" class="modal-close btn-flat">Cancelar</a>
+            <button class="btn waves-effect waves-light blue accent-1" type="submit">Enviar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // MODAL-NAMESPACE: essa versao do Materialize (v0.100.1, local -- MAT-CONSOLIDA
+            // trocou de CDN v1.0.0) se expõe como `window.Materialize`, NUNCA `window.M` (o
+            // atalho `M` so foi introduzido no 1.0.0). Alem disso Modal.init() exige objeto
+            // jQuery de verdade (usa .each() por dentro), nao NodeList puro.
+            var modalInstance = Materialize.Modal.init($('#feedback-modal'))[0];
+            $('a[href="#feedback-modal"]').on('click', function (e) {
+                e.preventDefault();
+                modalInstance.open();
+            });
+        });
+        // FUT-02: flash de resultado do envio de feedback, mesmo padrao de toast ja usado em cadastro-ideia.jsp.
+        var feedbackEnviado = ${feedbackEnviado or false};
+        var feedbackErro = ${feedbackErro or false};
+        if (feedbackEnviado) {
+            Materialize.toast('Sugestão enviada, obrigado!', 4000);
+        } else if (feedbackErro) {
+            Materialize.toast('Não foi possível enviar sua sugestão agora, tente novamente mais tarde.', 4000);
+        }
+    </script>
   <script src="js/csrf.js"></script>
   </main>
     </body>

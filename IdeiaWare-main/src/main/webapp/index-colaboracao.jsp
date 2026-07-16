@@ -5,37 +5,39 @@
 <html lang="pt-BR">
     <head>
         <title>IdeiaWare - Módulo Colaborativo</title>
+        <%-- TITULO-MODULO-POPPINS: fonte dos titulos de modulo (ver K.4). --%>
+        <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@700' rel='stylesheet'>
+        <style>.titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; }</style>
     </head>
-    <body class="center-align teal darken-1">
+    <body class="center-align blue-grey lighten-5">
     <main>
         <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial (index.jsp). --%>
         <a href="index.jsp" class="btn-floating btn-large teal darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
         <div class="" style="min-height: 90vh">
             <div class="container">
-                <div style="padding-top: 40px">
-                    <h4 class="white-text">MÓDULO COLABORATIVO</h4>
-                    <span class="white-text">IDEIAWARE</span>
-                    <p/>
-                    <div class="teal lighten-1" style="width:150px; height:150px;
-                         margin: 0 auto 30px; padding: 50px 30px;
-                         border-radius: 100%; box-sizing: border-box;">
-                        <img style="display:block; width:80%; margin-left:8px; margin-top:-35px" src="imagens/idea.png" alt="IdeiaWare"/>
-                    </div>
+                <%-- COL-17: padding-top igualado ao padrao das telas de modulo. --%>
+                <div style="padding: 10px">
+                    <h1 class="center blue-grey-text text-darken-2 titulo-modulo">Módulo Colaborativo</h1>
                 </div>
 
                 <!-- Os 3 cards lado a lado (col m4 cada = 12 colunas) -->
-                <%-- COL-16: flexbox iguala a altura dos 3 cards (senao, o de texto menor ficava mais baixo). --%>
+                <%-- COL-16: flexbox iguala a altura dos 3 cards. --%>
                 <style>
-                  .colab-cards { display: flex; flex-wrap: wrap; }
+                  .colab-cards { display: flex; flex-wrap: wrap; justify-content: center; }
                   .colab-cards > .col { display: flex; }
                   .colab-cards .card { display: flex; flex-direction: column; width: 100%; }
                   .colab-cards .card .card-content { flex: 1 0 auto; }
+                  <%-- COL-19/20/21: link preenche a barra toda, texto centralizado, icone no canto direito. --%>
+                  .colab-cards .card-action { padding: 0; }
+                  .colab-cards .card-action a { display: flex; align-items: center; justify-content: center; padding: 16px 24px; margin-right: 0 !important; position: relative; }
+                  .colab-cards .card-action a i { position: absolute; right: 16px; margin-left: 0; }
                 </style>
-                <div class="row colab-cards" style="margin-top: 20px;">
+                <div class="row colab-cards" style="margin-top: 45px;">
 
                     <!-- Card: Minhas Ideias -->
                     <div class="col s12 m4">
-                        <div class="card teal lighten-2 z-depth-2" style="border-radius: 0.5em;">
+                        <%-- COL-18: card mais sobrio (teal lighten-1). --%>
+                        <div class="card teal lighten-1 z-depth-2" style="border-radius: 0.5em;">
                             <a href="minha-ideia.jsp">
                                 <div class="card-image" style="padding: 30px 0;">
                                     <div class="center-align">
@@ -49,7 +51,7 @@
                             </div>
                             <div class="card-action" style="border-top: 1px solid rgba(255,255,255,0.3);">
                                 <a href="minha-ideia.jsp" class="white-text">
-                                    <i class="material-icons left">arrow_forward</i>Acessar
+                                    Acessar<i class="material-icons">arrow_forward</i>
                                 </a>
                             </div>
                         </div>
@@ -71,7 +73,7 @@
                             </div>
                             <div class="card-action" style="border-top: 1px solid rgba(255,255,255,0.3);">
                                 <a href="lista-ideia.jsp" class="white-text">
-                                    <i class="material-icons left">arrow_forward</i>Explorar
+                                    Explorar<i class="material-icons">arrow_forward</i>
                                 </a>
                             </div>
                         </div>
@@ -88,12 +90,12 @@
                                 </div>
                             </a>
                             <div class="card-content white-text" style="padding: 10px 20px 20px;">
-                                <span class="card-title" style="font-weight: bold;">Cadastrar Nova Ideia</span>
+                                <span class="card-title" style="font-weight: bold;">Cadastro de Novas Ideias</span>
                                 <p>Tem uma ideia? Registre-a aqui para receber colaborações e desenvolvê-la com o grupo.</p>
                             </div>
                             <div class="card-action" style="border-top: 1px solid rgba(255,255,255,0.3);">
                                 <a href="cadastro-ideia.jsp" class="white-text">
-                                    <i class="material-icons left">add</i>Nova ideia
+                                    Nova ideia<i class="material-icons">add</i>
                                 </a>
                             </div>
                         </div>

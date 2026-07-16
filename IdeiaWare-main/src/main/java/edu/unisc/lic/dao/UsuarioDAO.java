@@ -57,4 +57,26 @@ public class UsuarioDAO extends GenericDAO<Usuario> {
             sessao.close();
         }
     }
+
+    // RESET-TOKEN: busca pelo hash do token de reset (nunca pelo token em claro).
+    public Usuario buscarPorTokenHash(String hash) {
+        if (hash == null) {
+            return null;
+        }
+        Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
+
+        try {
+            CriteriaBuilder builder = sessao.getCriteriaBuilder();
+            CriteriaQuery<Usuario> consulta = builder.createQuery(Usuario.class);
+            Root<Usuario> raiz = consulta.from(Usuario.class);
+
+            consulta.select(raiz).where(builder.equal(raiz.get("resetTokenHash"), hash));
+
+            List<Usuario> resultado = sessao.createQuery(consulta).setMaxResults(1).getResultList();
+            return resultado.isEmpty() ? null : resultado.get(0);
+
+        } finally {
+            sessao.close();
+        }
+    }
 }

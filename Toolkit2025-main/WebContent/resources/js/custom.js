@@ -28,8 +28,10 @@
 		Materialize.updateTextFields();
 	}	
 	
+	// BUG-POV-VAZIO: contava <tr> direto, mas a linha do estado vazio tambem e um <tr> --
+	// checkbox so existe nas linhas reais, e um indicador confiavel.
 	Toolkit.Persona.thereIsPersonaCreated = function(){
-		return $(".personas-list table tbody tr").length > 0 ? true : false;	
+		return $(".personas-list .chkPersona").length > 0;
 	}
 	
 	Toolkit.Persona.thereIsPersonaSelected = function(){
@@ -632,17 +634,45 @@ $(document).ready(function(){
 	Toolkit.Validation.empathyAttributeForm();
 	Toolkit.Validation.pointOfViewForm();
 	
-	if(Toolkit.Persona.thereIsPersonaCreated()){
-		$(".btn.criar-pov").show();
-		$(".btn-floating.criar-pov").removeClass("disabled")
+	// UX-FAB-VISIVEL: tooltip do botao "Novo Point of View" reflete o estado.
+	Toolkit.PointOfView.updateCriarPovTooltip = function(){
+		var $btn = $(".btn.criar-pov");
+		var texto = $btn.hasClass("disabled")
+			? "Crie uma persona primeiro"
+			: (Toolkit.Persona.thereIsPersonaSelected()
+				? "Criar Point of View com a(s) persona(s) selecionada(s)"
+				: "Marque uma persona na lista abaixo primeiro");
+		$btn.attr("data-tooltip", texto).attr("aria-label", texto);
 	}
-	
+
+	// TOOLKIT-PERSONA-LISTA-MODELAGEM/4: contador visivel + linha destacada, sem depender so do tooltip.
+	Toolkit.PointOfView.updatePovSelectionCount = function(){
+		var n = $(".personas-list .chkPersona:checked").length;
+		var texto = n === 0 ? "" : (n === 1 ? "1 persona selecionada" : n + " personas selecionadas");
+		$("#pov-selection-count").text(texto);
+		$(".personas-list .chkPersona").each(function(){
+			$(this).closest("tr").toggleClass("row-selected", $(this).is(":checked"));
+		});
+	}
+
+	if(Toolkit.Persona.thereIsPersonaCreated()){
+		$(".btn.criar-pov").removeClass("disabled")
+	}
+	Toolkit.PointOfView.updateCriarPovTooltip();
+	Toolkit.PointOfView.updatePovSelectionCount();
+
+	$(document).on("change", ".chkPersona", function(){
+		Toolkit.PointOfView.updateCriarPovTooltip();
+		Toolkit.PointOfView.updatePovSelectionCount();
+	});
+
 	$('.attributes-list').masonry({
 		itemSelector: '.item',
 		fitWidth: true
 	});
-	
-	$(".btn-floating.criar-pov").click(function(){
+
+	$(".btn.criar-pov").click(function(){
+		if($(this).hasClass("disabled")) return;
 		if(Toolkit.Persona.thereIsPersonaSelected()){
 			var data = [];
 

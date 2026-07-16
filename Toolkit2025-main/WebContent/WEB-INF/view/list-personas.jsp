@@ -4,7 +4,7 @@
 
 <t:header></t:header>
 	<%-- UX-VOLTAR-V2: icone circular flutuante, aponta pro LIC (minha-ideia.jsp, cross-webapp). --%>
-	<a href="${initParam.licBasePath}/minha-ideia.jsp" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+	<a href="${initParam.licBasePath}/minha-ideia.jsp" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <span class="breadcrumb active">Personas</span>
@@ -16,32 +16,31 @@
 			<h2 class="title-page persona-home">Personas - Lista</h2>
 		</div>
 		<div class="col s12 m7 right-align">
+			<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/3: pill secundario, senao o link de texto puro perdia peso visual perto dos 2 botoes solidos abaixo. --%>
 			<a href="javascript:;" onclick="Toolkit.callTour()"
-				class="tooltipped tour" 
-				data-position="bottom" 
-				data-delay="50" 
+				class="tooltipped tour tour-page-link"
+				data-position="bottom"
+				data-delay="50"
 				data-tooltip="Iniciar Tour">
 				<i class="fa fa-map-marker" aria-hidden="true"></i> Tour
 			</a>
 		</div>
 	</div>
-	
-	<div class="fixed-action-btn">
-    	<a class="btn-floating btn-large teal lighten-1">
-	      	<i class="fa fa-plus" aria-hidden="true"></i>
-	    </a>
-	    <ul>
-	    	<li><a class="btn-floating tooltipped light-blue lighten-1 criar-pov disabled"
-	      		data-position="left" data-delay="50" data-tooltip="Criar Point of View">
-	      		<i class="fa fa-eye" aria-hidden="true"></i></a>
-	      	</li>
-	    	<li><a class="btn-floating tooltipped light-blue lighten-1 criar-persona"
-	    		data-position="left" data-delay="50" data-tooltip="Criar Persona"
-	    		onclick="Toolkit.Persona.buildPersonaModal()">
-	    		<i class="fa fa-user" aria-hidden="true"></i></a>
-	    	</li>
-    	</ul>
-  	</div>
+
+	<%-- UX-FAB-VISIVEL: botoes de acao sempre visiveis, no lugar do FAB escondido. --%>
+	<div class="row" style="margin-bottom: 8px;">
+		<div class="col s12" style="display: flex; gap: 12px; flex-wrap: wrap;">
+			<a href="javascript:;" class="btn waves-effect waves-light teal lighten-1 criar-persona" onclick="Toolkit.Persona.buildPersonaModal()">
+				<i class="fa fa-user left" aria-hidden="true"></i> Nova Persona
+			</a>
+			<a href="javascript:;" class="btn waves-effect waves-light light-blue lighten-1 criar-pov disabled tooltipped"
+				data-position="bottom" data-delay="50" data-tooltip="Crie uma persona primeiro">
+				<i class="fa fa-eye left" aria-hidden="true"></i> Novo Point of View
+			</a>
+			<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/4: contador visivel do que esta marcado, sem depender so do tooltip do botao acima. --%>
+			<span id="pov-selection-count" class="grey-text" style="align-self:center; font-size:0.85rem;"></span>
+		</div>
+	</div>
 	
 	<div class="row">
 		<div class="col s12 personas-list">
@@ -55,7 +54,8 @@
 		          </tr>
 		        </thead>
 		        <tbody>
-					<c:if test="${empty personas}"><tr><td colspan="4" class="center-align grey-text" style="padding: 30px;">Nenhuma persona criada ainda. Clique no botão + para criar a primeira.</td></tr></c:if>
+					<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/1: copy desatualizada, sobrou do FAB antigo. --%>
+					<c:if test="${empty personas}"><tr><td colspan="4" class="center-align grey-text" style="padding: 30px;">Nenhuma persona criada ainda. Clique em "Nova Persona" para criar a primeira.</td></tr></c:if>
 					<c:forEach var="tempPersona" items="${personas}">
 						
 						<c:url var="viewLink" value="/persona/empatia/mapa">
@@ -86,20 +86,21 @@
 							<td>${tempPersona.age}</td>
 							<td>
 								<%-- UX: acoes viraram btn-floating (mesmo padrao do Canvas do LIC); icone de Mapa de Empatia adicionado. --%>
-								<a href="${viewLink}" class="btn-floating btn-small red darken-1 tooltipped"
+								<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/5: aria-label pra nao depender so do tooltip (hover) pra descrever a acao. --%>
+								<a href="${viewLink}" class="btn-floating btn-small blue-grey darken-1 tooltipped" aria-label="Abrir Mapa de Empatia"
 									data-position="top"
 									data-delay="50"
 									data-tooltip="Abrir Mapa de Empatia">
 									<i class="fa fa-eye" aria-hidden="true"></i>
 								</a>
-								<a href="javascript:;" class="btn-floating btn-small red darken-1 tooltipped"
+								<a href="javascript:;" class="btn-floating btn-small blue-grey darken-1 tooltipped" aria-label="Editar"
 									data-position="top"
 									data-delay="50"
 									data-tooltip="Editar"
 									data-id="${tempPersona.id}" data-name="<c:out value='${tempPersona.name}'/>" data-age="${tempPersona.age}" onclick="Toolkit.Persona.buildPersonaEditModal(this.dataset.id, this.dataset.name, this.dataset.age)">
 									<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 								</a>
-								<a href="javascript:;" class="btn-floating btn-small red darken-1 tooltipped"
+								<a href="javascript:;" class="btn-floating btn-small blue-grey darken-1 tooltipped" aria-label="Excluir"
 									data-position="top"
 									data-delay="50"
 									data-tooltip="Excluir"

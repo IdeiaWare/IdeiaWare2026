@@ -9,7 +9,7 @@
 -- via TCP 127.0.0.1) + 1 admin inicial pra logar (admin / admin).
 --
 -- Arquivo em UTF-8 (sem BOM). Idempotente: pode rodar de novo sem apagar dados
--- (usa CREATE ... IF NOT EXISTS). Gerado a partir do dump utf8mb4 limpo.
+-- (usa CREATE ... IF NOT EXISTS).
 -- =====================================================================
 
 SET NAMES utf8mb4;
@@ -22,9 +22,8 @@ USE `lic_bd`;
 -- ---------------------------------------------------------------------
 -- 1) usuario  (raiz: ninguem depende de tabela anterior)
 -- ---------------------------------------------------------------------
--- RACE-01 (2026-07-03): UNIQUE em usuario/email -- sem isso, 2 cadastros simultaneos com
--- o mesmo login passavam os 2 pela checagem em Java e os 2 inseriam, deixando as 2 contas
--- trancadas pra sempre (LogInServlet exige exatamente 1 resultado pra deixar logar).
+-- RACE-01: UNIQUE em usuario/email -- sem isso, 2 cadastros simultaneos com o mesmo login
+-- passavam os 2 pela checagem em Java e inseriam duplicata (LogInServlet trava com >1 resultado).
 CREATE TABLE IF NOT EXISTS `usuario` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
   `nome` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -34,6 +33,8 @@ CREATE TABLE IF NOT EXISTS `usuario` (
   `email` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `DataAnonimizado` datetime DEFAULT NULL,
   `anonimizado` varchar(1) COLLATE utf8mb4_unicode_ci DEFAULT 'N',
+  `resetTokenHash` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `resetTokenExpira` datetime DEFAULT NULL,
   PRIMARY KEY (`codigo`),
   UNIQUE KEY `uk_usuario_login` (`usuario`),
   UNIQUE KEY `uk_usuario_email` (`email`)
@@ -45,6 +46,10 @@ CREATE TABLE IF NOT EXISTS `usuario` (
 --   ALTER TABLE usuario ADD UNIQUE KEY uk_usuario_email (email);
 -- (falha com "Duplicate entry" se ja existir duplicata real no banco -- resolver a
 -- duplicata primeiro, ela ja seria o proprio bug RACE-01 acontecendo na pratica.)
+--
+-- RESET-TOKEN (2026-07-14): banco ja existente tambem precisa das 2 colunas novas:
+--   ALTER TABLE usuario ADD COLUMN resetTokenHash varchar(64) DEFAULT NULL,
+--     ADD COLUMN resetTokenExpira datetime DEFAULT NULL;
 
 -- ---------------------------------------------------------------------
 -- 2) ideia  (FK -> usuario)
@@ -110,9 +115,7 @@ CREATE TABLE IF NOT EXISTS `persona_pov` (
   KEY `persona_id` (`persona_id`),
   KEY `pov_id` (`pov_id`),
   KEY `ideia_codigo` (`ideia_codigo`),
-  -- REVISAO 2026-07-08 (varredura Toolkit, achado ALTA): sem isso, duplo-clique em
-  -- "Salvar" no formulario de POV podia duplicar a linha de associacao
-  -- persona<->POV (a mesma dupla persona_id+pov_id inserida 2x).
+  -- sem isso, duplo-clique em "Salvar" no form de POV duplicava a linha persona<->POV.
   UNIQUE KEY `uk_persona_pov_persona_pov` (`persona_id`,`pov_id`),
   CONSTRAINT `persona_pov_ibfk_1` FOREIGN KEY (`persona_id`) REFERENCES `persona` (`persona_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `persona_pov_ibfk_2` FOREIGN KEY (`pov_id`) REFERENCES `pov` (`pov_id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -140,10 +143,8 @@ CREATE TABLE IF NOT EXISTS `empathy` (
 -- ---------------------------------------------------------------------
 -- 7) ideiausuario  (LIC, FK -> ideia, usuario)
 -- ---------------------------------------------------------------------
--- K.8 #2 (2026-07-06): UNIQUE em (usuario_codigo, ideia_codigo) -- sem isso, clique duplo
--- em "Entrar" (EntrarIdeiaServlet) podia passar os 2 pela checagem em Java e inserir 2
--- vinculos do mesmo usuario na mesma ideia (a KEY antiga idx_iu_usuario_ideia nao travava,
--- so acelerava a consulta).
+-- K.8 #2: UNIQUE em (usuario_codigo, ideia_codigo) -- sem isso, clique duplo em "Entrar"
+-- inseria o mesmo usuario 2x na mesma ideia (a KEY antiga so acelerava, nao travava).
 CREATE TABLE IF NOT EXISTS `ideiausuario` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
   `dtInscricao` datetime DEFAULT NULL,
@@ -213,9 +214,8 @@ CREATE TABLE IF NOT EXISTS `colaboracaoideia` (
 -- ---------------------------------------------------------------------
 -- 10) storytelling  (LIC, FK -> ideia, usuario)
 -- ---------------------------------------------------------------------
--- K.8 #3 (2026-07-06): UNIQUE em ideia_codigo -- regra de negocio e 1 storytelling por
--- ideia (a entidade Java e @OneToOne), mas sem trava no banco, "Finalizar Colaboracao"
--- 2x quase-simultaneo (FinalizarColaboracaoServlet) podia criar 2 linhas duplicadas.
+-- K.8 #3: UNIQUE em ideia_codigo -- 1 storytelling por ideia e regra de negocio (@OneToOne),
+-- mas sem essa trava, "Finalizar Colaboracao" 2x quase-simultaneo duplicava a linha.
 CREATE TABLE IF NOT EXISTS `storytelling` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
   `caminhoFinalizado` varchar(255) COLLATE utf8mb4_unicode_ci,
@@ -275,9 +275,8 @@ CREATE TABLE IF NOT EXISTS `canva` (
 -- ---------------------------------------------------------------------
 -- 13) canvaexport  (LIC, FK -> ideia)
 -- ---------------------------------------------------------------------
--- K.8 #4 (2026-07-06): UNIQUE em ideia_codigo -- regra de negocio e 1 export de Canvas
--- por ideia (ExportCanvaServlet faz update se ja existe), mas sem trava no banco, 2
--- exports quase-simultaneos podiam criar 2 linhas duplicadas.
+-- K.8 #4: UNIQUE em ideia_codigo -- 1 export de Canvas por ideia (ExportCanvaServlet
+-- atualiza se ja existe), mas sem essa trava, 2 exports quase-simultaneos duplicavam a linha.
 CREATE TABLE IF NOT EXISTS `canvaexport` (
   `codigo` bigint(20) NOT NULL AUTO_INCREMENT,
   `created` datetime DEFAULT NULL,

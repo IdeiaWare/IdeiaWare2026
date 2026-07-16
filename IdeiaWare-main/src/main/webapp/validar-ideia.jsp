@@ -32,8 +32,10 @@
 <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
 <style>
   .title-app {color:#fff; font-family: 'Condiment'; font-size: 42px; line-height: 25px}
+  .titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }
   .title-app2 {font-family: 'Condiment'; font-size: 100px;}
   .card .icon {font-size:50px;}
   .card-content .card-title {color:#fff !important;}
@@ -46,6 +48,10 @@
   .knowledge .icon .fa-database {color:#0288d1;}
   .fa-hand-o-right {border-radius:50%; box-shadow: 0 0 0 rgba(255,255,255, 0.4); animation: pulse 2s infinite;}
   .fa-hand-o-right:hover {animation: none;}
+
+  /* LISTAGEM-CINZA: fundo quase-branco + sombra, no lugar do #fff puro. */
+  ul.collapsible { box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12); }
+  .collapsible-header, .collapsible-body { background-color: #f5f5f5; }
 
   @-webkit-keyframes pulse {
       0% {
@@ -79,16 +85,16 @@
   <head>
     <title>IdeiaWare - Validar Ideias</title>
   </head>
-  <body class="center-align light-blue darken-1 knowledge">
+  <body class="center-align blue-grey lighten-5">
     <main>
     <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial da colaboracao. --%>
-    <a href="index-colaboracao.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
+    <a href="index-colaboracao.jsp" class="btn-floating btn-large teal darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <nav>
-      <div class="nav-wrapper light-blue darken-2 knowledge">
+      <div class="nav-wrapper teal darken-2">
         <a href="index.jsp" class="brand-logo" style="left: 50px">
           <ul style="width:300px" id="nav-logo" class="left hide-on-med-and-down">
             <div class="row" style="padding-left: 10px">
-              <div class="col s1 light-blue darken-1 knowledge" style=" width: 50px;  height: 50px; 
+              <div class="col s1 teal lighten-1" style=" width: 50px;  height: 50px;
                    margin-top: 5px;  padding: 6px 6px; 
                    border-radius: 100%;  box-sizing: border-box;">
                 <img style="display: block;  width: 62%;  margin-left: 7px; margin-top: -1px" src="imagens/idea.png" alt="IdeiaWare"/>
@@ -119,10 +125,10 @@
     <script type="text/javascript" src="js/materialize.js"></script>
     
     
-    <div class="white" style="min-height: 90vh" role="main">
+    <div class="" style="min-height: 90vh" role="main">
       <div class="container">
-        <div style="padding: 10px; border-radius: 0.2em" class="white">
-          <h1>Validar Ideias</h1>
+        <div style="padding: 10px; border-radius: 0.2em" class="">
+          <h1 class="blue-grey-text text-darken-2 titulo-modulo">Validar Ideias</h1>
           <jsp:useBean id="ideiaDAO" class="edu.unisc.lic.dao.IdeiaDAO" />
           <jsp:useBean id="ideia2" class="edu.unisc.lic.domain.Ideia" />
           <jsp:setProperty name="ideia2" property="status" value="PE"/>
@@ -247,7 +253,7 @@
   <script src="js/csrf.js"></script>
   </main>
     </body>
-  <footer class="light-blue darken-2 page-footer">
+  <footer class="teal darken-2 page-footer">
     <div class="container">
       <div class="row">
         <i class="small material-icons">account_circle</i><h6 class="white-text"> <c:out value="${nome}"/></h6>

@@ -37,7 +37,15 @@ public class Usuario extends GenericDomain implements Serializable{
     @Column(nullable = true)
     @Temporal(TemporalType.TIMESTAMP)
     private Date DataAnonimizado;
-  
+
+    // RESET-TOKEN: hash SHA-256 do token de reset de senha (nunca o token em claro) + expiracao.
+    @Column(length = 64, nullable = true)
+    private String resetTokenHash;
+
+    @Column(nullable = true)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date resetTokenExpira;
+
     public Usuario() {
     }
 
@@ -185,5 +193,21 @@ public class Usuario extends GenericDomain implements Serializable{
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getResetTokenHash() {
+        return resetTokenHash;
+    }
+
+    public void setResetTokenHash(String resetTokenHash) {
+        this.resetTokenHash = resetTokenHash;
+    }
+
+    public Date getResetTokenExpira() {
+        return resetTokenExpira;
+    }
+
+    public void setResetTokenExpira(Date resetTokenExpira) {
+        this.resetTokenExpira = resetTokenExpira;
     }
 }

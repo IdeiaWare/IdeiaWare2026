@@ -9,6 +9,7 @@
 		
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<link href="https://fonts.googleapis.com/css?family=Condiment" rel="stylesheet">
+		<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
 		<link type="text/css" rel="stylesheet" href="${pageContext.request.contextPath}/resources/materialize/css/materialize.min.css" />
 		<link type="text/css" rel="stylesheet" href="${pageContext.request.contextPath}/resources/font-awesome/css/font-awesome.min.css" />
 		<link type="text/css" rel="stylesheet" href="${pageContext.request.contextPath}/resources/materialize-tags/css/materialize-tags.min.css" />
@@ -22,13 +23,14 @@
 			var licBasePath = "${initParam.licBasePath}"
 		</script>
 	</head>
-	<body>
+	<%-- FUNDO-CINZA-TOOLKIT: fundo cinza, mesmo padrao do LIC. --%>
+	<body class="blue-grey lighten-5">
 		<div id="overlay">
 			<div class="loader"></div>
 		</div>
 		<%-- TK-39: mesmo fix do header.tag (menu mobile). --%>
 		<nav>
-		    <div class="nav-wrapper red darken-1">
+		    <div class="nav-wrapper red darken-3">
 	      		<a href="${initParam.licBasePath}/index.jsp" class="brand-logo" style="left: 50px">
 		          <ul id="nav-logo" class="left hide-on-med-and-down">
 	            	<div class="row">

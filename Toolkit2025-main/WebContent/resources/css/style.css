@@ -6,6 +6,10 @@ body{
 a{
 	color: #000;
 }
+
+/* UX-SAIR-OVERLAP: flex + gap generoso (texto/icone sobrepondo em algumas telas). */
+.logout-link{ display: inline-flex; align-items: center; white-space: nowrap; }
+.logout-link i{ margin-left: 12px !important; padding-left: 0 !important; font-size: 1.1rem; }
 blockquote{
 	margin: 0 0 20px;
 }
@@ -13,6 +17,11 @@ blockquote{
 
 /* UX-TOOLKIT-ACOES/UX-TOOLKIT-ICONE-LIXEIRA: esta versao do Materialize nao define .btn-small
    (renderizava no tamanho padrao); icone da lixeira era quase invisivel (cor igual ao fundo). */
+/* TOOLKIT-PERSONA-LISTA-MODELAGEM/4: linha destacada quando a persona esta marcada pra criar POV. */
+.personas-list tr.row-selected {
+	background-color: #bbdefb !important;
+}
+
 .personas-list .btn-floating,
 .pov-list .btn-floating {
   width: 30px;
@@ -59,10 +68,15 @@ nav .title-app{
 	height: 100%;
 	min-height: 90vh;
 }
+/* TITULO-MODULO-POPPINS: mesma fonte/cor aplicada nos titulos de modulo do LIC (ver K.4). */
+/* TOOLKIT-PERSONA-LISTA-MODELAGEM/2: traço teal (#009688, cor do LIC) destoava do vermelho ja aplicado no resto do Toolkit. */
 h2.title-page {
-	border-bottom:2px solid #009688;
+	border-bottom:2px solid #a52724;
 	font-size:1.7rem;
 	margin-top:0;
+	font-family: 'Poppins', sans-serif;
+	font-weight: 600;
+	color: #455a64;
 }
 
 .collapsible h3 {
@@ -70,6 +84,10 @@ h2.title-page {
 	font-size: 1.2rem;
     padding-left: 5px;
 }
+
+/* LISTAGEM-CINZA: fundo quase-branco + sombra, no lugar do #fff puro. */
+ul.collapsible { box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12); }
+.collapsible-header, .collapsible-body { background-color: #f5f5f5; }
 
 img.centered {
 	display:block;
@@ -104,6 +122,24 @@ nav.crumb .breadcrumb:before{
 .tour i{
 	color: #26a69a;
 	font-size: 1.2rem;
+}
+/* TOOLKIT-PERSONA-LISTA-MODELAGEM/3: pill secundario (nao compete com os botoes solidos vermelho/azul da mesma linha). */
+.tour-page-link{
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 16px;
+	border-radius: 20px;
+	background-color: #eceff1;
+	color: #455a64 !important;
+	font-size: 0.9rem;
+	transition: background-color .2s;
+}
+.tour-page-link:hover{
+	background-color: #cfd8dc;
+}
+.tour-page-link i{
+	font-size: 1rem;
 }
 a.empathy-overview:hover{
 	color: #C62828;

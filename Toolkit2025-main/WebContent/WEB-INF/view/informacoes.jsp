@@ -3,20 +3,26 @@
 
 <t:header></t:header>
 	<%-- UX-VOLTAR-V2: icone circular flutuante no canto superior esquerdo. --%>
-	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
 	        <span class="breadcrumb active">Informações Gerais</span>
 	    </div>
   	</nav>	
+	<%-- UX-INFO-COLLAPSIBLE: seta de expandir adicionada na direita. --%>
+	<style>
+		.info-collapsible .collapsible-header { position: relative; padding-right: 3rem; }
+		.info-collapsible .collapsible-header .arrow-icon { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: #009688; float: none; margin: 0; }
+	</style>
 	<article>
 		<h2 class="title-page">Informações Gerais</h2>
-		
-		<ul class="collapsible" data-collapsible="accordion">
-			<li>	
+
+		<ul class="collapsible info-collapsible" data-collapsible="accordion">
+			<li>
 				<div class="collapsible-header">
 					<h3>O que é Persona</h3>
+					<i class="material-icons arrow-icon">expand_more</i>
 				</div>
 				<div class="collapsible-body">
 					<p>Segundo MJV (2016), <em>Persona</em> é uma poderosa ferramenta utilizada durante as fases do DT, já que a mesma identifica arquétipos - “estruturas de personalidade bem definidas que se repetem nos indivíduos e que fazem parte do inconsciente coletivo” (SAIANI, 2016). Na figura 4 apresenta-se 12 (doze) deles, que são personagens fictícios, concebidos com base no comportamento observado em perfis extremos. Cada perfil pode assumir características relacionadas a um determinado grupo social e real. Desta forma é possível analisar dados demográficos, culturais, necessidades, expectativas e outras informações de destaque para o desenvolvimento direcionado de uma ideia inovadora de um possível produto ou serviço.
@@ -80,6 +86,7 @@
 			<li>
 				<div class="collapsible-header">
 					<h3>O que é Point of View</h3>
+					<i class="material-icons arrow-icon">expand_more</i>
 				</div>
 				<div class="collapsible-body">
 					<p>De acordo com Dam e Siang (2017) o Point of View é responsável por definir e declarar problemas significativos e acionáveis, que permitem a idealização de maneira que seja orientada ao objetivo; e isto é o que o torna um bom POV, sem perder o foco em seus usuários (users), suas necessidades (needs) e introspecções (insights).</p>

@@ -8,8 +8,11 @@
         <title>IdeiaWare - Canva</title>
         <link rel="stylesheet" href="css/materialize.min.css">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
+        <%-- TITULO-MODULO-POPPINS: titulos dos 4 quadrantes do mapa. --%>
+        <style>.main_title { font-family: 'Poppins', sans-serif; font-weight: 600; }</style>
     </head>
-    <body class="center-align white m-5">
+    <body class="center-align blue-grey lighten-5 m-5">
     <main>
         <%-- UX-VOLTAR-V2: icone flutuante padrao do resto do app. --%>
         <a href="lista-canvas.jsp" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
@@ -305,6 +308,13 @@
 		</div>
 		<!-- FIM DO MAPA -->
 		<p class="referencia">Referência: OSTERWALDER, Alexander; PIGNEUR, Yves. Business model generation: inovação em modelos de negócios. Alta Books, 2020</p>
+    <script type="text/javascript">
+      // MODAL-INIT: #sugestModal nunca tinha nenhuma chamada de init em lugar nenhum (nem
+      // aqui, nem no header/footer compartilhado) -- o botao SUGESTAO nunca abriu o modal.
+      $(document).ready(function () {
+        $('.modal').modal();
+      });
+    </script>
     <script src="js/csrf.js"></script>
   </main>
     </body>

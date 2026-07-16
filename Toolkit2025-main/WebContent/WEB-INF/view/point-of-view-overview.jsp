@@ -2,9 +2,9 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
-<t:no-container-header></t:no-container-header>
+<t:header></t:header>
 	<%-- UX-VOLTAR-V2: icone circular flutuante, volta pra listagem de POV (pai imediato). --%>
-	<a href="${pageContext.request.contextPath}/point-of-view/lista" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+	<a href="${pageContext.request.contextPath}/point-of-view/lista" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/point-of-view/lista" class="breadcrumb">Point of View</a>
@@ -21,8 +21,8 @@
 				<form:hidden id="file-location" path="fileLocation"/>
 				<form:hidden path="fileTypeIdentification" value="pov"/>
 				
-				<button class="waves-effect waves-red btn-flat exportar" type="button" name="action" onclick="Toolkit.PointOfView.exportTable()">Exportar
-			    	<i class="fa fa-file-pdf-o left" aria-hidden="true"></i>
+				<button class="waves-effect waves-light btn red darken-3 exportar" type="button" name="action" onclick="Toolkit.PointOfView.exportTable()">
+			    	Exportar<i class="material-icons right">share</i>
 			  	</button>
 		  	<input type="hidden" name="csrfToken" value="${csrfToken}"/></form:form>
   		</div>
@@ -59,4 +59,4 @@
 			$("#file-name").val("Point of View ("+ $('.pov-names').text() +") - Visão Geral");
  		});
 	</script>
-<t:no-container-footer></t:no-container-footer>
+<t:footer></t:footer>

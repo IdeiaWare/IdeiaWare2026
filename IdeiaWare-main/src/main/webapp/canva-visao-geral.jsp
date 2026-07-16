@@ -9,7 +9,7 @@
 		<meta charset="UTF-8">
 		<title>Visão Geral</title>
 	</head>
-	<body class="center-align">
+	<body class="center-align blue-grey lighten-5">
     <main>
 		<%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/canva-mapa.jsp. --%>
 		<a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>

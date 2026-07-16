@@ -23,6 +23,8 @@
 <link type="text/css" rel="stylesheet" href="css/materialize.min.css" media="screen,projection"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
+<%-- TITULO-MODULO-POPPINS: fonte dos titulos de modulo (ver K.4). --%>
+<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@700' rel='stylesheet'>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <script type="text/javascript" src="js/Bibliotecas/jquery-3.2.1.js"></script>
@@ -34,13 +36,20 @@
 <!DOCTYPE html>
 <style>
   .title-app { color:#fff; font-family: 'Condiment'; font-size: 42px; line-height: 25px }
+
+  /* TITULO-MODULO-POPPINS: Poppins no lugar do Arial padrao do Materialize. */
+  .titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }
+
+  /* LISTAGEM-CINZA: fundo quase-branco + sombra, no lugar do #fff puro. */
+  ul.collapsible { box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12); }
+  .collapsible-header, .collapsible-body { background-color: #f5f5f5; }
 </style>
 <html lang="pt-BR">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>IdeiaWare - Lista Storytelling</title>
   </head>
-  <body class="indigo lighten-5">
+  <body class="blue-grey lighten-5">
     <main>
     <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial (index.jsp). --%>
     <a href="index.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
@@ -63,10 +72,10 @@
       </div>
     </nav>
 
-    <div class="white" style="min-height: 90vh" role="main">
+    <div class="" style="min-height: 90vh" role="main">
       <div class="container">
-        <div style="padding: 10px; border-radius: 0.2em" class="white">
-          <h1 class="center">Storytelling</h1>
+        <div style="padding: 10px; border-radius: 0.2em" class="">
+          <h1 class="center blue-grey-text text-darken-2 titulo-modulo">Storytelling</h1>
 
           <jsp:useBean id="iuDAO"  class="edu.unisc.lic.dao.IdeiaUsuarioDAO" />
           <jsp:useBean id="logDAO" class="edu.unisc.lic.dao.LogColaboracaoDAO" />

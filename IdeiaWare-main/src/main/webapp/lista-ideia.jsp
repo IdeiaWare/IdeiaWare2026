@@ -6,13 +6,15 @@
     <head>
         <title>IdeiaWare - Lista de Ideias</title>
         <link type="text/css" rel="stylesheet" href="css/colaboracao.css"/>
+        <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
+        <style>.titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }</style>
     </head>
-    <body class="center-align teal darken-1">
+    <body class="center-align blue-grey lighten-5">
     <main>
-        <div class="white" style="min-height: 90vh" role="main">
+        <div class="" style="min-height: 90vh" role="main">
             <div class="container">
-                <div style="padding: 10px; border-radius: 0.2em;" class="white">
-                    <h1>Outras Ideias</h1>
+                <div style="padding: 10px; border-radius: 0.2em;" class="">
+                    <h1 class="blue-grey-text text-darken-2 titulo-modulo">Outras Ideias</h1>
                     <%-- UX-VOLTAR-V2: icone circular flutuante (mesmo padrao do colaboracao.jsp, nao mexe no header compartilhado). --%>
                     <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
                     <jsp:useBean id="ideiaDAO" class="edu.unisc.lic.dao.IdeiaDAO" />

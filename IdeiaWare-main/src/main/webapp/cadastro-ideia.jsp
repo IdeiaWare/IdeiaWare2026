@@ -5,15 +5,17 @@
 <html lang="pt-BR">
   <head>
     <title>Cadastro de Ideia</title>
+    <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
+    <style>.titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }</style>
   </head>
-  <body class="center-align teal darken-1">
+  <body class="center-align blue-grey lighten-5">
     <main>
     <%-- UX-VOLTAR-V2: icone flutuante padrao do resto do app. --%>
     <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
-    <div class="white" style="min-height: 90vh" role="main">
+    <div class="" style="min-height: 90vh" role="main">
       <div class="container">
-        <div style="padding: 10px;" class="white">
-          <h1>Cadastro de Ideia</h1>
+        <div style="padding: 10px;" class="">
+          <h1 class="blue-grey-text text-darken-2 titulo-modulo">Cadastro de Ideia</h1>
 
           <%-- COL-15: exibe mensagem de erro vinda do servidor --%>
           <c:if test="${not empty param.erro}">

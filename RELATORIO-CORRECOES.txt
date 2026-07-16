@@ -35,8 +35,9 @@ RESUMO QUANTITATIVO (~380 itens): bugs/robustez ~100; seguranca ~75; UI/UX ~110;
 infra/build/encoding ~21; limpeza ~16; performance ~9. Ganhos-chave: senha SHA-256->bcrypt;
 0->CSRF nos 2 projetos; 0->headers de seguranca; XSS escapado em ~45 telas (incl. 4 achados
 de RE-INJECAO client-side, mais sutis que XSS cru); ~50 MB de codigo morto/libs removidos;
-Toolkit build manual->Maven; encoding misto->UTF-8 (34 arquivos); 0->427 testes (LIC 311 +
-Toolkit 116); cookie ideiaId forjavel->assinado (HMAC-SHA256); ~15 DAOs com race condition de
+Toolkit build manual->Maven; encoding misto->UTF-8 (34 arquivos); 0->442 testes (LIC 326 +
+Toolkit 116); reset de senha imediato->por token+link de uso unico; 0->rate-limit em login/
+reset/cadastro; cookie ideiaId forjavel->assinado (HMAC-SHA256); ~15 DAOs com race condition de
 Session/Transaction corrigida; ~25 IDOR fechados nos 2 projetos; todos os 51 servlets do LIC
 + os 13 controllers do Toolkit revisados e testados; 2 N+1 corrigidos (Storytelling); Docker
 completo (multi-stage, roda os testes no build); todos os 9 endpoints de exclusao/finalizacao
@@ -791,9 +792,8 @@ FININHA/UX-TOOLKIT-ACOES/UX-TOOLKIT-ICONE-LIXEIRA] 🔴 regra CSS morta (`body:b
    data-activates aponta pro novo id ($(".button-collapse").sideNav() ja existia em custom.js,
    nunca tinha um alvo valido). Link "Sair" duplicado exigiu trocar o binding de #logout (id)
    pra .logout-link (classe). Exigiu confirmar a versao do Materialize (v0.99.0, API antiga
-   data-activates/.sideNav()) antes de decidir a forma certa de corrigir — NAO TESTADO
-   visualmente num navegador (sem acesso a browser nesta sessao), fica pendente de confirmacao
-   visual numa revisao futura de responsividade do Toolkit.
+   data-activates/.sideNav()) antes de decidir a forma certa de corrigir — validado visualmente
+   pelo usuario em 2026-07-13 (ver K.4/[TK-39, menu mobile]).
 [TK-40] 🟡 botoes so-icone do Toolkit sem NENHUM nome acessivel — padrao sistemico (FAB de
    criar Persona/POV, acoes de linha, editar/excluir atributo nas 6 telas de empatia, e o
    botao "Voltar" presente em quase toda tela, 14 arquivos). O plugin de tooltip desta versao
@@ -1041,17 +1041,15 @@ SEQUENCIA: 1) apt openjdk-21-jdk + mysql-server; Tomcat 9 manual (+ usuario tomc
 I. CONFIGURACOES IMPORTANTES DO BANCO (MySQL) — guardar / ainda em uso
 ################################################################################
 
-[max_allowed_packet] — AINDA RELEVANTE (o export de PDF e guardado como BASE64 em coluna
-   LONGTEXT). O export do storytelling/canvas dava 500 "Packet for query is too large
-   (6051462 > 1048576)".
-   - SET GLOBAL max_allowed_packet = 67108864 NAO basta sozinho: as conexoes do pool do
-     Hibernate ja abertas continuam com o limite antigo (1 MB) -> REINICIAR o Tomcat (renova o
-     pool) e idealmente o MySQL.
-   - SET GLOBAL e perdido ao reiniciar o MySQL. Permanente no my.ini/my.cnf, secao [mysqld]:
-         max_allowed_packet=67108864
-   - A correcao PRIMARIA e reduzir o payload (JPEG comprimido em vez de PNG cru, ver B.7). O
-     MySQL 8 ja tem default 64MB, mas isso so torna o erro mais RARO = band-aid; a cura de
-     arquitetura e salvar o PDF como ARQUIVO em disco e guardar so o caminho (pendencia, ver K).
+[max_allowed_packet] OBSOLETO desde o PDF-DISCO (2026-07-13, ver K.0) — o export de PDF saiu
+   do banco (base64 em LONGTEXT) e virou arquivo em disco + so o caminho (VARCHAR). O unico
+   LONGTEXT que sobrou no LIC (elementosstorytelling.caminho) foi rastreado em 2026-07-14 e
+   NUNCA guarda base64 na pratica (path de imagem ou "texto" literal, ver K.0d). O
+   `--max-allowed-packet=67108864` explicito no docker-compose.yml foi REMOVIDO em 2026-07-14
+   -- confirmado (container MySQL 8.0 limpo, sem flags) que o proprio default do MySQL 8 ja e
+   67108864, entao a flag so repetia o default, nao mudava nada. Historico da causa raiz mantido
+   aqui so como referencia: o erro original era "Packet for query is too large" no export de
+   storytelling/canvas quando o payload base64 excedia o limite de 1MB pre-MySQL-8 default.
 
 [lower_case_table_names=1] — OBRIGATORIO no MySQL 8 Linux (D-5). Deixa os nomes de tabela
    case-insensitive (igual ao Windows) e impede o hbm2ddl de criar DUPLICATAS maiusculas. No
@@ -1281,6 +1279,640 @@ K. PENDENCIAS
    mas um DAO/servlet novo copiado de um desses corre risco de esquecer o padrao; refactor
    maior (mexe em GenericDAO + 10 DAOs + 4 servlets), fica pra K.2 se um dia quiser atacar.
 
+--- K.0c FEITO EM 2026-07-14 (P0 de seguranca: reset de senha + rate-limit) ---
+[RESET-TOKEN] 🔴 reset de senha era imediato: ResetPasswordServlet trocava a senha na hora e
+   mandava a senha nova por e-mail, sem confirmacao nenhuma -- qualquer um que soubesse o
+   e-mail de alguem conseguia forcar a troca da senha da vitima (nao rouba a conta, o atacante
+   nao recebe o e-mail, mas derruba a vitima do proprio login ate ela checar o e-mail --
+   negacao de servico trivial de scriptar, ainda mais sem rate-limit). Reescrito em 2 etapas:
+   ResetPasswordServlet agora so gera um token aleatorio (32 bytes via SecureRandom, classe
+   nova TokenReset) com expiracao de 1h e manda um LINK por e-mail -- a senha so muda quando o
+   usuario clica o link e confirma. Nova RedefinirSenhaServlet (GET valida o token e mostra o
+   formulario, POST troca a senha e invalida o token na mesma operacao -- uso unico, o link nao
+   pode ser reusado). O banco guarda so o HASH SHA-256 do token (colunas novas
+   usuario.resetTokenHash/resetTokenExpira) -- nunca o token em claro, mesmo raciocinio de nunca
+   guardar senha em claro. Nova JSP redefinir-senha.jsp. Testado end-to-end num container
+   descartavel (fluxo completo: pedir reset -> token gerado sem mudar senha -> confirmar com
+   token valido -> senha muda e token e invalidado -> reusar o mesmo token e rejeitado -> login
+   com a senha nova funciona). Testes: LIC 322/322 (11 novos).
+[RATE-LIMIT] 🔴 LogInServlet/ResetPasswordServlet/CadastroUsuarioServlet nao tinham limite de
+   tentativas -- um script podia tentar senha, disparar reset de senha ou spammar cadastro sem
+   limite nenhum. Nova RateLimitFilter (padrao dos filtros existentes, url-pattern /*): limite de
+   5 tentativas POST por minuto, por IP+endpoint (janela deslizante, em memoria). Acima do
+   limite, 429. Testado end-to-end no container: 5 tentativas passam, a 6a e bloqueada.
+
+--- K.0d FEITO EM 2026-07-14 (finalizacao do e-mail + feedback) ---
+[EMAIL-WIRING] 🔴 SENDGRID_FROM_EMAIL nunca chegava no container -- EnvioEmail.java ja lia essa
+   env var (com fallback hardcoded), mas o docker-compose.yml so repassava SENDGRID_API_KEY pro
+   `app`, entao configurar o remetente no .env nao tinha efeito nenhum, sempre caia no fallback.
+   Corrigido: SENDGRID_FROM_EMAIL adicionado ao environment do docker-compose.yml. Achado
+   testando o fluxo de reset de senha na pratica, nao em revisao de codigo.
+[SELF-SPOOF-EMAIL] 🔵 diagnostico ao vivo (bati na API do SendGrid direto de dentro do
+   container, usando a env var real sem nunca expor ela): reset de senha configurado
+   corretamente (chave + remetente verificado) mesmo assim nao entregava quando o e-mail de
+   teste do usuario era IGUAL ao remetente (`ideiaware@outlook.com` -> `ideiaware@outlook.com`).
+   Causa: protecao anti-spoofing do Outlook/Hotmail contra e-mail que alega vir de @outlook.com
+   sem passar pelos servidores da Microsoft -- descarta em silencio, nem cai no spam. Nao e bug
+   do sistema; documentado aqui pra nao redescobrir depois. Mitigacao: testar sempre com
+   destinatario de OUTRO provedor (confirmado funcionando).
+[LOG-SENDGRID] 🔵 EnvioEmail.java so registrava log quando o SendGrid recusava (status != 2xx)
+   -- tanto a falta de SENDGRID_API_KEY quanto um envio ACEITO ficavam mudos, dificultando
+   diagnostico (precisei testar a API na mao pra achar o motivo real de uma falha). Agora
+   registra sempre: sucesso loga o X-Message-Id (rastreavel no Activity Feed do SendGrid),
+   ausencia de API key loga explicitamente, e falha continua logando status+corpo da resposta.
+[REDEFINIR-SENHA-VISUAL] 🔵 redefinir-senha.jsp (criada em K.0c) usava um layout ad-hoc
+   (Materialize card generico) que nao seguia o padrao visual de nenhuma outra tela --
+   reescrita usando exatamente a mesma estrutura/CSS do cadastro (login.jsp): mesmo header com
+   logo + fonte Condiment, classes `.form`/`.thumbnail`/`.erro`/`.message`, mesmo estilo de
+   botao, "olhinho" de mostrar senha, e o medidor de forca de senha (barra + criterios) que o
+   cadastro ja tinha. Testado renderizando de verdade num container descartavel (token invalido
+   e token valido), sem erro de JSP.
+[FEEDBACK] 🔵 FUT-02 implementado: botao "Feedback" no menu da home (index.jsp) abre modal com
+   textarea, POST pra nova EnviarFeedbackServlet (exige sessao, SEC-25 POST-only), que manda a
+   sugestao + nome/usuario/e-mail de quem enviou por e-mail via EnvioEmail ja existente. Destino
+   configuravel por FEEDBACK_EMAIL (.env + docker-compose.yml) -- deliberadamente SEPARADO do
+   SENDGRID_FROM_EMAIL (mesmo motivo do SELF-SPOOF-EMAIL acima: usar o mesmo endereco recriaria
+   o problema de auto-envio). Toast de sucesso/erro na volta pra home. Testado end-to-end num
+   container descartavel: bloqueio sem sessao (401), bloqueio de sugestao vazia, e o caminho
+   sem FEEDBACK_EMAIL configurado degrada sem excecao (so loga e mostra erro amigavel). Testes:
+   LIC 326/326.
+[FOOTER-FLEX] 🔵 erros/404.jsp e erros/500.jsp: `<body>` era `display:flex` mas o `<main>`
+   (unico filho direto) nao era -- o `flex:1` da div de conteudo (pra empurrar o footer pra
+   baixo) nao tinha efeito nenhum, ja que flex-grow so funciona quando o PAI direto e um flex
+   container. Resultado: footer colado quase em cima do conteudo em vez de fixo no rodape.
+   Corrigido: `<main>` tambem virou `display:flex; flex-direction:column; flex:1;`, completando
+   a cadeia flex (body -> main -> conteudo). Testado renderizando as 2 paginas de verdade num
+   container descartavel.
+[MODAL-JQUERY] 🔴 REGRESSAO real do MAT-CONSOLIDA (2026-07-13), causa raiz so achada de verdade
+   depois de 2 tentativas erradas -- usuario confirmou "isso estava funcionando ontem" (estava
+   certo) e "ainda assim nao funcionou" depois da 1a correcao (tambem estava certo). So resolveu
+   de verdade instalando Playwright e testando num navegador real (2 tentativas anteriores
+   foram por leitura de codigo-fonte, insuficiente -- ficaram descobertas parciais).
+   3 problemas empilhados, todos do MESMO commit (5dc3f55, trocou CDN materialize v1.0.0 por
+   arquivo LOCAL v0.100.1 em login.jsp/index-perfil.jsp):
+   1) NAMESPACE ERRADO: essa v0.100.1 se expoe como `window.Materialize`, NUNCA `window.M` (o
+      atalho `M` so foi introduzido na v1.0.0). Confirmado ao vivo no browser:
+      `typeof window.M === "undefined"`, `typeof window.Materialize === "object"`. Todo codigo
+      (o pre-existente em login.jsp E o que eu escrevi ontem em index.jsp) usava `M.Modal.init`
+      -- nunca ia funcionar, nao importa mais nada.
+   2) API DE ARGUMENTO: `Materialize.Modal.init($els)` chama `$els.each(...)` por dentro -- so
+      aceita objeto jQuery, nunca NodeList puro do `querySelectorAll`.
+   3) ORDEM DE SCRIPT (so em login.jsp): `materialize.min.js` carregava no `<head>` (linha 32) e
+      jQuery so la embaixo no `<body>` (linha 425) -- quando materialize.min.js executava,
+      `window.jQuery` ainda nao existia, entao ELE MESMO falhava ao rodar e `window.Materialize`
+      nunca ficava definido. Com a v1.0.0 (CDN, sem dependencia de jQuery) isso nunca importou,
+      por isso funcionava "ontem". index.jsp ja tinha a ordem certa (jQuery antes) -- so sofria
+      dos problemas 1 e 2.
+   index-perfil.jsp sofreu a mesma troca de versao mas nao tem modal (so um tooltip que nunca
+   teve init em nenhuma das 2 versoes -- achado separado, cosmetico, nao mexido).
+   AUDITORIA COMPLETA dos 10 arquivos do LIC com `class="modal"`: login.jsp e index.jsp
+   corrigidos pros 3 problemas (`Materialize.Modal.init($('#id'))`, ordem de script corrigida em
+   login.jsp, `M.toast(...)` -> `Materialize.toast(msg, ms)`, clique do trigger conectado
+   manualmente via `.on('click', ...)` + `.open()` na instancia). canva-mapa.jsp (`#sugestModal`,
+   botao "SUGESTAO") tinha um bug DIFERENTE, nao relacionado a versao: NENHUM init existia em
+   lugar nenhum -- corrigido adicionando `$('.modal').modal();` (padrao que ja funciona nos
+   outros 7 arquivos, e que usa `$.fn.modal`, registrado direto no jQuery, sem depender do
+   namespace `Materialize`/`M` -- por isso esses 7 nunca quebraram). storytelling-show.jsp,
+   validar-ideia.jsp, gerenciamento-ideia.jsp, storytelling.jsp, detalhes-ideia.jsp,
+   lista-ideia.jsp e minha-ideia.jsp: confirmado que ja usavam esse padrao correto, sem mudanca.
+   VERIFICADO DE VERDADE com Playwright + Chromium (nao so leitura de codigo): login instalado
+   num usuario de teste, os 2 modais abrem, o form de feedback envia e mostra toast de sucesso,
+   ZERO erros de JS no console durante o fluxo inteiro. Testes automatizados: LIC 326/326.
+
+--- K.0e FEITO EM 2026-07-14 (ajuste de rate-limit + tela de 429) ---
+[RATE-LIMIT-TUNE] 🔵 usuario relatou travar no proprio rate-limit em uso normal (containers
+   recem-subidos, algumas tentativas de senha) -- 5 tentativas/60s (K.0c) era apertado demais
+   pra uso real, so fazia sentido pra bloquear script. Aumentado pra 10 tentativas/2min --
+   ainda barra automacao (10 tentativas a cada 2min e inviavel pra brute-force contra bcrypt),
+   mas da folga real pra erro de digitacao ou varias pessoas atras do mesmo IP/NAT. Testado ao
+   vivo com Playwright: 10 tentativas passam, a 11a bloqueia.
+[RATE-LIMIT-429-PAGE] 🔵 o 429 do RateLimitFilter mostrava a pagina padrao feia do Tomcat
+   ("HTTP Status 429 – Too Many Requests"). Nova erros/429.jsp no mesmo padrao visual de
+   404.jsp/500.jsp (com o fix do FOOTER-FLEX ja aplicado), mapeada em web.xml
+   (`<error-page><error-code>429</error-code>...`). Testado ao vivo: tela renderiza certo,
+   footer no rodape, botao "Voltar ao login". Testes: LIC 326/326.
+
+--- K.0f FEITO EM 2026-07-14/15 (padronizacao visual: cores de modulo, fundo cinza, fontes de titulo) ---
+[COR-MODULO-REVERT] 🟠 ERRO MEU, corrigido na hora: entendi errado o pedido "telas fora da
+   pagina inicial, login, cadastro, reset senha e etc devem ser cinza igual a home" e troquei o
+   header/footer de TODOS os modulos (Canva=azul, Storytelling=indigo, Caixa de
+   Ferramentas=vermelho, Colaboracao=teal, Retencao=light-blue) pra cinza -- apagando a
+   identidade visual por modulo que era intencional. O pedido real era o oposto: cinza SO nas
+   telas de fora do sistema (login/erro/reset senha), cada modulo mantem sua propria cor.
+   Revertido via `git checkout` nos 14 arquivos (5 headers/footers compartilhados
+   headerCookies.jsp/footer.jsp/headerCookiesCV.jsp/canva-footer.jsp/headerCookies_2.jsp + 9
+   paginas com nav/footer proprio) assim que o usuario apontou o erro. Verificado com
+   Playwright que as cores originais voltaram certas em cada modulo.
+[VALIDAR-IDEIA-COR] 🔵 validar-ideia.jsp usava a cor de Retencao (light-blue, classe
+   "knowledge" leftover) mas semanticamente pertence ao fluxo de Colaboracao (o botao "Voltar"
+   ja levava pra index-colaboracao.jsp). Corrigido pra teal (cor da Colaboracao, mesma do
+   headerCookies.jsp/footer.jsp): nav-wrapper, logo circular, botao flutuante de voltar e
+   footer -- classe "knowledge" removida por nao fazer mais sentido nessa tela.
+[FUNDO-CINZA-PADRAO] 🔵 fundo de PAGINA (`<body>`) em ~25 telas usava a cor forte do proprio
+   modulo (ex.: Colaboracao com fundo verde/teal solido cobrindo a tela inteira) ou branco puro
+   -- padronizado pra `blue-grey lighten-5` (mesma cor de fundo da home/index.jsp) em TODAS as
+   telas, mantendo o header/footer com a cor do modulo intacta (so o fundo por tras do conteudo
+   mudou, nao a identidade do modulo). Efeito colateral corrigido no meio do caminho: um sed em
+   lote alterou por engano o TEXTO de um comentario HTML em storytelling-show.jsp (que
+   mencionava "<body>" como prosa) em vez de so a tag real -- comentario restaurado, tag real
+   corrigida separadamente. Testado ao vivo: fundo cinza atras do conteudo, header/footer do
+   modulo preservados. Testes: LIC 326/326.
+[FAB-VALIDAR-IDEIA] 🔵 identificado a pedido do usuario: botao flutuante laranja (FAB) em
+   validar-ideia.jsp com submenu de 3 acoes (Cadastrar nova ideia/Minhas ideias/Outras ideias)
+   -- acoes de colaborador comum, meio deslocadas numa tela admin-only de validacao. So
+   identificado/documentado por enquanto, nenhuma acao tomada -- decisao do usuario pendente
+   sobre o que fazer (remover, manter, mudar).
+[TITULO-COLABORACAO-CONTRASTE] 🔵 efeito colateral do FUNDO-CINZA-PADRAO: index-colaboracao.jsp
+   tinha um bloco de titulo customizado ("MÓDULO COLABORATIVO" + legenda "IDEIAWARE" + logo
+   circular grande) com texto branco (`white-text`), desenhado pro fundo teal solido antigo --
+   ilegivel no fundo cinza claro novo. Nenhuma outra tela tinha esse padrao (as demais so usam
+   `<h1 class="center">NomeDoModulo</h1>` simples, sem legenda nem logo repetida). Trocado pro
+   mesmo padrao das outras: `<h1 class="center">Módulo Colaborativo</h1>`, legenda e logo
+   duplicada removidas. Testado ao vivo. Testes: LIC 326/326.
+[COLABORACAO-TITULO-ESPACAMENTO] 🔵 mesmo comparado com as outras telas de modulo (ex.:
+   lista-canvas.jsp), index-colaboracao.jsp tinha o wrapper do titulo com `padding-top: 40px`
+   (as demais usam `padding: 10px`) -- titulo ficava ~30px mais baixo que o padrao. Os 3 cards
+   logo abaixo tinham so `margin-top: 20px`, ficando "colados" no titulo. Corrigido: padding
+   igualado a `10px`, margin-top dos cards aumentado pra `45px`, e `justify-content: center`
+   adicionado em `.colab-cards` (os cards ja ficavam centralizados matematicamente no container,
+   mas a regra deixa explicito/robusto contra telas menores). Testado ao vivo via screenshot
+   comparativo com lista-canvas.jsp. Testes: LIC 326/326.
+[FUNDO-CINZA-VARREDURA-2] 🟠 ERRO MEU, corrigido: o FUNDO-CINZA-PADRAO (rodada anterior) so trocou
+   a classe do `<body>` pra `blue-grey lighten-5`, mas 13 das 14 telas de modulo tinham um
+   `<div class="white" style="min-height: 90vh">` envolvendo QUASE TODO o conteudo visivel
+   (mais um `<div class="white">` menor por tras do titulo) -- esse branco cobria o cinza do
+   body inteiro, entao a maioria das telas continuava aparentando fundo branco puro (so
+   index-colaboracao.jsp, que nunca teve esse wrapper, aparecia certa). Usuario notou ao abrir
+   Retencao (lista-ideia-gerenciamento.jsp) e comparar com a home. Corrigido nos 13 arquivos
+   (cadastro-ideia, colaboracao, editar-texto, detalhes-ideia, lista-storytelling, lista-ideia,
+   gerenciamento-ideia, gerenciar-usuarios, minha-ideia, lista-ideia-gerenciamento,
+   validar-ideia, lista-caixa-de-ferramentas, lista-canvas): os dois `class="white"` viraram
+   `class=""`, deixando o cinza do body aparecer atras do conteudo, com header/footer do
+   modulo intactos. Os 9 canva-*.jsp de detalhe e o storytelling.jsp/-show/-finalizado ja
+   nao tinham esse wrapper (nao precisaram de fix); os `<li class="white">` do storytelling.jsp
+   sao itens de acordeon da barra lateral de ferramentas, nao o fundo da pagina -- nao mexido.
+   Testado ao vivo via Playwright em 9 telas (Retencao, Canva, Storytelling, Caixa de
+   Ferramentas, Minhas Ideias, Cadastro de Ideia, Gerenciar Usuarios, Validar Ideias);
+   colaboracao.jsp so e acessivel via fluxo normal (precisa de ideiaId na sessao), mas o diff
+   foi conferido a mao (so as 2 classes mudaram). Testes: LIC 326/326.
+[ERRO-FOOTER-COR] 🟠 ERRO MEU, corrigido: as 3 paginas de erro (404/500/429.jsp, telas "fora do
+   sistema") incluiam `header/footer.jsp` -- o footer compartilhado da Colaboracao, fixo em
+   `teal darken-2` -- e o botao "Ir para o inicio"/"Voltar ao login" usava `btn teal darken-2`.
+   Usuario notou o footer verde na tela de 404. Trocado nas 3 paginas: footer proprio inline
+   (`blue-grey lighten-1`, so copyright, sem linha de usuario ja que essas telas sao acessiveis
+   sem login) e botao pra `btn blue-grey darken-1`. O nav/logo dessas 3 paginas ja estava
+   correto (blue-grey lighten-1/lighten-3), so o footer/botao residual estava com a cor errada.
+   Testado ao vivo via Playwright (404). Testes: LIC 326/326.
+[CANVA-LOGO-CONTRASTE] 🔵 usuario notou que o circulo do logo no header do Canva nao tinha
+   contraste com o nav (ficava na mesma cor escura), diferente do padrao das outras telas (logo
+   sempre 2-3 tons mais claro que o nav, ex.: home blue-grey lighten-1/lighten-3, Colaboracao
+   teal darken-2/lighten-1). Dois bugs distintos: `lista-canvas.jsp` tinha o logo em `blue
+   darken-4`, identico ao nav (zero contraste); `header/headerCookiesCV.jsp` (compartilhado
+   pelos 9 canva-*.jsp de detalhe + canva-mapa.jsp) tinha o logo em `teal lighten-1` -- cor da
+   Colaboracao, leftover de copy-paste, nao do Canva. Ambos corrigidos pra `blue lighten-1`,
+   com contraste claro contra o nav `blue darken-4` e cor da familia certa. Testado ao vivo via
+   Playwright (lista-canvas.jsp e canva-canais.jsp). Testes: LIC 326/326.
+[FUNDO-CINZA-TOOLKIT] 🟠 ERRO MEU, corrigido: o FUNDO-CINZA-PADRAO so foi aplicado no projeto LIC
+   -- o Toolkit (Caixa de Ferramentas, projeto Java/Spring separado, mesmo container Docker,
+   contexto /toolkit) ficou de fora, com `<body>` sem nenhuma classe (fundo branco padrao do
+   navegador, destoando visualmente do resto do sistema). Usuario notou o "branco palido" ao
+   abrir o Toolkit. Corrigido nos dois arquivos de template compartilhados (equivalente aos
+   header/*.jsp do LIC): `WEB-INF/tags/header.tag` e `WEB-INF/tags/no-container-header.tag`,
+   ambos com `<body class="blue-grey lighten-5">`. O nav/footer (`red darken-1`, cor da Caixa de
+   Ferramentas) ja estava correto nos dois, so o fundo estava faltando. Testado ao vivo via
+   Playwright. Testes: LIC 326/326 (Toolkit e projeto Java separado, sem teste automatizado de
+   JSP/tag afetado por essa mudanca).
+[COL-18-CARD-COR] 🔵 usuario achou o card "Minhas Ideias" (index-colaboracao.jsp) chamando
+   atencao demais / muito brilhante (`teal lighten-2`). Escurecido um tom pra `teal lighten-1`,
+   mantendo diferenca clara do card "Outras Ideias" (`teal darken-1`) pra nao confundir os dois.
+   Testado ao vivo. Testes: LIC 326/326.
+[COL-19-CARD-ACTION-CLICK] 🔵 usuario pediu que a barra inferior dos 3 cards (Acessar/
+   Explorar/Nova ideia) fosse clicavel em toda a area, nao so no texto+seta -- sem mexer na area
+   do titulo/descricao acima. Causa: o `<a>` dentro de `.card-action` so envolvia o texto e o
+   icone, com o padding ficando no `.card-action` (fora do link). Corrigido: padding movido do
+   `.card-action` pro `<a>` (`display:flex; align-items:center; padding:16px 24px;`), fazendo o
+   link preencher toda a barra. Efeito colateral encontrado e corrigido: o Materialize aplica
+   `margin-right:24px` em `<a>` dentro de `.card-action` (pensado pra separar varios botoes lado
+   a lado) com especificidade maior que a regra nova -- sobrava uma faixa de 24px na ponta
+   direita sem clique; resolvido com `margin-right: 0 !important`. Testado ao vivo via
+   Playwright, clicando literalmente na borda direita da barra (longe do texto) e confirmando a
+   navegacao pra lista-ideia.jsp. Testes: LIC 326/326.
+[INFO-COLLAPSIBLE-CENTRO] 🔵 usuario pediu adicionar uma seta de expandir do lado direito no
+   cabecalho do collapsible do Toolkit (`/toolkit/informacoes`, FAQ "O que e Persona"/"O que e
+   Point of View"), que antes nao tinha indicador visual nenhum. Adicionado
+   `<i class="material-icons arrow-icon">expand_more</i>`, posicionado absoluto na direita.
+   Testado ao vivo via Playwright.
+[INFO-COLLAPSIBLE-CENTRO-REVERT] 🟠 ERRO MEU, corrigido: entendi que o pedido de "centralizar o
+   texto" tambem era sobre esse FAQ do Toolkit, e apliquei `justify-content: center` no
+   `.collapsible-header` (texto do h3 saiu do alinhamento a esquerda original). O pedido de
+   centralizacao era na verdade sobre os cards Acessar/Explorar/Nova Ideia do Colaborativo (ver
+   COL-20), nao sobre esse FAQ. Revertido: `.collapsible-header` do Toolkit voltou a nao ter
+   `justify-content` (texto do h3 alinhado a esquerda, como sempre foi); a seta adicionada
+   continua (isso nao foi contestado). Testado ao vivo via Playwright.
+[COL-20-CARD-ACTION-CENTRO] 🔵 pedido correto (esclarecido apos o erro acima): nos 3 cards do
+   Colaborativo (Acessar/Explorar/Nova Ideia), o texto do botao devia ficar centralizado na
+   barra, com o icone (seta ou +) do lado direito do texto, nao mais colado na esquerda como
+   antes. Corrigido: `.colab-cards .card-action a` ganhou `justify-content: center`; a ordem do
+   markup foi invertida (texto antes do icone, ex.: `Acessar<i>arrow_forward</i>`, sem a classe
+   `left` do Materialize que flutuava o icone antes do texto) com `margin-left: 8px` no icone
+   pra dar respiro. Resultado: "ACESSAR →" / "EXPLORAR →" / "NOVA IDEIA +", texto+icone
+   centralizados como grupo na barra. Testado ao vivo via Playwright. Testes: LIC 326/326.
+[LISTAGEM-CINZA-BRANCO] 🔵 usuario notou (prints) que as listagens clicaveis dos modulos (Canva,
+   Caixa de Ferramentas, Storytelling, Retencao, Gerenciar Usuarios, Validar Ideias no LIC; FAQ
+   do Toolkit) ficaram com fundo branco puro (#fff, default do Materialize pra
+   `.collapsible-header`/`.collapsible-body`) contrastando forte contra o fundo cinza da pagina
+   (blue-grey lighten-5) -- descrito como "bugado"/"metade branco metade cinza". Perguntado ao
+   usuario o que fazer (manter branco assumido como cartao / cinza claro+sombra / colorir por
+   modulo) -- escolhida a opcao recomendada: cinza bem claro + sombra sutil. Aplicado
+   `.collapsible-header`/`.collapsible-body { background-color: #f5f5f5 }` + `ul.collapsible`
+   com sombra z-depth-1, em 6 arquivos do LIC (lista-canvas, lista-caixa-de-ferramentas,
+   lista-storytelling, lista-ideia-gerenciamento, gerenciar-usuarios, validar-ideia) e
+   globalmente no `resources/css/style.css` do Toolkit (afeta o FAQ de informacoes.jsp e
+   qualquer collapsible futuro). storytelling.jsp NAO foi mexido -- o `.collapsible` dele fica
+   dentro do painel lateral de ferramentas (fundo grey lighten-2), contexto diferente das
+   listagens de modulo sobre fundo cinza da pagina. Testado ao vivo via Playwright (Retencao,
+   Gerenciar Usuarios, Toolkit Informacoes). Testes: LIC 326/326, Toolkit 116/116.
+[COL-21-ICONE-CANTO] 🔵 ajuste fino do COL-20: usuario achou o icone (seta/+) colado demais no
+   texto centralizado, pediu pra mandar bem pro cantinho direito da barra "pra testar". Trocado:
+   `.colab-cards .card-action a` ganhou `position: relative`, e o icone virou
+   `position: absolute; right: 16px` (fora do fluxo do flex) -- o texto continua centralizado
+   sozinho (o icone nao entra mais no calculo do centro), e o icone fica fixo no canto direito.
+   Testado ao vivo via Playwright. Testes: LIC 326/326.
+[STORY-TOAST-PILOTO] 🔵 pendencia antiga finalmente feita: piloto do padrao toast+redirect
+   pedido pro storytelling (substituindo a tela cheia storytelling-finalizado.jsp). Em
+   `js/MenuSuperior/geraPDF.js`, `salvaPDF()` -- callback de sucesso do POST pro
+   ExportaStoryServlet -- trocado de `window.location.href = "storytelling-finalizado.jsp"` pra:
+   esconde o overlay de loading, `Materialize.toast('Storytelling finalizado e exportado com
+   sucesso!', 4000, 'green')`, e depois de 1.8s redireciona pra `minha-ideia.jsp` (mesmo destino
+   do CTA "Ver minhas ideias" que a tela removida tinha). Usa o mesmo padrao de toast ja
+   validado em outras partes do app (`Materialize.toast` posicional, API legada da v0.100.1).
+   `storytelling-finalizado.jsp` NAO foi apagada (fica orfa por enquanto) -- so parou de ser
+   usada, ate o usuario validar o piloto e decidir se replica pro Canvas/Caixa e se apaga a
+   tela antiga. NAO testado ponta-a-ponta com export real (exigiria finalizar uma ideia de
+   verdade, mutando dado real) -- so revisado o codigo e confirmado que segue o mesmo padrao ja
+   comprovado funcionando (toast do feedback/persona/POV). Pendente: teste manual do usuario.
+[STORY-TOAST-REVERT] 🟠 usuario testou o STORY-TOAST-PILOTO ao vivo e o toast nao funcionou (nao
+   disse o erro exato). Ao inves de investigar agora, pediu pra desfazer e deixar quieto por
+   enquanto. Revertido `salvaPDF()` em `js/MenuSuperior/geraPDF.js` de volta ao
+   `window.location.href = "storytelling-finalizado.jsp"` original. PENDENCIA (ver K.4): revisar
+   o pedido de toast+redirect no storytelling com calma (investigar por que o toast nao
+   apareceu -- suspeita: `#overlay` pode estar por cima do toast, ou o toast dispara mas o
+   redirect de 1.8s corta ele cedo demais, ou algo na ordem de scripts/timing) antes de tentar
+   de novo. Testes: LIC 326/326.
+[STORY-TITULO-FONTE] 🔵 usuario pediu a fonte do IdeiaWare (Condiment, a mesma cursiva do logo
+   "IdeiaWare" na nav) no titulo "Storytelling" da listagem (lista-storytelling.jsp). Criada uma
+   classe nova `.title-app-page` (Condiment, sem o `color:#fff` do `.title-app` original -- esse
+   titulo fica sobre fundo claro, nao a nav escura, entao precisa do texto escuro padrao).
+   Testado ao vivo via Playwright. Testes: LIC 326/326. SUPERSEDIDO no mesmo dia -- ver
+   TESTE-FONTE-TITULO-MODULOS (o pedido evoluiu pra testar fontes sans-serif nos titulos de
+   TODOS os modulos, nao so Condiment no Storytelling).
+[TESTE-FONTE-TITULO-MODULOS] 🔵 usuario notou que o titulo dos modulos usa o fallback Arial do
+   sistema (Materialize declara `font-family: "Roboto", sans-serif` mas a Roboto quase nunca e
+   carregada via Google Fonts nas paginas de modulo -- so 6 arquivos no projeto todo carregam
+   Roboto, nenhum deles telas de modulo -- entao o navegador cai no Arial padrao do SO). Pedido:
+   testar 5 fontes candidatas, uma em cada titulo de modulo real (nao um artefato separado),
+   mais a cor do texto "IdeiaWare" da home (`blue-grey-text text-darken-2`, hex #455a64).
+   Aplicado ao vivo, uma fonte por modulo (nova classe `.titulo-modulo-teste` em cada arquivo,
+   Google Fonts real via `<link>`, peso bold/700-800):
+     1. Poppins    -> lista-canvas.jsp ("Canva")
+     2. Baloo 2     -> index-colaboracao.jsp ("Módulo Colaborativo")
+     3. Quicksand   -> lista-storytelling.jsp ("Storytelling") -- substitui o Condiment do
+        STORY-TITULO-FONTE (mesmo dia, pedido evoluiu)
+     4. Nunito      -> lista-caixa-de-ferramentas.jsp ("Caixa de Ferramentas")
+     5. Montserrat  -> lista-ideia-gerenciamento.jsp ("Gerenciamento de Ideias")
+   Testado ao vivo via Playwright nas 5 telas reais + publicado um artifact comparativo
+   (screenshots reais lado a lado) pra facilitar a escolha.
+[TITULO-MODULO-POPPINS] 🔵 usuario escolheu Poppins (bold/700). Aplicada nos 5 titulos de modulo
+   testados acima (Canva, Módulo Colaborativo, Storytelling, Caixa de Ferramentas, Gerenciamento
+   de Ideias), classe renomeada de `.titulo-modulo-teste` pra `.titulo-modulo` (definitiva, nao
+   e mais teste) em cada um dos 5 arquivos. Cor mantida (`blue-grey-text text-darken-2`).
+   PENDENCIA: usuario pediu pra guardar pra depois os titulos das TELAS DE DENTRO dos modulos
+   (ex.: canva-mapa.jsp e as 9 telas de canva-*.jsp, storytelling.jsp, cadastro-ideia.jsp,
+   etc.) -- por enquanto so os 5 titulos de entrada de cada modulo foram trocados pra Poppins.
+[TITULO-MODULO-AJUSTE-FINO] 🔵 usuario pediu pra afinar um pouco a letra (Poppins bold ficou
+   pesado) e dar espaco entre o titulo e a listagem (estava tudo colado). Ajustado nos 4
+   arquivos que sao listagem (lista-canvas, lista-storytelling, lista-caixa-de-ferramentas,
+   lista-ideia-gerenciamento): peso 700 -> 600, `margin-bottom: 28px` no `.titulo-modulo`.
+   index-colaboracao.jsp NAO recebeu o margin-bottom (so o peso 600) -- nao e uma listagem,
+   e os cards abaixo do titulo ja tinham espacamento proprio ajustado antes (COL-20,
+   margin-top:45px na .colab-cards); somar os dois ia inchar demais o espaco. Testes: LIC
+   326/326.
+[TITULO-MODULO-SUBTELAS] 🔵 usuario gostou do resultado e pediu pra estender Poppins +
+   `blue-grey-text text-darken-2` pras subtelas de dentro dos modulos (nao so a tela de
+   entrada de cada um). Aplicado nos 9 titulos: Minhas Ideias (minha-ideia.jsp), Outras
+   Ideias (lista-ideia.jsp), Cadastro de Ideia (cadastro-ideia.jsp), Validar Ideias
+   (validar-ideia.jsp), Detalhes da Ideia (detalhes-ideia.jsp), Colaboração da Ideia
+   (colaboracao.jsp), Editar Texto (editar-texto.jsp), Gerenciamento de Ideias
+   (gerenciamento-ideia.jsp), Gerenciar usuários (gerenciar-usuarios.jsp). Titulos das
+   telas de trabalho dentro dos modulos (canva-mapa.jsp, os 9 canva-*.jsp, storytelling.jsp)
+   ficam pra depois, a pedido do usuario. Testes: LIC 326/326.
+[LIMPEZA-COMENTARIOS] 🔵 usuario notou que os comentarios adicionados nas ultimas rodadas
+   (COL-16 a COL-21, LISTAGEM-CINZA, ERRO-FOOTER-CINZA, FUNDO-CINZA-TOOLKIT,
+   TITULO-MODULO-POPPINS, TESTE-FONTE-TITULO, UX-INFO-COLLAPSIBLE, RATE-LIMIT-TUNE) ficaram
+   verbosos (explicavam o "porque" inteiro no codigo). Varredura completa no projeto (LIC +
+   Toolkit, todos os .jsp/.java/.js/.css/.tag, exceto bibliotecas de terceiros) enxugando
+   pra "chave: descricao curta", sem a explicacao/raciocinio (que ja fica registrado aqui no
+   relatorio). Nenhuma mudanca de comportamento, so comentarios. Testes: LIC 326/326,
+   Toolkit 116/116.
+[TOUR-CONTEXTO] 🟠 usuario reportou (print) a listagem de `/toolkit/informacoes` "bugada" --
+   metade cinza, metade branca com botoes. Causa real: o tour guiado (EnjoyHint,
+   custom.tour.js) roda em TODA pagina via `$(document).ready` global, e sem cookie de
+   progresso (`tourStep`) cai no `else` e mostra sempre o PRIMEIRO passo do tour (feito pra
+   tela de Personas -- "Clique para criar uma persona"), mesmo em paginas onde os elementos
+   alvo nao existem. Ao acessar `/informacoes` direto (fora da sequencia esperada do tour),
+   o EnjoyHint tentava se ancorar em elementos que nao existem ali, resultando no overlay
+   escuro + caixa de dialogo branca mal posicionada que parecia um bug visual. Corrigido: o
+   tour so inicia do zero na tela de Personas (`.criar-persona` existe), ou continua se ja
+   estiver em andamento (cookie `tourStep` setado) -- nas demais telas, sem contexto, nao
+   dispara mais. Tambem removida uma chamada morta (`$('.fixed-action-btn').openFAB()`) que
+   dependia do FAB removido no UX-FAB-VISIVEL abaixo. Testes: Toolkit 116/116.
+[TITULO-MODULO-TOOLKIT] 🔵 pedido do usuario: aplicar a mesma fonte/cor dos titulos de modulo
+   do LIC (Poppins 600 + `#455a64`) nos titulos proprios do Toolkit. Como todas as 8 telas
+   (Personas, POV, Mapa de Empatia, Informacoes, etc.) usam a mesma classe `h2.title-page`,
+   um unico ajuste no `resources/css/style.css` compartilhado cobriu todas de uma vez (mais
+   o link do Google Fonts adicionado nos 2 templates `header.tag`/`no-container-header.tag`).
+   Testes: Toolkit 116/116.
+[UX-FAB-VISIVEL] 🟠 usuario reportou que o FAB (botao "+" flutuante com speed-dial escondendo
+   "Criar Persona" e "Criar Point of View") "esconde os botoes, nao fica intuitivo". Nesse
+   meio-tempo veio a tona que o botao de POV nao era um bug simples: ele fica desabilitado
+   ate existir uma persona, habilita depois, e exige marcar um checkbox de persona na tabela
+   antes de funcionar (senao mostra um toast) -- mas visualmente era identico ao botao de
+   Persona (que sempre funciona na hora), sem nenhuma pista do pre-requisito. Perguntado ao
+   usuario como preferia resolver (deixar mais claro no lugar / criar FAB dedicado na tela de
+   POV / deixar quieto) -- escolhida a 1a, mas o usuario reconsiderou em seguida e pediu pra
+   tirar do FAB de vez. Implementado: os 2 botoes viraram botoes normais, sempre visiveis,
+   com icone+texto ("Nova Persona" / "Novo Point of View"), acima da tabela de
+   list-personas.jsp. O tooltip do botao de POV agora muda dinamicamente conforme o estado
+   ("Crie uma persona primeiro" / "Marque uma persona na lista abaixo primeiro" / "Criar
+   Point of View com a(s) persona(s) selecionada(s)"), lido ao vivo pelo Materialize
+   (`data-tooltip` + `aria-label` atualizados via JS, sem precisar reinicializar o plugin).
+   `custom.js`/`custom.tour.js` ajustados pros seletores novos (`.btn.criar-pov` no lugar de
+   `.btn-floating.criar-pov`). Verificado sem erros de console; NAO validado visualmente ao
+   vivo com dado real (exigiria uma ideia numa etapa valida da Caixa de Ferramentas com
+   cookie assinado por HMAC -- nao tentei forjar isso pra nao lidar com o segredo fora do
+   fluxo normal do app). Testes: Toolkit 116/116.
+[UX-EXPORTAR-VISIVEL] 🔵 3 botoes "Exportar" (Mapa de Empatia detalhado, Visao Geral do Mapa
+   de Empatia, Visao Geral do POV) usavam `btn-flat` (sem preenchimento de cor) -- quase
+   invisiveis contra o fundo, destoando do resto do app que usa botoes solidos coloridos.
+   Trocados pra `btn red darken-1` solido. Testes: Toolkit 116/116.
+[UX-TOOLKIT-RODADA-2] 🔵 usuario gostou dos botoes visiveis (UX-FAB-VISIVEL) e mandou uma
+   segunda leva de ajustes na tela de Mapa de Empatia - Visao Geral e no Toolkit em geral,
+   com print:
+     - Vermelho escurecido (`darken-1` -> `darken-2`) no nav-wrapper, footer e botao flutuante
+       de voltar, nos 4 arquivos compartilhados (header.tag/no-container-header.tag/footer.tag/
+       no-container-footer.tag) + nas 14 telas que tem o botao "Voltar" proprio + nos 3 botoes
+       "Exportar" (ver UX-EXPORTAR-VISIVEL acima, que ja tinham sido trocados nessa rodada).
+     - Footer com duas cores: `.footer-copyright` ganhou `red darken-3` explicito (mais escuro
+       que o `red darken-2` do resto do footer), replicando o padrao visual do LIC (que usa a
+       mesma logica com a cor de cada modulo).
+     - [UX-CRUMB-VOLTAR] bug real encontrado: nas 2 telas que usam o template
+       `no-container-header.tag` (empathy-map-overview.jsp, point-of-view-overview.jsp), o
+       breadcrumb ficava colado na borda esquerda (sem o wrapper `.container` que da ~5% de
+       margem nas outras telas) -- o botao flutuante de voltar (`position:fixed; left:20px`)
+       cobria o primeiro item do breadcrumb. Corrigido com uma classe nova
+       `.crumb-no-container` (padding-left: 90px), aplicada so nessas 2 telas.
+     - "Visao geral" do Mapa de Empatia (empathy-map.jsp) era um link de texto puro sem fundo
+       (`class="empathy-overview"`, so mudava de cor no hover) -- virou um botao solido
+       (`btn red darken-2`), consistente com o botao "Visao Geral" da tabela de POV (que ja
+       tinha fundo).
+     - Icone do botao "Exportar" trocado de `fa-file-pdf-o` (Font Awesome, ficava a direita do
+       texto apesar da classe `left`) pro icone material `share` (Material Icons), o mesmo
+       usado no "Exportar Storytelling" do LIC, posicionado antes do texto no HTML (mais a
+       classe `left` do Materialize pro espacamento). 3 arquivos (empathy-map-detailed.jsp,
+       empathy-map-overview.jsp, point-of-view-overview.jsp).
+     - Botoes de acao das tabelas (editar/excluir/visualizar em list-personas.jsp e
+       list-point-of-view.jsp, 6 ocorrencias) trocados de `red darken-1` pra
+       `blue-grey darken-1` -- usuario achou a tela "muito vermelha" e pediu pra manter
+       icone-only (nao adicionar texto), so mudar a cor.
+   Testes: Toolkit 116/116. NAO validado visualmente ao vivo (mesmo motivo do UX-FAB-VISIVEL --
+   exige sessao com cookie assinado por HMAC; nao tentei forjar). Ficaram 2 pontos incertos,
+   perguntados de volta ao usuario: (1) o botao "Sair" com texto/icone sobrepostos "ao entrar
+   numa ideia" -- nao encontrei diferenca estrutural no codigo entre essa tela e a listagem
+   que explicasse isso, os 2 templates usam markup identico pro nav; (2) o icone central
+   (`fa-user-circle-o centered-icon`) do mapa de empatia -- o CSS define o MESMO tamanho fixo
+   (70px) tanto na tela de criacao quanto na de visao geral, entao a causa do "esticar"
+   relatada pelo usuario nao ficou clara pela leitura do codigo sozinha.
+[UX-TOOLKIT-RODADA-3] 🟠 usuario mandou 2 prints (Mapa de Empatia normal vs Visao Geral) que
+   resolveram as duvidas da rodada anterior:
+     - [ICONE-EXPORTAR-DIREITA] pedido mudou de "icone a esquerda" pra "icone a direita" --
+       revertido nos 3 arquivos (empathy-map-detailed/overview.jsp, point-of-view-overview.jsp)
+       pro padrao `Texto<i class="material-icons right">share</i>`.
+     - [VERMELHO-AINDA-CLARO] usuario reportou que o vermelho "nao escureceu" mesmo apos
+       `docker compose down -v && up --build` + hard refresh. Causa provavel: `darken-1` ->
+       `darken-2` e uma diferenca de RGB pequena (~18,10,6 pontos), dificil de perceber a
+       olho nu comparando screenshots. Escurecido mais uma vez, pra `darken-3` (nav-wrapper,
+       footer, botao voltar, botoes Exportar e Visao-geral) e `darken-4` no
+       `.footer-copyright` (mantendo o efeito 2-tons). Se AINDA nao aparecer diferenca apos
+       rebuild, o proximo passo de diagnostico seria `docker compose build --no-cache app`
+       (elimina qualquer cache de camada Docker da equacao).
+     - [MAPA-EMPATIA-LARGURA] causa raiz real do "quadro esticando" identificada pelos prints
+       lado a lado: NAO era o icone central (que ja tem tamanho fixo, ver rodada anterior) --
+       era a pagina INTEIRA. `empathy-map-detailed.jsp`, `empathy-map-overview.jsp` e
+       `point-of-view-overview.jsp` usavam o template `t:no-container-header`/
+       `t:no-container-footer` (sem o wrapper `.container` que da ~5% de margem nas outras
+       telas), entao o conteudo esticava pra largura total da janela, diferente da tela de
+       criacao (`empathy-map.jsp`, que usa o `t:header` normal). Trocadas as 3 telas pro
+       template com container -- resolve a largura E, de quebra, o bug do breadcrumb coberto
+       pelo botao voltar (UX-CRUMB-VOLTAR da rodada anterior), que so existia por causa do
+       no-container -- a classe/CSS dessa correcao foram removidos por ficarem sem uso.
+       `no-container-header.tag`/`no-container-footer.tag` ficaram orfaos (nenhuma tela usa
+       mais) -- NAO apagados ainda, candidato a limpeza futura.
+     - [SAIR-OVERLAP-FLEX] no consegui achar a causa exata do texto/icone sobrepostos no botao
+       "Sair" pela leitura do codigo (o markup e identico em toda parte). Aplicado um fix
+       defensivo robusto: `.logout-link` virou `display:inline-flex; align-items:center;
+       white-space:nowrap` com `margin-left` no icone (mesmo padrao ja usado com sucesso no
+       card-action do LIC, ver COL-19), que elimina overlap por quebra de linha ou
+       desalinhamento vertical independente da causa exata.
+   Testes: Toolkit 116/116. NAO validado visualmente ao vivo (mesma restricao das rodadas
+   anteriores).
+[UX-TOOLKIT-RODADA-4] 🟠 usuario mandou prints confirmando que darken-4 no footer-copyright e
+   o fix de flex no Sair (rodada anterior) ainda nao resolveram:
+     - [FOOTER-2TONS-V2] `red darken-3` (#C62828) -> `red darken-4` (#B71C1C) tambem e uma
+       diferenca de RGB pequena (~15,12,12 pontos) -- mesma armadilha do vermelho principal
+       (ver VERMELHO-AINDA-CLARO). Abandonada a escala de classes Material pra essa faixa
+       especifica: `.footer-copyright` agora usa `background-color:#4a0000` explicito (marrom
+       bem escuro), bem distante do `darken-3` do resto do footer, sem depender de perceber
+       diferenca entre tons de vermelho parecidos.
+     - [SAIR-OVERLAP-V2] o fix de flexbox (rodada anterior) nao resolveu -- aumentado o gap de
+       8px pra 12px (`!important`, pra garantir que nada sobrescreva) e trocado o icone de
+       Font Awesome (`fa-sign-out`) pro Material Icons (`logout`), que ja carrega em toda
+       pagina do Toolkit e tem um traco mais simples/limpo que pode renderizar com metricas
+       mais previsiveis que o Font Awesome nesse contexto.
+   Testes: Toolkit 116/116. Como e a 2a rodada sem resultado visivel apesar de rebuild
+   completo (down -v + up --build + hard refresh) reportado pelo usuario, vale considerar
+   `docker compose build --no-cache app` da proxima vez pra descartar de vez cache de camada
+   Docker como causa, antes de continuar ajustando valores as cegas.
+[BUG-POV-VAZIO] 🟠 usuario reportou que o botao "Novo Point of View" ficava habilitado mesmo
+   sem nenhuma persona criada. Causa raiz real (nao era cache/CSS dessa vez): a tabela de
+   personas SEMPRE renderiza pelo menos um `<tr>` -- quando `${personas}` esta vazio, o JSP
+   desenha uma linha placeholder ("Nenhuma persona criada ainda..."). A funcao
+   `Toolkit.Persona.thereIsPersonaCreated()` contava `<tr>` direto
+   (`$(".personas-list table tbody tr").length > 0`), entao essa linha placeholder era
+   contada como se fosse uma persona de verdade, habilitando o botao incorretamente.
+   Corrigido: agora conta `.chkPersona` (o checkbox so existe nas linhas reais, geradas pelo
+   `c:forEach`, nunca na linha placeholder). Testes: Toolkit 116/116.
+[SAIR-ICONE-CONSISTENTE] 🔵 usuario confirmou que o espacamento do botao Sair ficou certo,
+   mas o icone Material ("logout") destoava do resto do app (que usa Font Awesome). Revertido
+   pro `fa-sign-out` original, mantendo o `margin-left:12px !important` que corrigiu o
+   espacamento -- o problema real sempre foi so o gap insuficiente, nao o icone em si.
+[FOOTER-2TONS-V3] 🔵 confirmado: `#4a0000` (tentativa anterior) finalmente ficou visivel, mas
+   escuro demais ("marrom" em vez de "vermelho mais escuro"). Ajustado pra `#801a1a` -- mesmo
+   matiz do `red darken-3` do resto do footer (RGB escalado proporcionalmente, nao um tom
+   arbitrario), so mais escuro, pro contraste leve que o usuario queria. Usuario tambem
+   perguntou sobre a listagem do Toolkit "estar diferente" -- confirmado que
+   `list-personas.jsp` e `list-point-of-view.jsp` usam o MESMO `<t:footer>` compartilhado
+   (nao tem footer proprio em nenhuma tela do Toolkit, so o de `footer.tag`/
+   `no-container-footer.tag`), entao a correcao e automaticamente universal; se ainda
+   aparecer diferente la depois do sync, e sinal de cache/versao desatualizada especificamente
+   naquela tela, nao de codigo faltando. Testes: Toolkit 116/116.
+[FOOTER-2TONS-LIC] 🔵 mesmo problema (footer-copyright so com o overlay padrao sutil do
+   Materialize) encontrado no lado LIC: `lista-caixa-de-ferramentas.jsp` (nav/footer
+   `red darken-1`, cor da Caixa de Ferramentas). Aplicado o mesmo tratamento do Toolkit --
+   cor explicita em vez de depender do overlay padrao. 1a tentativa (`#952522`, escalado a
+   0.65 do `red darken-1`) ficou com contraste forte demais segundo o usuario; ajustado pra
+   `#d32f2f` (equivalente ao `red darken-2` do Materialize), mais proximo do tom original,
+   ainda perceptivel lado a lado por estar adjacente no footer (diferente do nav, onde a
+   mesma diferenca de 1 passo nao era perceptivel -- comparacao lado a lado parece ser mais
+   sensivel que comparacao entre telas/momentos diferentes). Escopo desta rodada: so
+   `lista-caixa-de-ferramentas.jsp`, a pedido explicito do usuario -- as outras cores/footers
+   de modulo do LIC (Canva, Colaboracao, Storytelling, Retencao) provavelmente tem o mesmo
+   problema (overlay padrao sutil) mas NAO foram tocadas ainda, pendente confirmacao do
+   usuario se quer estender pra todas.
+[FOOTER-2TONS-REVERT] 🟠 ERRO MEU, corrigido: usuario mandou 4 prints lado a lado (Toolkit
+   vermelho + 3 telas de modulo do LIC -- teal/indigo/azul) que provaram o oposto do que eu
+   assumi. As 3 telas de referencia (Colaboracao, Storytelling, Canva) usam
+   `<div class="footer-copyright">` SEM NENHUM override customizado -- so o overlay padrao do
+   Materialize (`rgba(51,51,51,0.08)`) -- e o efeito 2-tons fica visivel e equilibrado nelas.
+   O vermelho do Toolkit com `#801a1a` e do LIC com `#d32f2f` ficaram com contraste forte
+   demais/desbalanceado justamente por eu ter tentado "forcar" a diferenca com cores
+   customizadas em vez de confiar no mesmo mecanismo que ja funciona bem no resto do app.
+   Revertido nos 3 arquivos (Toolkit `footer.tag`/`no-container-footer.tag` e LIC
+   `lista-caixa-de-ferramentas.jsp`) pro `<div class="footer-copyright">` puro, sem style
+   customizado -- mesmo padrao exato dos footers de referencia. Licao: a suspeita inicial de
+   "overlay padrao sutil demais" (que motivou toda essa sequencia de tentativas) provavelmente
+   nunca foi o problema real -- mais provavel ter sido rebuild/cache desatualizado na
+   comparacao original. Testes: Toolkit 116/116, LIC 326/326.
+[FOOTER-2TONS-V4-FINAL] ✅ RESOLVIDO. Antes de tentar de novo, avisado ao usuario que os
+   numeros das ultimas 2 rodadas nao batiam (2 cores quase identicas matematicamente deram
+   avaliacoes opostas: "muito contraste" vs "nenhum contraste"), sinal provavel de cache/
+   rebuild desatualizado numa das comparacoes -- usuario confirmou e pediu pra seguir mesmo
+   assim. Aplicado um meio-termo calculado (media RGB entre o `#801a1a` considerado forte
+   demais e o `#d32f2f`/padrao considerado fraco demais): `#a52724`, nos 3 arquivos (Toolkit
+   `footer.tag`/`no-container-footer.tag` + LIC `lista-caixa-de-ferramentas.jsp`). Usuario
+   confirmou "AGORA FICOU PERFEITO" apos sync + rebuild. Testes: Toolkit 116/116, LIC 326/326.
+   Pendente (nao pedido ainda): estender esse mesmo `#a52724` (ou o equivalente escalado pra
+   cada matiz) pros outros footers de modulo do LIC (Canva, Colaboracao, Storytelling,
+   Retencao) SE o usuario achar que eles tambem precisam de mais contraste -- por ora ficam
+   como estavam (padrao Materialize puro), que foi a referencia usada nessa rodada toda.
+[TITULO-MODULO-POPPINS-TELAS-EXTERNAS] 🔵 usuario pediu pra validar visualmente as telas de
+   fora do sistema (login/cadastro/redefinir-senha, login.jsp + redefinir-senha.jsp) e aplicar
+   a fonte Poppins onde fizer sentido. login.jsp e redefinir-senha.jsp carregavam a fonte
+   Montserrat via Google Fonts mas nenhuma classe CSS do projeto usava Montserrat em lugar
+   nenhum (confirmado via grep) -- link morto. Trocado pela Poppins (mesma usada nos titulos
+   de modulo) e aplicada nos titulos `<h5>` das 3 telas (Login/Cadastro/Redefinir senha, todas
+   dentro de login.jsp exceto a de redefinir senha). Testado ao vivo via Playwright
+   (screenshots reais das 3 telas). Testes: LIC 326/326.
+[BUG-TITULO-LOGIN-NAO-ATUALIZA] 🟠 achado durante a validacao visual acima (nao reportado pelo
+   usuario, achado ao comparar screenshots): o `<h5>` de titulo em login.jsp era HTML estatico
+   sem `id`, e nenhum dos handlers JS que alternam entre os 3 formularios (login/cadastro/
+   redefinir-senha, incluindo os que reabrem o form certo apos erro de validacao do servlet)
+   atualizava o texto -- resultado: o titulo sempre mostrava "Login" mesmo com o formulario de
+   Cadastro ou de Redefinir Senha visivel na tela. Corrigido: `id="form-heading"` no `<h5>` +
+   helper `setFormHeading(text)` chamado nos 6 pontos que trocam de formulario. Confirmado via
+   screenshot fresco (titulo mostra "Cadastro" e "Redefinir Senha" corretamente). Aproveitado
+   pra remover 4 `console.log` de debug esquecidos nos mesmos handlers. Testes: LIC 326/326.
+[SENHA-FORCA-PRISTINE] 🔵 usuario notou (em redefinir-senha.jsp) que a barra de força de senha
+   ja nascia mostrando "Muito fraca" em vermelho antes do usuario digitar qualquer coisa --
+   mesmo padrao existia tambem no formulario de Cadastro (login.jsp), mesmo bloco de codigo
+   duplicado. Causa: `<div class="strength-text" id="strength-text">Muito fraca</div>` era texto
+   estatico no HTML, so' era recalculado a partir do primeiro `oninput`. Corrigido nos 2 arquivos:
+   barra + texto agora ficam dentro de um wrapper `#strength-meter` com `display:none` por
+   padrao, e `checkPasswordStrength()` so' o exibe quando `password.length > 0` (e esconde de
+   novo se o campo for limpo). Texto estatico "Muito fraca" removido do HTML. Testes: LIC
+   326/326.
+[CADASTRO-VISUAL-OVERHAUL] 🔵 usuario apontou 3 problemas visuais no formulario de Cadastro
+   (login.jsp, print anexado) e pediu opiniao + ajuste:
+   1. LOGO REDUNDANTE: `.thumbnail` (img de 150px, circular) aparecia entre o titulo "Cadastro"
+      e o 1o campo -- 3a vez que a marca IdeiaWare aparecia na tela (nav + titulo grande +
+      thumbnail), empurrando o formulario pra baixo da dobra sem digitar nada ainda. Removida
+      (o bloco `<div class="thumbnail">` inteiro tirado do `<div class="form">`, afeta as 3
+      abas -- login/cadastro/redefinir -- ja que fica fora dos 3 `<form>` que alternam).
+   2. REQUISITOS DE SENHA SOLTOS: a lista de 5 criterios (texto vermelho puro, sem fundo/borda)
+      ficava colada direto no checkbox de Termos de Uso logo abaixo, sem separacao visual.
+      Envolvida num cartao (`.criterio-card`: fundo cinza-azulado, borda arredondada, padding,
+      titulo "Sua senha deve conter:"), cores trocadas pra tons mais suaves (`#c62828`/`#2e7d32`
+      no lugar de red/green puros) e adicionado icone ✕/✓ antes de cada item via `::before`
+      (so' CSS, sem mudar a logica JS que so' alterna a classe `.valid`).
+   3. CAMPOS "DUPLICADOS" (achado real, nao so' opiniao): o placeholder de cada campo repetia o
+      texto do label em minusculo ("Nome" no label, "nome" no placeholder) -- e como o input
+      herdava `text-align:center` do `.form` enquanto o label e' `text-align:left`, o resultado
+      visual era literalmente 2 blocos de texto quase identicos em posicoes diferentes, lendo
+      como duplicado. Corrigido: placeholders viraram exemplos reais ("Digite seu nome
+      completo", "Escolha um nome de usuário", "seu@email.com", "Crie uma senha", "Repita a
+      senha") + `.register-form input { text-align:left }` (alinha com o label acima, so'
+      afeta o form de cadastro).
+   4. ESPACAMENTO: com a logo removida sobrou um vao grande antes do 1o campo. Adicionado
+      `.container .info { margin: 25px auto; }` (era 50px, so' dentro do `<style>` proprio do
+      login.jsp -- nao mexe no `.container .info` global do css/style.css, que tambem e' usado
+      por lista-ideia.jsp/minha-ideia.jsp/redefinir-senha.jsp).
+   Validado ao vivo via Playwright nas 3 telas (Login/Cadastro, incluindo digitando senha fraca
+   pra conferir os icones ✕/✓ mudando de cor) -- pedido explicitamente como algo "grande e
+   detalhado" pelo usuario, entao a validacao visual foi feita antes de reportar concluido
+   (diferente da rotina de nao validar sempre). Testes: LIC 326/326.
+   AJUSTE: usuario pediu pra manter a logo SO no login (poucos campos, cabe sem forcar scroll) --
+   removida da posicao global compartilhada, ela existia so' fora dos 3 `<form>`, entao movida
+   pra dentro do `<form id="login-form">` (1o filho, antes do campo "usuario"). Como a alternancia
+   entre os 3 formularios ja e' feita via JS mostrando/escondendo o `<form>` inteiro, a logo agora
+   aparece/some sozinha com o login-form, sem precisar de JS novo -- Cadastro e Redefinir Senha
+   continuam sem ela. Validado ao vivo (Login com logo, Cadastro sem). Testes: LIC 326/326.
+[TITULO-MODULO-POPPINS-ERROS] 🔵 usuario pediu Poppins tambem nas telas de erro (404/500/429,
+   pasta erros/). Mesmo padrao de link morto pra Montserrat (nunca usada -- ja visto em login.jsp/
+   redefinir-senha.jsp) trocado pela Poppins nos 3 arquivos. Titulo `<h2>` de cada tela
+   (ex.: "Erro 404 - Página não encontrada") ganhou `blue-grey-text text-darken-2` +
+   `font-family:'Poppins', font-weight:600` inline, mesmo padrao usado no `<h5>` do login.jsp.
+   Nao havia mais nenhuma outra tela "de fora" com titulo sem a fonte nova -- login.jsp e
+   redefinir-senha.jsp ja tinham sido cobertas antes (ver TITULO-MODULO-POPPINS-TELAS-EXTERNAS).
+   Testes: LIC 326/326.
+[EMAIL-RESET-INVESTIGACAO] 🔵 usuario reportou que pediu redefinicao de senha e nao recebeu o
+   e-mail. Verificado nos logs do container (`docker logs`, ultimas 48h): SO 1 tentativa
+   registrada, `EnvioEmail: SendGrid aceitou o envio, status=202 messageId=JHf7jwQjReWfmYE8VoNn_A`
+   -- ou seja, o SERVIDOR fez a parte dele certo: achou o usuario pelo e-mail (senao
+   `ResetPasswordServlet` nem chamaria `EnviaEmail`, por design anti-enumeracao -- ver
+   K.0c/RESET-TOKEN), enviou pro SendGrid, e a API do SendGrid ACEITOU o envio (status 202) com
+   um messageId real. `SENDGRID_API_KEY` confirmada configurada no container (`docker exec`,
+   sem printar o valor); `SENDGRID_FROM_EMAIL=ideiaware@outlook.com`. Sem erro nenhum nos logs
+   (nem `SendGrid recusou`, nem `SENDGRID_API_KEY nao configurada`, nem rate-limit).
+   CONCLUSAO: nao e' bug de codigo -- o e-mail SAIU do nosso sistema com sucesso. O problema e'
+   posterior (fora do nosso controle direto):
+     1. Provavel: caiu no SPAM/Lixo Eletronico do destinatario. Comum quando o remetente e' um
+        endereco @outlook.com/@gmail.com enviado via SendGrid (voce nao e' dono do dominio
+        outlook.com, entao o SendGrid nao consegue fazer Domain Authentication/SPF/DKIM alinhados
+        pra esse remetente -- provedores grandes tendem a desconfiar disso).
+     2. O messageId acima pode ser rastreado no Activity Feed do painel do SendGrid (Email
+        Activity) pra ver o status final real (delivered / bounced / dropped / spam report) --
+        so' quem tem acesso a conta SendGrid consegue ver isso, eu nao tenho essa credencial.
+     3. Menos provavel mas possivel: digitou um e-mail diferente do cadastrado (o app nao avisa
+        se o e-mail nao existe, por design -- ver ponto acima).
+   SUGESTAO se isso for recorrente: configurar Domain Authentication no SendGrid com um dominio
+   proprio (nao outlook.com) pro remetente -- melhora MUITO a taxa de entrega. Nao implementado
+   (decisao de infra/DNS, fora do escopo de codigo).
+   CONFIRMADO no Activity Feed do SendGrid (usuario colou os logs): rejeicao HARD do Gmail --
+   `550 5.7.1 Gmail has detected that this message is likely unsolicited mail` -- nao e' caso de
+   spam-folder, o Gmail recusa na entrada mesmo. Interessante: o MESMO remetente conseguiu
+   ENTREGAR um e-mail (`Nova sugestao - IdeiaWare`, EnviaDadosPessoaisServlet) pro Hotmail no dia
+   anterior (`250 Delivered`) -- confirma que o problema e' especifico do Gmail rejeitando esse
+   remetente, nao um bloqueio geral.
+[EMAIL-PENDENCIA-TROCAR-PROVEDOR] 🟡 PENDENCIA (usuario pediu pra deixar pra depois, 2026-07-15).
+   Usuario perguntou se da pra trocar o SendGrid por outra coisa. Resposta dada: trocar de ESP
+   terceiro (Mailgun/SES/Brevo/Postmark) NAO resolve sozinho -- todos exigem a mesma Domain
+   Authentication pra nao cair no mesmo problema, ja que o remetente (`ideiaware@outlook.com`) e'
+   um dominio que o projeto nao controla. Alternativa proposta (nao implementada, so' discutida):
+   trocar pra SMTP direto de uma conta de e-mail REAL que o projeto controle (Gmail com senha de
+   app, ou SMTP institucional @unisc.br se liberado) -- sem spoofing, deliverability tende a ser
+   boa pro volume baixo (reset de senha + feedback + dados pessoais, so' 3 pontos de uso, todos
+   via `EnvioEmail.java` -- troca isolada e de baixo risco tecnico). Falta decidir QUAL conta usar
+   antes de eu poder implementar. Usuario pediu pra revisitar depois.
+
 --- K.1 SEGURANCA ---
 [#5] 🔴 SEGREDOS HARDCODED -> EXTERNALIZADOS via env/.env: chave SendGrid (revogar a antiga, ja
    vazou no Git, e por a nova no .env — acao do usuario); chave AES (efetivamente morta);
@@ -1288,15 +1920,8 @@ K. PENDENCIAS
    valor pros 2 hoje — tem fallback fixo no fonte; se a env nao for setada no deploy, a chave e
    publica/versionada e da pra forjar o cookie ideiaSig, furando o SEC-23); e-mail remetente do
    SendGrid. Codigo feito, falta so o .env real + revogar a chave SendGrid na hora de subir.
-[#3-resto] reset de senha por LINK com token de expiracao + rate-limit — unica divida de
-   seguranca real que resta (a anti-enumeracao ja esta feita). O fluxo atual gera senha
-   temporaria e envia por e-mail, sem token/expiracao. Risco relacionado: a senha ja e trocada
-   no banco ANTES do e-mail sair (sequencia nao-atomica) — se o processo cair exatamente entre
-   o UPDATE e o envio, o usuario fica com senha trocada sem saber (mitigado parcialmente,
-   excecao de rede ja tratada, ver RET-14-EMAIL).
-[RATE-LIMIT] nenhum endpoint do LIC tem limite de tentativas (LogInServlet,
-   ResetPasswordServlet, CadastroUsuarioServlet) — adiado explicitamente, pendencia conhecida
-   em aberto.
+[#3-resto] RESOLVIDO em 2026-07-14 — ver K.0c/[RESET-TOKEN].
+[RATE-LIMIT] RESOLVIDO em 2026-07-14 — ver K.0c/[RATE-LIMIT].
 
 --- K.2 QUALIDADE / ARQUITETURA (sem pressa) ---
    - LIC: cada metodo de DAO abre/fecha Session; reuso de Session/OpenSessionInView. Avaliado
@@ -1444,16 +2069,89 @@ K. PENDENCIAS
      alguem der F5. E uma assimetria real, nao um "tudo precisa de F5" generico. Mantido como
      limitacao conhecida (exigiria redesenhar o protocolo pra considerar dtModificacao) — nao e
      prioridade agora.
-
---- K.6 IDEIAS FUTURAS (anotadas, SEM urgencia, nao mapeadas a fundo) ---
-   [FUT-01] Convite por e-mail: o lider convida pessoas pro grupo por e-mail (ou link).
-     Depende de infra de e-mail (o SendGrid ja existe pro reset de senha) + provavelmente um
-     token de convite. So faz sentido depois da lista de espera/aprovacao de membros (ja
-     feita, ver GT-02/03/04) estar 100% redonda.
-   [FUT-02] Botao de "Feedback e Sugestoes" na pagina inicial (index.jsp) — canal do usuario
-     mandar sugestao. Decidir destino (e-mail pro admin? tabela nova? formulario simples?).
-   [FUT-03] Reset de senha por LINK com token de expiracao + rate-limit — ja esta em K.1, so
-     cross-referenciando aqui por ser "requisito" tambem.
+   [STORY-TOAST-PENDENTE] toast+redirect ao finalizar o Storytelling (substituindo a tela cheia
+     storytelling-finalizado.jsp) foi implementado em 2026-07-14 (ver STORY-TOAST-PILOTO) e
+     revertido no mesmo dia a pedido do usuario -- testou ao vivo e o toast nao apareceu/nao
+     funcionou como esperado. Causa raiz NAO investigada ainda (hipoteses: `#overlay` sobrepondo
+     o toast, o `setTimeout` de 1.8s cortando a exibicao cedo demais, ou timing de scripts).
+     Revisar com calma antes de tentar de novo -- usuario pediu pra "deixar quieto por enquanto".
+   [TITULO-MODULO-PENDENTE] fonte Poppins + cor `blue-grey-text text-darken-2` ja aplicada nos
+     5 titulos de entrada de modulo e nas 9 subtelas principais (ver K.0f/TITULO-MODULO-*).
+     Continuado: `canva-mapa.jsp` (Poppins nos 4 titulos de quadrante -- Como?/O que?/Para
+     quem?/Quanto? -- cor mantida preta, ja tinha contraste bom nos fundos coloridos dos
+     boxes) e `storytelling.jsp` (Poppins no titulo "Ferramentas" do painel lateral, mesma
+     logica de cor mantida). Os 9 `canva-*.jsp` de detalhe (canais, atividades-principais,
+     etc.) NAO tem titulo proprio, so um breadcrumb ("Canva > Mapa > Canais") -- nao ha
+     equivalente de "titulo grande" pra trocar de fonte ali; pendente decisao do usuario se
+     quer estilizar o breadcrumb ou deixar como esta. Testes: LIC 326/326.
+   [TOOLKIT-ICONE-SO-TOOLTIP] revisao geral do Toolkit (pedida pelo usuario) achou mais um
+     padrao de baixa visibilidade, NAO mexido ainda: os botoes de acao das tabelas (editar/
+     excluir/visualizar em list-personas.jsp e list-point-of-view.jsp) sao so icone
+     (`btn-floating btn-small`), dependendo 100% do tooltip (hover) pra explicar o que fazem
+     -- um usuario novo pode nao notar. Diferente do fix do FAB (UX-FAB-VISIVEL, ver K.0f),
+     essa mudanca tocaria varias tabelas/telas de uma vez; nao implementada ainda, aguardando
+     confirmacao do usuario se quer estender texto+icone tambem pra essas acoes.
+   [TOOLKIT-POV-DISCOVERY-FAB] proposta antiga (POV-DESCOBERTA, ver acima) de um FAB dedicado
+     em list-point-of-view.jsp pra criar POV direto de la (sem depender de marcar checkbox em
+     list-personas.jsp) foi CONSIDERADA de novo durante o UX-FAB-VISIVEL, mas o usuario optou
+     pela solucao mais simples (deixar o botao no lugar, so mais claro) -- essa proposta maior
+     continua arquivada/adiada, nao descartada.
+   [TOOLKIT-PERSONA-LISTA-MODELAGEM] usuario pediu validacao visual de /toolkit/persona/lista
+     com SO modelagem/proposta, sem aplicar nada ainda. Sem sessao valida disponivel pra
+     screenshot ao vivo (mesma restricao de sempre: nao criar usuario/ideia de teste), revisao
+     feita por leitura de codigo (list-personas.jsp, custom.js, style.css). Achados, do mais
+     concreto pro mais subjetivo:
+     1. COPY DESATUALIZADA (bug real, nao so opiniao): o estado vazio da tabela ainda diz
+        "Clique no botão + para criar a primeira" -- texto sobrou do FAB antigo (UX-FAB-VISIVEL
+        trocou o "+" flutuante por um botao de texto "Nova Persona", mas essa mensagem no
+        `<c:if test="${empty personas}">` nao foi atualizada). Fix trivial: trocar o texto pra
+        algo tipo "Clique em 'Nova Persona' para criar a primeira.".
+     2. `h2.title-page` tem `border-bottom: 2px solid #009688` (teal) fixo no CSS global -- cor
+        do LIC/Canva, nao do Toolkit (que e vermelho: nav/footer ja escurecidos pra
+        `red darken-3`/`#a52724` nesta mesma rodada de trabalho). O titulo "Personas - Lista"
+        fica com um traço teal embaixo, logo abaixo de uma nav vermelha -- combinacao que
+        destoa. Se o usuario confirmar, trocar pra um tom de vermelho (ex.: `#c62828` ou o
+        proprio `#a52724` do footer) so dentro do escopo do Toolkit (CSS do Toolkit e proprio,
+        nao compartilhado com o LIC, entao nao afeta as outras telas).
+     3. O link "Tour" (canto direito, acima da tabela) e texto puro com icone, sem nenhum
+        fundo/borda -- ao lado dos 2 botoes solidos (Nova Persona/Novo POV) fica com peso visual
+        bem menor, pode passar despercebido. Nao e bug, e questao de hierarquia visual.
+     4. Fluxo de criacao de POV nesta tela depende de marcar o checkbox de uma ou mais personas
+        na tabela ANTES de clicar em "Novo Point of View" (custom.js:662-679) -- mas nao ha
+        nenhum sinal visual persistente conectando os dois (sem contador tipo "2 selecionadas",
+        sem destaque na linha marcada). O tooltip do botao muda de texto dinamicamente
+        (BUG-POV-VAZIO ja resolvido), mas exige hover pra descobrir. Mesmo ponto da proposta
+        arquivada TOOLKIT-POV-DISCOVERY-FAB acima -- essa validacao reforça que o problema
+        continua, so nao decidido ainda qual solucao aplicar.
+     5. Botoes de acao da tabela (Abrir Mapa de Empatia/Editar/Excluir) sao icone-only
+        (`btn-floating btn-small`) -- mesmo ponto ja registrado em TOOLKIT-ICONE-SO-TOOLTIP
+        acima, se repete aqui.
+     NADA foi alterado no codigo por causa desta revisao (so leitura + este registro), conforme
+     pedido ("a investigação visual do toolkit nao aplique ainda, só faça a modelagem").
+   [TOOLKIT-PERSONA-LISTA-APLICADO] ✅ usuario aprovou os 5 itens acima. Aplicado em
+     list-personas.jsp, list-point-of-view.jsp, style.css e custom.js do Toolkit:
+     1. Copy do estado vazio corrigida ("Clique em 'Nova Persona'...", nao mais "botão +").
+     2. `h2.title-page { border-bottom }` trocado de `#009688` (teal) pra `#a52724` (o mesmo
+        vermelho do footer) -- CSS proprio do Toolkit, nao afeta o LIC.
+     3. Link "Tour" ganhou uma classe nova `.tour-page-link` (pill cinza-azulado, 20px de
+        border-radius) pra ter peso visual de botao secundario -- criada como classe PROPRIA
+        (nao alterei a regra `.tour i` compartilhada) porque o mesmo `.tour` tambem e usado como
+        icone pequeno inline no titulo de empathy-map.jsp; misturar as duas ia quebrar aquele
+        outro uso.
+     4. Contador `#pov-selection-count` ("N persona(s) selecionada(s)") + linha destacada
+        (`tr.row-selected`, azul claro) adicionados via `Toolkit.PointOfView.
+        updatePovSelectionCount()` no custom.js, chamado no load e no `change` de `.chkPersona`
+        (mesmo listener que ja atualizava o tooltip do botao "Novo POV").
+     5. PARCIAL, decisao minha: adicionei `aria-label` nos 3 botoes de acao de cada tabela
+        (list-personas.jsp e list-point-of-view.jsp) pra acessibilidade -- mas NAO converti os
+        icones `btn-floating` pra botao com texto visivel. Motivo: a tabela de POV ja e apertada
+        (5 colunas, varias com `ellipsed-data`) e essa mudanca de layout precisa de validacao
+        visual ao vivo antes de aplicar (sem sessao de teste disponivel nesta rodada). Fica como
+        pendencia separada em TOOLKIT-ICONE-SO-TOOLTIP (acima) se o usuario quiser seguir com
+        essa parte depois.
+     Testes: Toolkit 116/116, LIC 326/326 (nao mexi em nada do LIC nesta rodada, testes rodados
+     por precaucao). NAO validado visualmente ao vivo (mesma restricao de sempre); usuario pediu
+     pra testar e reportar.
 
 --- K.5 COBERTURA DE REVISAO — O QUE AINDA FALTA (checklist concreto) ---
    LIC Java (servlets/DAOs/domain): BEM COBERTO — varias rodadas independentes (IDOR,
@@ -1469,6 +2167,15 @@ K. PENDENCIAS
      por uma varredura completa dedicada (ver A/B/C, achados TK-19 a TK-48) — cobertura
      equivalente a do LIC agora. CSS proprio de LIC e Toolkit, libs front do Toolkit, pom.xml e
      web.xml do LIC ja tiveram passada dedicada — ver K.0.
+
+--- K.6 IDEIAS FUTURAS (anotadas, SEM urgencia, nao mapeadas a fundo) ---
+   [FUT-01] Convite por e-mail: o lider convida pessoas pro grupo por e-mail (ou link).
+     Depende de infra de e-mail (o SendGrid ja existe pro reset de senha) + provavelmente um
+     token de convite. So faz sentido depois da lista de espera/aprovacao de membros (ja
+     feita, ver GT-02/03/04) estar 100% redonda.
+   [FUT-02] RESOLVIDO em 2026-07-14 — ver K.0d/[FEEDBACK].
+   [FUT-03] Reset de senha por LINK com token de expiracao + rate-limit — ja esta em K.1, so
+     cross-referenciando aqui por ser "requisito" tambem.
 
 
 

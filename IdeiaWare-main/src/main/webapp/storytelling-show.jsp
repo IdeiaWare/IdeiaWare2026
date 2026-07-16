@@ -44,7 +44,7 @@
       .title-app { color:#fff; font-family: 'Condiment'; font-size: 42px; line-height: 25px }
     </style>
   </head>
-  <body class="indigo lighten-5">
+  <body class="blue-grey lighten-5">
     <main>
     <%-- UX-VOLTAR-V2: icone flutuante padrao (antes so tinha a logo, que ia pra index.jsp). --%>
     <a href="lista-storytelling.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>

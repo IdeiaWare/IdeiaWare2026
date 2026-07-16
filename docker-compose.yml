@@ -6,7 +6,6 @@ services:
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
       --default-authentication-plugin=mysql_native_password
-      --max-allowed-packet=67108864
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS:-root}
       MYSQL_DATABASE: ${DB_NAME:-lic_bd}
@@ -33,6 +32,8 @@ services:
       HBM2DDL: ${HBM2DDL:-validate}
       SHOW_SQL: ${SHOW_SQL:-false}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL:-senhaideiaware@outlook.com}
+      FEEDBACK_EMAIL: ${FEEDBACK_EMAIL:-}
       AES_KEY: ${AES_KEY:-1234567890123456}
       CAIXA_HMAC_SECRET: ${CAIXA_HMAC_SECRET:-7f3a9c1e8b5d2406af91e7c3b8d54a02e6f1a9c4d7b3e80f}
     ports:

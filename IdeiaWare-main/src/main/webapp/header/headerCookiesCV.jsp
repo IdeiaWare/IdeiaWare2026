@@ -74,7 +74,7 @@
       <a href="index.jsp" class="brand-logo" style="left: 50px">
         <ul style="width:300px" id="nav-logo" class="left hide-on-med-and-down">
           <div class="row" style="padding-left: 10px">
-            <div class="col s1 teal lighten-1" style=" width: 50px;  height: 50px; 
+            <div class="col s1 blue lighten-1" style=" width: 50px;  height: 50px;
                  margin-top: 5px;  padding: 6px 6px; 
                  border-radius: 100%;  box-sizing: border-box;">
               <img style="display: block;  width: 62%;  margin-left: 7px; margin-top: -1px" src="imagens/idea.png" alt="IdeiaWare"/>

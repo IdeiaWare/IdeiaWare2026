@@ -8,7 +8,7 @@
 		<meta charset="UTF-8">
 		<title>Canvas finalizado</title>
 	</head>
-	<body class="center-align">
+	<body class="center-align blue-grey lighten-5">
     <main>
 		<div style="min-height: 80vh">
 			<div id="success">

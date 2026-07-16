@@ -1,6 +1,8 @@
 package edu.unisc.lic.servlet;
 
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -8,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Date;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
@@ -44,7 +47,7 @@ public class ResetPasswordServletTest {
 	}
 
 	@Test
-	public void emailExistente_trocaSenhaEForwardComSucesso() throws Exception {
+	public void emailExistente_geraTokenDeResetENaoTrocaSenhaAinda() throws Exception {
 		String email = "existe_" + System.nanoTime() + "@x.com";
 		Usuario u = novoUsuario(email);
 		String senhaAntigaHash = u.getSenha();
@@ -57,9 +60,12 @@ public class ResetPasswordServletTest {
 		verify(request).setAttribute("SucessoRedefinicaoSenha", true);
 		verify(request.getRequestDispatcher("login.jsp")).forward(request, response);
 
+		// RESET-TOKEN: a senha so muda quando o usuario confirma via RedefinirSenhaServlet.
 		Usuario recarregado = usuarioDAO.buscar(u.getCodigo());
-		assertNotEquals("senha deve ter sido trocada mesmo com o envio de e-mail falhando (sem SENDGRID_API_KEY no teste)",
-				senhaAntigaHash, recarregado.getSenha());
+		assertEquals("senha nao deve mudar so por pedir o reset", senhaAntigaHash, recarregado.getSenha());
+		assertNotNull("token de reset deve ter sido gerado", recarregado.getResetTokenHash());
+		assertNotNull("expiracao do token deve ter sido setada", recarregado.getResetTokenExpira());
+		assertTrue("expiracao deve ser no futuro", recarregado.getResetTokenExpira().after(new Date()));
 	}
 
 	@Test

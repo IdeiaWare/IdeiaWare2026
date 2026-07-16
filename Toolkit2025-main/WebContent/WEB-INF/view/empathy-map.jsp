@@ -3,7 +3,7 @@
 
 <t:header></t:header>
 	<%-- UX-VOLTAR-V2: icone circular flutuante, volta pra lista de personas. --%>
-	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
@@ -24,8 +24,8 @@
   		</div>
   		<%-- UX: link "Visão Detalhada" removido do menu (duplicava a Visão geral); rota/controller continuam ativos. --%>
   		<div class="col m7 right-align">
-  			<a class="empathy-overview" href="${pageContext.request.contextPath}/persona/empatia/visao-geral?personaId=${persona.id}">
-				<i class="fa fa-binoculars" aria-hidden="true"></i> Visão geral
+  			<a class="btn waves-effect waves-light red darken-3 empathy-overview" href="${pageContext.request.contextPath}/persona/empatia/visao-geral?personaId=${persona.id}">
+				<i class="fa fa-binoculars left" aria-hidden="true"></i> Visão geral
 			</a>
   		</div>
   	</div>

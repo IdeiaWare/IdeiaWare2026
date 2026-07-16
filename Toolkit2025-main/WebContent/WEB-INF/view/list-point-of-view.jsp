@@ -5,7 +5,7 @@
 
 <t:header></t:header>
 	<%-- UX-VOLTAR-V2: icone circular flutuante (tela funda, so tinha a logo que pula pro /LIC). --%>
-	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
@@ -73,20 +73,21 @@
 							</td>
 							<td>
 								<%-- UX: acoes viraram btn-floating (mesmo padrao do list-personas.jsp), separadores removidos. --%>
-								<a class="btn-floating btn-small red darken-1 tooltipped pov-overview" href="${pageContext.request.contextPath}/point-of-view/visao-geral?povId=${tempPOV.value.povID}"
+								<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/5: aria-label pra nao depender so do tooltip (hover) pra descrever a acao. --%>
+								<a class="btn-floating btn-small blue-grey darken-1 tooltipped pov-overview" aria-label="Visão Geral" href="${pageContext.request.contextPath}/point-of-view/visao-geral?povId=${tempPOV.value.povID}"
 									data-position="top"
 									data-delay="50"
 									data-tooltip="Visão Geral">
 									<i class="fa fa-binoculars" aria-hidden="true"></i>
 								</a>
-								<a href="javascript:;" class="btn-floating btn-small red darken-1 tooltipped edit-pov"
+								<a href="javascript:;" class="btn-floating btn-small blue-grey darken-1 tooltipped edit-pov" aria-label="Editar"
 									data-position="top"
 									data-delay="50"
 									data-tooltip="Editar"
 									data-povid="${tempPOV.value.povID}" data-names="<c:out value='${tempPOV.value.names}'/>" data-user="<c:out value='${tempPOV.value.user}'/>" data-need="<c:out value='${tempPOV.value.need}'/>" data-insight="<c:out value='${tempPOV.value.insight}'/>" data-personasid="<c:out value='${tempPOV.value.personasID}'/>" onclick="Toolkit.PointOfView.buildPOVInfoEditOnModal(this.dataset.povid, this.dataset.names, this.dataset.user, this.dataset.need, this.dataset.insight, this.dataset.personasid)">
 									<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 								</a>
-								<a href="javascript:;" class="btn-floating btn-small red darken-1 tooltipped"
+								<a href="javascript:;" class="btn-floating btn-small blue-grey darken-1 tooltipped" aria-label="Excluir"
 									data-position="top"
 									data-delay="50"
 									data-tooltip="Excluir"

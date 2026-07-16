@@ -5,8 +5,10 @@
 <html lang="pt-BR">
     <head>
         <title>IdeiaWare - Detalhes da Ideia</title>
+        <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
+        <style>.titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }</style>
     </head>
-    <body class="center-align teal darken-1">
+    <body class="center-align blue-grey lighten-5">
     <main>
         <%-- UX-VOLTAR-V2: icone flutuante padrao (antes era um botao inline facil de perder). --%>
         <c:choose>
@@ -24,10 +26,10 @@
         <jsp:setProperty name="ideiaUsuario2" property="usuario" value="${usuarioClasse}" />
         <jsp:setProperty name="ideiaUsuario2" property="ideia" value="${sessionScope.ideia}" />
         <jsp:setProperty name="ideiaUsuario" property="ideia" value="${sessionScope.ideia}" />
-        <div class="white" style="min-height: 90vh" role="main">
+        <div class="" style="min-height: 90vh" role="main">
             <div class="container">
-                <div style="padding: 10px" class="white">
-                    <h1>Detalhes da Ideia</h1>
+                <div style="padding: 10px" class="">
+                    <h1 class="blue-grey-text text-darken-2 titulo-modulo">Detalhes da Ideia</h1>
                     <div class="container">
                         <div class="row">
                             <div class="col s6 left-align">

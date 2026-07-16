@@ -1,8 +1,9 @@
-<%@page contentType="text/html" pageEncoding="UTF-8" isErrorPage="true"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
+
 <html lang="pt-BR">
   <head>
-    <title>IdeiaWare - 500</title>
+    <title>IdeiaWare - Muitas tentativas</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900'>
@@ -62,7 +63,7 @@
     <main style="display:flex; flex-direction:column; flex:1;">
     <nav>
       <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
-        <a href="${pageContext.request.contextPath}/index.jsp" class="brand-logo" style="left: 50px">
+        <a href="${pageContext.request.contextPath}/login.jsp" class="brand-logo" style="left: 50px">
           <ul style="width:300px" id="nav-mobile" class="left hide-on-med-and-down">
             <div class="row" style="padding-left: 10px">
               <div class="col s1 blue-grey lighten-3" style=" width: 50px;  height: 50px;
@@ -76,9 +77,11 @@
         </a>
       </div>
     </nav>
-    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px;">
-      <h2 class="center-align blue-grey-text text-darken-2" style="font-family:'Poppins',sans-serif; font-weight:600;">Erro 500 - Tente novamente mais tarde</h2>
-      <a href="${pageContext.request.contextPath}/index.jsp" class="btn blue-grey darken-1">Ir para o início</a>
+    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; text-align:center; padding:0 20px;">
+      <i class="material-icons" style="font-size:64px; color:#78909c;">hourglass_empty</i>
+      <h2 class="center-align blue-grey-text text-darken-2" style="font-family:'Poppins',sans-serif; font-weight:600;">Muitas tentativas</h2>
+      <p style="max-width:420px; color:#607d8b;">Você fez várias tentativas em pouco tempo. Aguarde um minuto e tente novamente.</p>
+      <a href="${pageContext.request.contextPath}/login.jsp" class="btn blue-grey darken-1">Voltar ao login</a>
     </div>
     <%-- ERRO-FOOTER-CINZA: footer proprio (cinza), nao o compartilhado (teal). --%>
     <footer class="center blue-grey lighten-1 page-footer">
@@ -89,4 +92,3 @@
   </main>
     </body>
 </html>
-

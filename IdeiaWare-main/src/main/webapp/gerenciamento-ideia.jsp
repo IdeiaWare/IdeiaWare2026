@@ -86,8 +86,10 @@
 <html lang="pt-BR">
   <head>
     <title>IdeiaWare - Gerenciamento de Ideias</title>
+    <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
+    <style>.titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }</style>
   </head>
-  <body class="center-align light-blue darken-1">
+  <body class="center-align blue-grey lighten-5">
     <main>
     <%-- UX-VOLTAR-V2: icone flutuante (antes nao tinha nenhuma saida de volta pra listagem). --%>
     <a href="lista-ideia-gerenciamento.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
@@ -118,9 +120,9 @@
     <script type="text/javascript" src="js/Bibliotecas/base64.js"></script>
     <script type="text/javascript" src="js/Bibliotecas/sprintf.min.js"></script>
     <script type="text/javascript" src="js/master.js"></script>
-    <div class="white" style="min-height: 90vh" role="main">
+    <div class="" style="min-height: 90vh" role="main">
       <div class="container">
-        <div style="padding: 10px; border-radius: 0.2em" class="white">
+        <div style="padding: 10px; border-radius: 0.2em" class="">
           <!--criando variáveis-->
           <c:set var="statusIdeia" value="false"></c:set>
           <c:set var="visualizacao" value="false"></c:set>
@@ -169,7 +171,7 @@
           </c:if>
 
           <div id="idea-description" style="display:none;"><c:out value="${ideia.descricao}"/></div>
-          <h1>Gerenciamento de Ideias</h1>
+          <h1 class="blue-grey-text text-darken-2 titulo-modulo">Gerenciamento de Ideias</h1>
           <div class="container">
             <div class="card blue-grey darken-1">
               <div class="card-content white-text">

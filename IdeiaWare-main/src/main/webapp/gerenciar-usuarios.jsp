@@ -34,8 +34,10 @@
 <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
 
 <style>
+    .titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }
     .title-app {
         color:#fff;
         font-family: 'Condiment';
@@ -107,6 +109,10 @@
             box-shadow: 0 0 0 0 rgba(255,255,255, 0);
         }
     }
+
+    /* LISTAGEM-CINZA: fundo quase-branco + sombra, no lugar do #fff puro. */
+    ul.collapsible { box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12); }
+    .collapsible-header, .collapsible-body { background-color: #f5f5f5; }
 </style>
 
 <!DOCTYPE html>
@@ -143,10 +149,10 @@
         <script type="text/javascript" src="js/materialize.min.js"></script>
         <script type="text/javascript" src="js/materialize.js"></script>
 
-        <div class="white" style="min-height: 90vh" role="main">
+        <div class="" style="min-height: 90vh" role="main">
             <div class="container">
-                <div style="padding: 10px; border-radius: 0.2em" class="white">
-                    <h1>Gerenciar usuários</h1>
+                <div style="padding: 10px; border-radius: 0.2em" class="">
+                    <h1 class="blue-grey-text text-darken-2 titulo-modulo">Gerenciar usuários</h1>
                     <jsp:useBean id="usuarioDao" class="edu.unisc.lic.dao.UsuarioDAO" />
                     <jsp:useBean id="usuarioAux" class="edu.unisc.lic.domain.Usuario" />
                     <jsp:setProperty name="usuarioAux" property="anonimizado" value="N"/>

@@ -76,7 +76,8 @@ public class PostOnlyFilterTest {
 			// GT-05/GT-06: mesmo padrao "doGet chama processRequest direto" achado nestes 8.
 			"/EditarColaboracaoServlet", "/CadastroIdeiaServlet", "/EntrarIdeiaServlet",
 			"/AprovarMembroServlet", "/RejeitarMembroServlet",
-			"/UploadArquivoServlet", "/DeletarExportedFileServlet", "/DeletarCanvaexportServlet"
+			"/UploadArquivoServlet", "/DeletarExportedFileServlet", "/DeletarCanvaexportServlet",
+			"/EnviarFeedbackServlet"
 		};
 
 		for (String path : paths) {

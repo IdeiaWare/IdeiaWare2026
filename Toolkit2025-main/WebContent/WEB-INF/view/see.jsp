@@ -4,7 +4,7 @@
 
 <t:header></t:header>
 	<%-- UX-VOLTAR-V2: icone circular flutuante, volta pro Mapa de Empatia (pai imediato). --%>
-	<a href="${pageContext.request.contextPath}/persona/empatia/mapa?personaId=${personaId}" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+	<a href="${pageContext.request.contextPath}/persona/empatia/mapa?personaId=${personaId}" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>

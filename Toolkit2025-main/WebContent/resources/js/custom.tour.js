@@ -43,10 +43,7 @@
 				"skipButton" : {text: "Encerrar"}
 	  		},
 	  		{	'click .criar-persona' : 'Clique para criar uma persona',
-	  			'showSkip': false,
-	  			onBeforeStart:function(){
-	  				$('.fixed-action-btn').openFAB();
-	  			}
+	  			'showSkip': false
 		  	},
 	  		{	'next .name-input' : 'D&ecirc; um "Nome" a persona',
 		  		"nextButton" : {text: "Seguinte"},
@@ -247,6 +244,9 @@
 })(jQuery, window)
 
 $(document).ready(function(){
-	if($("#no-authenticaded").length <= 0)
+	// TOUR-CONTEXTO: so inicia do zero na tela de Personas, ou continua se ja em andamento.
+	var emAndamento = !!Toolkit.readCookie("tourStep");
+	var telaDePersonas = $(".criar-persona").length > 0;
+	if($("#no-authenticaded").length <= 0 && (emAndamento || telaDePersonas))
 		Toolkit.startTourApp()
 });

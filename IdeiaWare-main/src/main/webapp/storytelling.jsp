@@ -11,8 +11,11 @@
     <title>IdeiaWare - Storytelling</title>
 
     <link type="text/css" rel="stylesheet" href="css/storytelling.css" >
+    <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
+    <%-- TITULO-MODULO-POPPINS: titulo do painel de ferramentas. --%>
+    <style>.titulo-painel { font-family: 'Poppins', sans-serif; font-weight: 600; }</style>
   </head>
-  <body class="indigo lighten-5">
+  <body class="blue-grey lighten-5">
     <main> 
     <div id="overlay">
       <div class="loader"></div>
@@ -23,7 +26,7 @@
           <%-- UX-VOLTAR-V2: icone flutuante (headerCookies_2.jsp proprio desta tela nao linka pra lista-storytelling.jsp). --%>
           <a href="lista-storytelling.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
 
-          <h5 class="center grey-text text-darken-3" style="padding-top: 10px; padding-bottom: 5px">Ferramentas</h5>
+          <h5 class="center grey-text text-darken-3 titulo-painel" style="padding-top: 10px; padding-bottom: 5px">Ferramentas</h5>
 
           <div class="story-tools">
             <button class="btn indigo accent-2" style="display: " id="deletarAlgo">Ativar borracha</button>

@@ -7,6 +7,7 @@
     Boolean resposta5 = (Boolean) request.getAttribute("resposta5");
     Boolean ErroRedefinicaoSenha = (Boolean) request.getAttribute("ErroRedefinicaoSenha");
     Boolean SucessoRedefinicaoSenha = (Boolean) request.getAttribute("SucessoRedefinicaoSenha");
+    Boolean SenhaRedefinidaComSucesso = (Boolean) request.getAttribute("SenhaRedefinidaComSucesso");
 
 %>
 
@@ -20,7 +21,8 @@
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
         <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900'>
-        <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Montserrat:400,700'>
+        <%-- TITULO-MODULO-POPPINS: Montserrat nunca era usada em lugar nenhum -- trocada pela Poppins (mesma fonte dos titulos de modulo). --%>
+        <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
@@ -28,6 +30,12 @@
         <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" href="css/style.css">
         <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+        <%-- SCRIPT-ORDER: jQuery TEM que carregar antes do materialize.min.js -- essa versao
+             local (v0.100.1, desde o MAT-CONSOLIDA) usa jQuery internamente; carregando na
+             ordem errada, o proprio materialize.min.js falha ao rodar e `window.Materialize`
+             nunca fica definido (era CDN v1.0.0 antes, sem essa dependencia, por isso nao
+             dava pra notar). --%>
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script src="js/materialize.min.js"></script>
     </head>
     <style>
@@ -118,19 +126,49 @@
             text-align: center;
             font-weight: bold;
         }
+        /* CADASTRO-ESPACAMENTO: com a logo grande removida, sobrou um vao antes do 1o campo. */
+        .container .info {
+            margin: 25px auto;
+        }
+        /* CADASTRO-REQUISITOS-CARD: cartao com fundo/borda pra separar visualmente do checkbox de termos. */
+        .criterio-card {
+            background-color: #eceff1;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 16px 0;
+            text-align: left;
+        }
+        .criterio-card-title {
+            font-size: 12px;
+            color: #607d8b;
+            font-weight: 600;
+            margin: 0 0 6px 0;
+        }
         .criterio {
             list-style: none;
             padding: 0;
-            margin: 10px 0 0 0;
-            font-size: 11px;
+            margin: 0;
+            font-size: 12px;
         }
         .criterio li {
-            color: red;
+            color: #c62828;
+            padding: 2px 0;
         }
         .criterio li.valid {
-            color: green;
+            color: #2e7d32;
         }
-        
+        .criterio li::before {
+            content: "✕  ";
+            font-weight: bold;
+        }
+        .criterio li.valid::before {
+            content: "✓  ";
+        }
+        /* CADASTRO-PLACEHOLDER-DUPLICADO: campos do cadastro alinhados a esquerda (like os labels), nao mais centralizados. */
+        .register-form input {
+            text-align: left;
+        }
+
         .modal-content h4{
             color: #2c3e50;
             border-bottom: 2px solid #3498db;
@@ -181,13 +219,14 @@
         <div class="container">
             <div class="info">
                 <h4 class=" blue-grey-text text-darken-2 title-app2">IdeiaWare</h4>
-                <h5 class="text-darken-2 blue-grey-text">Login</h5>
+                <%-- LOGIN-TITULO-BUG: id novo pro JS atualizar o texto ao trocar de formulario (antes ficava sempre "Login"). --%>
+                <h5 id="form-heading" class="text-darken-2 blue-grey-text" style="font-family:'Poppins',sans-serif; font-weight:600;">Login</h5>
             </div>
         </div>
+        <%-- CADASTRO-LOGO-REDUNDANTE: logo grande (150px) tirada da posicao compartilhada (empurrava
+             o Cadastro, que tem mais campos, pra baixo da dobra). Mantida so' no login-form (poucos
+             campos, cabe sem forcar scroll) -- ver abaixo, dentro do <form id="login-form">. --%>
         <div class="form">
-            <div class="thumbnail">
-                <img src="imagens/idea.png" alt="IdeiaWare"/>
-            </div>
             <c:if test="${resposta}">
                 <div class="erro">
                     <h6>Login e/ou senha inválido(s)!</h6>
@@ -220,11 +259,19 @@
             </c:if>
             <c:if test="${SucessoRedefinicaoSenha}">
                 <div class="sucesso">
-                    <h6>Enviado e-mail para redefinição de senha!</h6>
-                </div> 
+                    <h6>Se o e-mail informado existir, enviamos um link para redefinição de senha!</h6>
+                </div>
+            </c:if>
+            <c:if test="${SenhaRedefinidaComSucesso}">
+                <div class="sucesso">
+                    <h6>Senha redefinida com sucesso! Faça login com a nova senha.</h6>
+                </div>
             </c:if>
 
             <form id="login-form" class="login-form" action="LogInServlet" method="POST" >
+                <div class="thumbnail">
+                    <img src="imagens/idea.png" alt="IdeiaWare"/>
+                </div>
                 <input name="usuario" type="text" placeholder="usuário" aria-label="usuário" pattern=".{4,32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres"/>
                 <%-- UX: "olhinho" pra revelar a senha digitada. --%>
                 <div style="position:relative;">
@@ -238,37 +285,48 @@
             </form>
 
             <form id="register-form" class="register-form" action="CadastroUsuarioServlet" method="POST" style="display:none;">
+                <%-- CADASTRO-PLACEHOLDER-DUPLICADO: placeholder repetia o label ("Nome"/"nome") --
+                     como o input herda text-align:center do .form enquanto o label e' left-aligned,
+                     lia como texto duplicado. Placeholder agora e' um exemplo, nao o label de novo,
+                     e o texto do campo passa a ficar alinhado a esquerda (.register-form input). --%>
                 <label for="reg-nome" class="perfil-label">Nome</label>
-                <input id="reg-nome" name="nome" type="text" placeholder="nome" aria-label="nome" pattern=".{4,64}" required title="O campo nome deve conter entre 6 e 64 caracteres" />
+                <input id="reg-nome" name="nome" type="text" placeholder="Digite seu nome completo" aria-label="nome" pattern=".{4,64}" required title="O campo nome deve conter entre 6 e 64 caracteres" />
                 <label for="reg-usuario" class="perfil-label">Usuário</label>
-                <input id="reg-usuario" name="usuario" type="text" placeholder="usuário" aria-label="usuário" pattern=".{4,32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres" />
+                <input id="reg-usuario" name="usuario" type="text" placeholder="Escolha um nome de usuário" aria-label="usuário" pattern=".{4,32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres" />
                 <label for="reg-email" class="perfil-label">E-mail</label>
-                <input id="reg-email" name="email" type="email" placeholder="email" aria-label="email" pattern="\w+(\+?\w+)@\w+(\.\w+)+" required title="email@exemplo.com" maxlength="100"/>
+                <input id="reg-email" name="email" type="email" placeholder="seu@email.com" aria-label="email" pattern="\w+(\+?\w+)@\w+(\.\w+)+" required title="email@exemplo.com" maxlength="100"/>
                 <label for="senha" class="perfil-label">Senha</label>
                 <!-- SENHA-#: pattern antigo so aceitava @$!%*?& e rejeitava '#' -- agora aceita qualquer especial. -->
                 <div style="position:relative;">
-                    <input name="senha" id="senha" type="password" placeholder="senha" aria-label="senha" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,32}$" required title="O campo senha deve conter entre 8 e 32 caracteres. E os 5 requisitos abaixo." maxlength="32" oninput="checkPasswordStrength()"/>
+                    <input name="senha" id="senha" type="password" placeholder="Crie uma senha" aria-label="senha" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,32}$" required title="O campo senha deve conter entre 8 e 32 caracteres. E os 5 requisitos abaixo." maxlength="32" oninput="checkPasswordStrength()"/>
                     <button type="button" id="toggle-reg-senha" tabindex="-1" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('senha','toggle-reg-senha')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
                 </div>
 
                 <label for="reg-senha2" class="perfil-label">Confirmar senha</label>
                 <div style="position:relative;">
-                    <input id="reg-senha2" name="senha2" type="password" placeholder="digite a senha novamente" aria-label="digite a senha novamente" pattern=".{4,32}" required title="O campo repetir senha deve conter entre 4 e 32 caracteres" />
+                    <input id="reg-senha2" name="senha2" type="password" placeholder="Repita a senha" aria-label="digite a senha novamente" pattern=".{4,32}" required title="O campo repetir senha deve conter entre 4 e 32 caracteres" />
                     <button type="button" id="toggle-reg-senha2" tabindex="-1" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('reg-senha2','toggle-reg-senha2')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
                 </div>
 
                 <%-- UX-CADASTRO-ORDEM: forca da senha depois de Senha+Confirmar (antes cortava o fluxo entre os 2 campos). --%>
-                <div class="password-strength">
-                    <div class="strength-bar" id="strength-bar"></div>
+                <%-- SENHA-FORCA-PRISTINE: barra/texto so aparecem depois que o usuario comeca a digitar (senao nasce em vermelho "Muito fraca" sem culpa do usuario). --%>
+                <div id="strength-meter" style="display:none;">
+                    <div class="password-strength">
+                        <div class="strength-bar" id="strength-bar"></div>
+                    </div>
+                    <div class="strength-text" id="strength-text"></div>
                 </div>
-                <div class="strength-text" id="strength-text">Muito fraca</div>
-                <ul class="criterio">
-                    <li id="length-criterio">Pelo menos 8 caracteres</li>
-                    <li id="uppercase-criterio">Pelo menos uma letra maiúscula</li>
-                    <li id="lowercase-criterio">Pelo menos uma letra minúscula</li>
-                    <li id="number-criterio">Pelo menos um número</li>
-                    <li id="special-criterio">Pelo menos um caractere especial</li>
-                </ul>
+                <%-- CADASTRO-REQUISITOS-CARD: lista ficava solta, colada no checkbox de termos logo abaixo -- agora tem cartao proprio (fundo/borda/espacamento). --%>
+                <div class="criterio-card">
+                    <p class="criterio-card-title">Sua senha deve conter:</p>
+                    <ul class="criterio">
+                        <li id="length-criterio">Pelo menos 8 caracteres</li>
+                        <li id="uppercase-criterio">Pelo menos uma letra maiúscula</li>
+                        <li id="lowercase-criterio">Pelo menos uma letra minúscula</li>
+                        <li id="number-criterio">Pelo menos um número</li>
+                        <li id="special-criterio">Pelo menos um caractere especial</li>
+                    </ul>
+                </div>
 
                 <c:if test="${respostaCadastro2}"><div class="erro"><h6>A senha e a confirmação não coincidem.</h6></div> </c:if>
                 <div style="text-align: left; margin-bottom: 10px">
@@ -319,8 +377,15 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                var elems = document.querySelectorAll('.modal');
-                var instances = M.Modal.init(elems);
+                // MODAL-NAMESPACE: essa versao do Materialize (v0.100.1, local -- MAT-CONSOLIDA
+                // trocou de CDN v1.0.0) se expõe como `window.Materialize`, NUNCA `window.M`
+                // (o atalho `M` so foi introduzido no 1.0.0). Alem disso Modal.init() exige
+                // objeto jQuery de verdade (usa .each() por dentro), nao NodeList puro.
+                var modalInstance = Materialize.Modal.init($('#modal1'))[0];
+                $('.modal-trigger').on('click', function (e) {
+                    e.preventDefault();
+                    modalInstance.open();
+                });
             });
 
             // UX: "olhinho" pra revelar/ocultar a senha digitada (login e cadastro).
@@ -340,6 +405,7 @@
                 const password = document.getElementById('senha').value;
                 const strengthBar = document.getElementById('strength-bar');
                 const strengthText = document.getElementById('strength-text');
+                document.getElementById('strength-meter').style.display = password.length > 0 ? 'block' : 'none';
                 let strength = 0;
 
                 const lengthcriterio = document.getElementById('length-criterio');
@@ -409,39 +475,43 @@
             }
         </script>
 
-        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script>
             $(document).ready(function () {
+                // LOGIN-TITULO-BUG: titulo ("Login"/"Cadastro"/"Redefinir Senha") acompanha o formulario visivel.
+                function setFormHeading(text) {
+                    $('#form-heading').text(text);
+                }
+
                 $('#show-register-form').click(function (e) {
-                    console.log('Cadastrar link clicado');
                     e.preventDefault();
                     $('#login-form').hide();
                     $('#reset-password-form').hide();
                     $('#register-form').fadeIn();
+                    setFormHeading('Cadastro');
                 });
 
                 $('#show-login-form').click(function (e) {
                     e.preventDefault();
-                    console.log('Login link clicado');
                     $('#register-form').hide();
                     $('#reset-password-form').hide();
                     $('#login-form').fadeIn();
+                    setFormHeading('Login');
                 });
 
                 $('#forgot-password-link').click(function (e) {
                     e.preventDefault();
-                    console.log('Esqueceu a senha link clicado');
                     $('#login-form').hide();
                     $('#register-form').hide();
                     $('#reset-password-form').fadeIn();
+                    setFormHeading('Redefinir Senha');
                 });
 
                 $('#back-to-login').click(function (e) {
                     e.preventDefault();
-                    console.log('Voltar ao login clicado');
                     $('#reset-password-form').hide();
                     $('#register-form').hide();
                     $('#login-form').fadeIn();
+                    setFormHeading('Login');
                 });
 
                 // UX-LOGIN-REABRE: reabre o formulario correspondente ao erro (senao ficava mostrando o login com a mensagem perdida).
@@ -451,10 +521,12 @@
                     $('#login-form').hide();
                     $('#reset-password-form').hide();
                     $('#register-form').show();
+                    setFormHeading('Cadastro');
                 } else if (erroRedefinicao) {
                     $('#login-form').hide();
                     $('#register-form').hide();
                     $('#reset-password-form').show();
+                    setFormHeading('Redefinir Senha');
                 }
             });
         </script>

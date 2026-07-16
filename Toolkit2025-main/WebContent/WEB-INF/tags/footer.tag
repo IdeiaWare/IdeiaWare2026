@@ -4,13 +4,14 @@
 			</div>
 		</main>
 		
-		<footer class="center red darken-1 page-footer">
+		<footer class="center red darken-3 page-footer">
 	    <div class="container">
 	      <div class="row">
 	        <i class="small material-icons">account_circle</i><h6 class="white-text usuario"></h6>
 	      </div>
 	    </div>
-	    <div class="footer-copyright">
+	    <%-- UX-FOOTER-2TONS-V4: meio-termo entre "sem contraste" e "contraste forte demais" das tentativas anteriores. --%>
+	    <div class="footer-copyright" style="background-color:#a52724;">
 	      <div class="container">
 	        © 2026 IdeiaWare UNISC
 	      </div>

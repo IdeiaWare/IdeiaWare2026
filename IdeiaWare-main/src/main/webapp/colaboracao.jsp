@@ -5,13 +5,15 @@
 <html lang="pt-BR">
   <head>
     <title>IdeiaWare - Colaboração</title>
+    <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
+    <style>.titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }</style>
   </head>
-  <body class="center-align teal darken-1">
+  <body class="center-align blue-grey lighten-5">
     <main>
-    <div class="white" style="min-height: 90vh" role="main">
+    <div class="" style="min-height: 90vh" role="main">
       <div class="container">
-        <div style="padding: 10px;" class="white">
-          <h1>Colaboração da Ideia</h1>
+        <div style="padding: 10px;" class="">
+          <h1 class="blue-grey-text text-darken-2 titulo-modulo">Colaboração da Ideia</h1>
           <%-- UX-VOLTAR-V2: icone flutuante proprio (nao mexe no header compartilhado, ver L.1). --%>
           <c:choose>
             <c:when test="${sessionScope.isRetencao eq false}">

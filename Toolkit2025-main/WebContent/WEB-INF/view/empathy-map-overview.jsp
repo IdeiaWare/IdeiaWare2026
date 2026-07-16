@@ -2,9 +2,9 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
-<t:no-container-header></t:no-container-header>
+<t:header></t:header>
 	<%-- UX-VOLTAR-V2: icone circular flutuante, volta pro Mapa de Empatia (pai imediato). --%>
-	<a href="${pageContext.request.contextPath}/persona/empatia/mapa?personaId=${persona.id}" class="btn-floating btn-large red darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
+	<a href="${pageContext.request.contextPath}/persona/empatia/mapa?personaId=${persona.id}" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
 	        <a href="${pageContext.request.contextPath}/persona/lista" class="breadcrumb">Personas</a>
@@ -23,8 +23,8 @@
 				<form:hidden id="file-location" path="fileLocation"/>
 				<form:hidden path="fileTypeIdentification" value="persona"/>
 				
-				<button class="waves-effect waves-red btn-flat exportar" type="button" name="action" onclick="Toolkit.Persona.exportEmpathyMap()">Exportar
-			    	<i class="fa fa-file-pdf-o left" aria-hidden="true"></i>
+				<button class="waves-effect waves-light btn red darken-3 exportar" type="button" name="action" onclick="Toolkit.Persona.exportEmpathyMap()">
+			    	Exportar<i class="material-icons right">share</i>
 			  	</button>
 		  	<input type="hidden" name="csrfToken" value="${csrfToken}"/></form:form>
 		</div>
@@ -144,4 +144,4 @@
           	</div>     		
 	    </div>
   	</div>
-<t:no-container-footer></t:no-container-footer>
+<t:footer></t:footer>

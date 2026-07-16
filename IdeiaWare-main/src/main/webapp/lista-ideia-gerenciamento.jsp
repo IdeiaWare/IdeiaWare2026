@@ -49,8 +49,11 @@
 <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<%-- TITULO-MODULO-POPPINS: fonte dos titulos de modulo (ver K.4). --%>
+<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@700' rel='stylesheet'>
 <style>
   .title-app {color:#fff; font-family: 'Condiment'; font-size: 42px; line-height: 25px}
+  .titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }
   .title-app2 {font-family: 'Condiment'; font-size: 100px;}
   .card .icon {font-size:50px;}
   .card-content .card-title {color:#fff !important;}
@@ -63,6 +66,10 @@
   .knowledge .icon .fa-database {color:#0288d1;}
   .fa-hand-o-right {border-radius:50%; box-shadow: 0 0 0 rgba(255,255,255, 0.4); animation: pulse 2s infinite;}
   .fa-hand-o-right:hover {animation: none;}
+
+  /* LISTAGEM-CINZA: fundo quase-branco + sombra, no lugar do #fff puro. */
+  ul.collapsible { box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12); }
+  .collapsible-header, .collapsible-body { background-color: #f5f5f5; }
 
   @-webkit-keyframes pulse {
       0% {
@@ -95,7 +102,7 @@
   <head>
     <title>IdeiaWare - Gerenciamento de Ideias</title>
   </head>
-  <body class="center-align ">
+  <body class="center-align blue-grey lighten-5">
     <main>
     <%-- UX-VOLTAR-V2: icone circular flutuante, faltava saida de volta pra tela inicial (index.jsp). --%>
     <a href="index.jsp" class="btn-floating btn-large light-blue darken-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
@@ -122,13 +129,13 @@
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script type="text/javascript" src="js/materialize.js"></script>
-    <div class="white" style="min-height: 90vh" role="main">
+    <div class="" style="min-height: 90vh" role="main">
       <div class="container">
-        <div style="padding: 10px; border-radius: 0.2em" class="white">
+        <div style="padding: 10px; border-radius: 0.2em" class="">
 
           <jsp:useBean id="ideiaDao" class="edu.unisc.lic.dao.IdeiaDAO" />
 
-          <h1>Gerenciamento de Ideias</h1>
+          <h1 class="blue-grey-text text-darken-2 titulo-modulo">Gerenciamento de Ideias</h1>
           <c:set var="todasIdeias" value="${todasIdeiasScriptlet}" />
 
           <%-- UX-01: estado vazio com mensagem contextual (busca e tabela so aparecem quando ha ideias). --%>

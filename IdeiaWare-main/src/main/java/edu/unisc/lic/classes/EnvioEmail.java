@@ -16,6 +16,9 @@ public class EnvioEmail {
         // K.1: chave via env SENDGRID_API_KEY (era hardcoded, vazou no Git -- REVOGAR a antiga).
         String apiKey = System.getenv("SENDGRID_API_KEY");
         if (apiKey == null || apiKey.isEmpty()) {
+            // LOG-SENDGRID: sem isso, esse caso especifico (chave nao configurada) falhava
+            // em silencio total -- nenhum log em lugar nenhum, nem "recusado".
+            System.err.println("EnvioEmail: SENDGRID_API_KEY nao configurada no ambiente.");
             return false;
         }
 
@@ -32,6 +35,19 @@ public class EnvioEmail {
         Response response = sg.api(request);
 
         // Status 202 = aceito de verdade (antes, retornava true mesmo com a API recusando).
-        return response.getStatusCode() >= 200 && response.getStatusCode() < 300;
+        boolean aceito = response.getStatusCode() >= 200 && response.getStatusCode() < 300;
+        if (aceito) {
+            // LOG-SENDGRID: X-Message-Id permite rastrear a entrega no Activity Feed do SendGrid
+            // (aceito na API nao garante entrega -- filtro anti-spoofing do destino pode descartar depois).
+            String messageId = response.getHeaders() != null ? response.getHeaders().get("X-Message-Id") : null;
+            System.out.println("EnvioEmail: SendGrid aceitou o envio, status=" + response.getStatusCode()
+                    + " messageId=" + messageId);
+        } else {
+            // LOG-SENDGRID: sem isso, so dava pra saber que falhou, nunca o motivo
+            // (remetente nao verificado, chave sem permissao, etc.) -- tinha que testar a API na mao.
+            System.err.println("EnvioEmail: SendGrid recusou o envio, status=" + response.getStatusCode()
+                    + " body=" + response.getBody());
+        }
+        return aceito;
     }
 }

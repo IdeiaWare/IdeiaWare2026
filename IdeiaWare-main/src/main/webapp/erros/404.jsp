@@ -7,7 +7,8 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900'>
-    <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Montserrat:400,700'>
+    <%-- TITULO-MODULO-POPPINS: Montserrat nunca era usada em lugar nenhum -- trocada pela Poppins (mesma fonte dos titulos de modulo). --%>
+    <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
@@ -59,7 +60,7 @@
   </style>
 
   <body class="blue-grey lighten-5" style="display:flex; flex-direction:column; min-height:100vh;">
-    <main>
+    <main style="display:flex; flex-direction:column; flex:1;">
     <nav>
       <div class="nav-wrapper blue-grey lighten-1 z-depth-2">
         <a href="${pageContext.request.contextPath}/index.jsp" class="brand-logo" style="left: 50px">
@@ -77,10 +78,15 @@
       </div>
     </nav>
     <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px;">
-      <h2 class="center-align">Erro 404 - Página não encontrada</h2>
-      <a href="${pageContext.request.contextPath}/index.jsp" class="btn teal darken-2">Ir para o início</a>
+      <h2 class="center-align blue-grey-text text-darken-2" style="font-family:'Poppins',sans-serif; font-weight:600;">Erro 404 - Página não encontrada</h2>
+      <a href="${pageContext.request.contextPath}/index.jsp" class="btn blue-grey darken-1">Ir para o início</a>
     </div>
-    <jsp:include page="../header/footer.jsp"/>
+    <%-- ERRO-FOOTER-CINZA: footer proprio (cinza), nao o compartilhado (teal). --%>
+    <footer class="center blue-grey lighten-1 page-footer">
+      <div class="footer-copyright">
+        <div class="container">© 2026 IdeiaWare UNISC</div>
+      </div>
+    </footer>
   </main>
     </body>
 </html>

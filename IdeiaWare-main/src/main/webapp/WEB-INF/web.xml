@@ -87,6 +87,17 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <!-- RATE-LIMIT: limite de tentativas por IP em login/reset de senha/cadastro
+         (nenhum desses 3 endpoints tinha protecao contra brute-force/spam automatizado). -->
+    <filter>
+        <filter-name>rateLimitFilter</filter-name>
+        <filter-class>edu.unisc.lic.util.RateLimitFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>rateLimitFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!-- SEC-02: cookie de sessao com HttpOnly (JS nao le o JSESSIONID) e apenas
          via cookie (sem session-id na URL, evita fixation por link). SameSite=Lax
          e setado no META-INF/context.xml. 'secure' fica DESLIGADO (dev http;
@@ -481,6 +492,11 @@
     <error-page>
         <error-code>404</error-code>
         <location>/erros/404.jsp</location>
+    </error-page>
+    <!-- RATE-LIMIT-UX: 429 do RateLimitFilter mostrava a pagina padrao feia do Tomcat. -->
+    <error-page>
+        <error-code>429</error-code>
+        <location>/erros/429.jsp</location>
     </error-page>
     <!-- SEC-04: erros 500 e qualquer excecao nao-tratada vao para a pagina amigavel
          /erros/500.jsp (existia mas nao estava mapeada!). Antes, excecao nao-tratada

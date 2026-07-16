@@ -6,26 +6,28 @@
   <head>
     <link href="js/quill/quill.snow.css" rel="stylesheet">
     <title>IdeiaWare - Editar Texto</title>
+    <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
     <style>
       /* M.9: editor crescia demais e empurrava os botoes -- altura fixa no #editor (o .ql-editor interno ja rola sozinho). */
       #editor {
         height: 40vh;
       }
+      .titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 8px; }
     </style>
   </head>
-  <body class="center-align">
+  <body class="center-align blue-grey lighten-5">
     <main>
     <%-- UX-VOLTAR-V2: icone flutuante padrao (antes so tinha o "Cancelar" no fim do form). --%>
     <a href="colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
-    <div class="white" style="min-height: 90vh;">
+    <div class="" style="min-height: 90vh;">
       <div class="container">
         <jsp:useBean id="colaboracaoIdeia" class="edu.unisc.lic.domain.ColaboracaoIdeia" />
         <jsp:useBean id="colaboracaoIdeiaDAO" class="edu.unisc.lic.dao.ColaboracaoIdeiaDAO" />
         <jsp:useBean id="ideiaDAO" class="edu.unisc.lic.dao.IdeiaDAO" />
         <jsp:setProperty name="colaboracaoIdeia" property="ideia" value="${ideiaDAO.buscar(sessionScope.ideiaId)}" />
-        <h1>Editar Texto</h1></p>
+        <h1 class="blue-grey-text text-darken-2 titulo-modulo">Editar Texto</h1></p>
         <h3><c:out value="${sessionScope.ideiaTitulo}"/></h3>
-        <div style="padding: 10px" class="white" >
+        <div style="padding: 10px" class="" >
           <form action="SalvarTextoServlet" name="Salvar" method="POST">
             <div id="editor"></div>
             <%-- UX-EDITAR-TEXTO: textarea escondido, carregado no Quill via dangerouslyPasteHTML (c:out direto mostrava tags como texto literal). --%>

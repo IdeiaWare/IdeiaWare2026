@@ -30,7 +30,9 @@ public class PostOnlyFilter implements Filter {
             "/EditarColaboracaoServlet", "/CadastroIdeiaServlet", "/EntrarIdeiaServlet",
             "/AprovarMembroServlet", "/RejeitarMembroServlet",
             // GT-06: risco baixo (multipart/admin-only), adicionados por consistencia.
-            "/UploadArquivoServlet", "/DeletarExportedFileServlet", "/DeletarCanvaexportServlet"
+            "/UploadArquivoServlet", "/DeletarExportedFileServlet", "/DeletarCanvaexportServlet",
+            // FUT-02: feedback/sugestao.
+            "/EnviarFeedbackServlet"
     ));
 
     @Override
