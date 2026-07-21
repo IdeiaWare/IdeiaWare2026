@@ -6,7 +6,7 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900'>
-    <%-- TITULO-MODULO-POPPINS: Montserrat nunca era usada em lugar nenhum -- trocada pela Poppins (mesma fonte dos titulos de modulo). --%>
+    <%-- TITULO-MODULO-POPPINS: Montserrat trocada por Poppins. --%>
     <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -80,7 +80,7 @@
       <h2 class="center-align blue-grey-text text-darken-2" style="font-family:'Poppins',sans-serif; font-weight:600;">Erro 500 - Tente novamente mais tarde</h2>
       <a href="${pageContext.request.contextPath}/index.jsp" class="btn blue-grey darken-1">Ir para o início</a>
     </div>
-    <%-- ERRO-FOOTER-CINZA: footer proprio (cinza), nao o compartilhado (teal). --%>
+    <%-- ERRO-FOOTER-COR: footer próprio cinza, não o compartilhado teal. --%>
     <footer class="center blue-grey lighten-1 page-footer">
       <div class="footer-copyright">
         <div class="container">© 2026 IdeiaWare UNISC</div>

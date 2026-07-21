@@ -8,7 +8,7 @@
     <title>IdeiaWare - Editar Texto</title>
     <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
     <style>
-      /* M.9: editor crescia demais e empurrava os botoes -- altura fixa no #editor (o .ql-editor interno ja rola sozinho). */
+      /* M.9: altura fixa no #editor, o .ql-editor interno ja rola. */
       #editor {
         height: 40vh;
       }
@@ -30,7 +30,7 @@
         <div style="padding: 10px" class="" >
           <form action="SalvarTextoServlet" name="Salvar" method="POST">
             <div id="editor"></div>
-            <%-- UX-EDITAR-TEXTO: textarea escondido, carregado no Quill via dangerouslyPasteHTML (c:out direto mostrava tags como texto literal). --%>
+            <%-- UX-EDITAR-TEXTO: textarea carregado no Quill via dangerouslyPasteHTML. --%>
             <textarea id="descricao-inicial" style="display:none;"><c:out value="${sessionScope.ideiaDescricao}"/></textarea>
             <div>
               <br/>
@@ -57,7 +57,7 @@
 <script>
 
                   var Bold = Quill.import('formats/bold');
-                  Bold.tagName = 'B';   // Quill uses <strong> by default
+                  Bold.tagName = 'B';
                   Quill.register(Bold, true);
 
                   var ListItem = Quill.import('formats/list/item');
@@ -65,10 +65,8 @@
                   class PlainListItem extends ListItem {
                     formatAt(index, length, name, value) {
                       if (name === 'list') {
-                        // Allow changing or removing list format
                         super.formatAt(name, value);
                       }
-                      // Otherwise ignore
                     }
                   }
 
@@ -97,7 +95,7 @@
                     theme: 'snow'
                   });
 
-                  // UX-EDITAR-TEXTO: carrega a descricao no Quill via clipboard.dangerouslyPasteHTML; Concluir usa quill.root.innerHTML.
+                  // UX-EDITAR-TEXTO: carrega a descricao no Quill via clipboard.dangerouslyPasteHTML.
                   var descInicial = document.getElementById('descricao-inicial').value;
                   if (descInicial && descInicial.trim() !== '') {
                     quill.clipboard.dangerouslyPasteHTML(descInicial);

@@ -70,7 +70,7 @@ public class PointOfViewServiceImpl implements PointOfViewService {
 		associarPersonas(thePOV);
 	}
 
-	// TK-23: so associa personas que realmente pertencem a esta ideia (persona_id e auto-increment GLOBAL).
+	// TK-23: so associa personas que pertencem a esta ideia.
 	private void associarPersonas(PointOfView thePOV) {
 		for (int id : thePOV.getPersonasId()) {
 			if (personaService.getPersona(id, thePOV.getIdeiaCodigo()) == null) {

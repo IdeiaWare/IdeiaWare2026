@@ -309,8 +309,6 @@
 		<!-- FIM DO MAPA -->
 		<p class="referencia">Referência: OSTERWALDER, Alexander; PIGNEUR, Yves. Business model generation: inovação em modelos de negócios. Alta Books, 2020</p>
     <script type="text/javascript">
-      // MODAL-INIT: #sugestModal nunca tinha nenhuma chamada de init em lugar nenhum (nem
-      // aqui, nem no header/footer compartilhado) -- o botao SUGESTAO nunca abriu o modal.
       $(document).ready(function () {
         $('.modal').modal();
       });

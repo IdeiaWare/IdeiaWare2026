@@ -11,7 +11,6 @@ import javax.persistence.Table;
 @Table(name = "persona_pov")
 public class PersonaPointOfView {
 
-	// @Id no surrogate 'id' (auto_increment), NAO persona_id (que se repete -- 1 persona, N POVs).
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")

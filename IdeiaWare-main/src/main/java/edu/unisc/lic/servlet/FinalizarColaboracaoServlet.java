@@ -29,7 +29,6 @@ public class FinalizarColaboracaoServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // AUTORIZACAO: exige login.
         HttpSession session = request.getSession(false);
         Object codigoUsuario = session == null ? null : session.getAttribute("codigoUsuario");
         if (codigoUsuario == null) {
@@ -37,7 +36,7 @@ public class FinalizarColaboracaoServlet extends HttpServlet {
             return;
         }
 
-        // RET-14: valida parametro/ideia antes de usar (evita 500/NPE).
+        // RET-14: valida parametro/ideia antes de usar
         String ideiaIdParam = request.getParameter("ideiaId");
         Ideia ideia = null;
         if (ideiaIdParam != null) {
@@ -52,15 +51,17 @@ public class FinalizarColaboracaoServlet extends HttpServlet {
             return;
         }
 
-        // RET-12: nao re-finaliza ideia ja avancada (antes, POST direto regredia o status).
+        // RET-12: nao re-finaliza ideia ja avancada
+        // UX-PADRAO-ETAPA-FINALIZADA: mensagem via flash de sessao (lida por headerCookies.jsp).
         String statusAtual = ideia.getStatus();
         if (StatusIdeia.STORYTELLING.equals(statusAtual) || StatusIdeia.CAIXA_FERRAMENTAS.equals(statusAtual)
                 || StatusIdeia.CANVAS.equals(statusAtual) || StatusIdeia.FINALIZADO.equals(statusAtual)) {
+            session.setAttribute("mensagemErroEtapa", "A colaboração desta ideia já foi encerrada.");
             response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
             return;
         }
 
-        // SEC-14: so o LIDER finaliza (antes, qualquer um finalizava ideia de outro grupo).
+        // SEC-14: so o LIDER finaliza
         Usuario sessionUser = new Usuario();
         sessionUser.setCodigo((Long) codigoUsuario);
         List<IdeiaUsuario> souLider = new IdeiaUsuarioDAO()
@@ -87,7 +88,8 @@ public class FinalizarColaboracaoServlet extends HttpServlet {
 
         new IdeiaDAO().editar(ideia);
 
-        response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");
+        // UX-SUCESSO-CONSISTENCIA: tela de confirmacao, mesmo padrao de Canvas/Storytelling.
+        response.sendRedirect(request.getContextPath() + File.separator + "colaboracao-finalizada.jsp");
     }
 
     @Override
@@ -125,7 +127,7 @@ public class FinalizarColaboracaoServlet extends HttpServlet {
         try {
             stDAO.salvar(new Storytelling(u, i, Data.horaAtual(), "DE"));
         } catch (org.hibernate.exception.ConstraintViolationException ex) {
-            // K.8 #3: 2 submits quase-simultaneos -- UNIQUE do banco barra o 2o insert.
+            // K.8 #3: UNIQUE do banco barra o 2o insert
         }
     }
 }

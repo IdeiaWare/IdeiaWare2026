@@ -23,7 +23,7 @@ public class CadastroUsuarioServlet extends HttpServlet {
         UsuarioDAO usuarioDAO = new UsuarioDAO();
         List<Usuario> lista = usuarioDAO.listarParametro(usuario, false);
         
-        // INFRA-07: "".equals(...) e null-safe (POST sem algum campo dava NPE antes).
+        // INFRA-07: "".equals(...) e null-safe
         if ("".equals(request.getParameter("nome")) || "".equals(request.getParameter("senha")) ||
             "".equals(request.getParameter("usuario")) || "".equals(request.getParameter("senha2")) ||
             "".equals(request.getParameter("email")) ||
@@ -75,7 +75,7 @@ public class CadastroUsuarioServlet extends HttpServlet {
         usuario.setEmail(request.getParameter("email"));
         usuario.setAnonimizado("N");
 
-        // RACE-01: checagens acima tem janela de corrida; a UNIQUE do banco e a trava real.
+        // RACE-01: UNIQUE do banco e a trava real
         try {
             usuarioDAO.salvar(usuario);
         } catch (ConstraintViolationException ex) {
@@ -89,7 +89,7 @@ public class CadastroUsuarioServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // SEC-18: POST-only. GET nao cadastra (evita CSRF via GET).
+        // SEC-18: POST-only, GET nao cadastra
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 

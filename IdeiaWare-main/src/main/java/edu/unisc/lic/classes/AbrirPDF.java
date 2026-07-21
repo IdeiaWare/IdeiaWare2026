@@ -22,7 +22,7 @@ public class AbrirPDF {
 			return;
 		}
 
-		// RET-14: titulo pode vir null (antes, PDF baixava como "null.pdf") ou com aspas/quebra de linha.
+		// RET-14: titulo pode vir null ou com aspas/quebra de linha
 		String nomeArquivo = (titulo == null || titulo.trim().isEmpty()) ? "documento" : titulo.trim();
 		nomeArquivo = nomeArquivo.replaceAll("[\\r\\n\"]", "");
 

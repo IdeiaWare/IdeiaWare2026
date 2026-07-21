@@ -104,12 +104,19 @@ public class FinalizarColaboracaoServletTest {
 		Usuario autor = novoUsuario("Autor");
 		Ideia ideia = novaIdeia(autor, StatusIdeia.STORYTELLING);
 
-		HttpServletRequest request = mockRequest(autor.getCodigo(), true, ideia.getCodigo().toString());
+		HttpServletRequest request = mock(HttpServletRequest.class);
+		HttpSession session = mock(HttpSession.class);
+		when(request.getSession(false)).thenReturn(session);
+		when(session.getAttribute("codigoUsuario")).thenReturn(autor.getCodigo());
+		when(request.getParameter("ideiaId")).thenReturn(ideia.getCodigo().toString());
+		when(request.getContextPath()).thenReturn("");
 		HttpServletResponse response = mock(HttpServletResponse.class);
 
 		new FinalizarColaboracaoServlet().doPost(request, response);
 
 		verify(response).sendRedirect(contains("minha-ideia.jsp"));
+		// UX-PADRAO-ETAPA-FINALIZADA: mensagem via flash de sessao, lida por headerCookies.jsp.
+		verify(session).setAttribute("mensagemErroEtapa", "A colaboração desta ideia já foi encerrada.");
 		assertEquals(StatusIdeia.STORYTELLING, ideiaDAO.buscar(ideia.getCodigo()).getStatus());
 	}
 
@@ -144,7 +151,8 @@ public class FinalizarColaboracaoServletTest {
 
 		novoServletComContexto().doPost(request, response);
 
-		verify(response).sendRedirect(contains("minha-ideia.jsp"));
+		// UX-SUCESSO-CONSISTENCIA: sucesso redireciona pra tela de confirmacao, nao pra minha-ideia.jsp.
+		verify(response).sendRedirect(contains("colaboracao-finalizada.jsp"));
 		assertEquals(StatusIdeia.STORYTELLING, ideiaDAO.buscar(ideia.getCodigo()).getStatus());
 
 		Storytelling filtro = new Storytelling();

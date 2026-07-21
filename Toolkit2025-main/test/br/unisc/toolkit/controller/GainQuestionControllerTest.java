@@ -4,7 +4,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -19,6 +23,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import br.unisc.toolkit.classes.AssinaturaCaixa;
 import br.unisc.toolkit.entity.Empathy;
+import br.unisc.toolkit.entity.Ideia;
+import br.unisc.toolkit.service.IdeiaService;
 import br.unisc.toolkit.service.EmpathyService;
 
 // TEST-02: GainQuestionController -- valida o backstop server-side (TK-VAL) e o TK-ATTR
@@ -27,13 +33,90 @@ public class GainQuestionControllerTest {
 
 	private MockMvc mvc;
 	private EmpathyService service;
+	private IdeiaService ideiaService;
 
 	@Before
 	public void setup() {
 		GainQuestionController controller = new GainQuestionController();
 		service = mock(EmpathyService.class);
 		ReflectionTestUtils.setField(controller, "empathyService", service);
+		// UX-TOOLKIT-STATUS-GUARD: ideia mockada com status CF (Caixa de Ferramentas) libera escrita.
+		ideiaService = mock(IdeiaService.class);
+		Ideia ideiaCF = new Ideia();
+		ideiaCF.setStatus("CF");
+		when(ideiaService.getIdeia(any())).thenReturn(ideiaCF);
+		ReflectionTestUtils.setField(controller, "ideiaService", ideiaService);
 		mvc = MockMvcBuilders.standaloneSetup(controller).build();
+	}
+
+	@Test
+	public void mostrarPergunta_semCookie_redireciona() throws Exception {
+		mvc.perform(get("/persona/empatia/quais-sao-os-ganhos").param("personaId", "1"))
+				.andExpect(view().name("redirect"));
+	}
+
+	@Test
+	public void mostrarPergunta_comCookie_mostraView() throws Exception {
+		when(service.getAttributes(1, "gain", 5L)).thenReturn(java.util.Collections.<Empathy>emptyList());
+
+		mvc.perform(get("/persona/empatia/quais-sao-os-ganhos")
+				.cookie(new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("5")))
+				.param("personaId", "1"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("gain"));
+	}
+
+	@Test
+	public void ideiaForaDaEtapaCF_naoSalva() throws Exception { // UX-TOOLKIT-STATUS-GUARD
+		Ideia ideiaCanvas = new Ideia();
+		ideiaCanvas.setStatus("CV");
+		when(ideiaService.getIdeia(any())).thenReturn(ideiaCanvas);
+
+		mvc.perform(post("/persona/empatia/quais-sao-os-ganhos/save-attribute")
+				.cookie(new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("5")))
+				.param("attributeText", "Economiza tempo")
+				.param("personaId", "1"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/aviso-etapa-encerrada")) // UX-PADRAO-ETAPA-FINALIZADA
+				.andExpect(flash().attribute("etapaEncerradaErro", "Esta etapa já foi encerrada."))
+				.andExpect(flash().attribute("redirecionarPara", "/LIC/minha-ideia.jsp"));
+		verify(service, never()).saveEmpathyAttribute(any());
+	}
+
+	@Test
+	public void deletar_comCookieEEtapaCF_deleta() throws Exception {
+		mvc.perform(post("/persona/empatia/quais-sao-os-ganhos/delete")
+				.cookie(new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("5")))
+				.param("personaId", "1")
+				.param("attributeId", "9"))
+				.andExpect(status().is3xxRedirection());
+		verify(service).deleteAttribute(9, 5L);
+	}
+
+	@Test
+	public void deletar_semCookie_naoDeleta() throws Exception { // TK-03
+		mvc.perform(post("/persona/empatia/quais-sao-os-ganhos/delete")
+				.param("personaId", "1")
+				.param("attributeId", "9"))
+				.andExpect(status().is3xxRedirection());
+		verify(service, never()).deleteAttribute(org.mockito.ArgumentMatchers.anyInt(), any());
+	}
+
+	@Test
+	public void deletar_ideiaForaDaEtapaCF_naoDeleta() throws Exception { // UX-TOOLKIT-STATUS-GUARD
+		Ideia ideiaCanvas = new Ideia();
+		ideiaCanvas.setStatus("CV");
+		when(ideiaService.getIdeia(any())).thenReturn(ideiaCanvas);
+
+		mvc.perform(post("/persona/empatia/quais-sao-os-ganhos/delete")
+				.cookie(new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("5")))
+				.param("personaId", "1")
+				.param("attributeId", "9"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/aviso-etapa-encerrada")) // UX-PADRAO-ETAPA-FINALIZADA
+				.andExpect(flash().attribute("etapaEncerradaErro", "Esta etapa já foi encerrada."))
+				.andExpect(flash().attribute("redirecionarPara", "/LIC/minha-ideia.jsp"));
+		verify(service, never()).deleteAttribute(org.mockito.ArgumentMatchers.anyInt(), any());
 	}
 
 	@Test

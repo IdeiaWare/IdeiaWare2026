@@ -27,7 +27,6 @@ public class FecharGrupoServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // AUTORIZACAO: exige login.
         HttpSession session = request.getSession(false);
         Object codigoUsuario = session == null ? null : session.getAttribute("codigoUsuario");
         if (codigoUsuario == null) {
@@ -35,7 +34,7 @@ public class FecharGrupoServlet extends HttpServlet {
             return;
         }
 
-        // RET-14: valida parametro/ideia antes de usar (evita 500/NPE).
+        // RET-14: valida parametro/ideia antes de usar
         String codigoParam = request.getParameter("codigo");
         Ideia ideia = null;
         if (codigoParam != null) {
@@ -50,7 +49,7 @@ public class FecharGrupoServlet extends HttpServlet {
             return;
         }
 
-        // SEC-13: so o LIDER fecha o grupo / transfere lideranca (antes, qualquer POST regredia).
+        // SEC-13: so o LIDER fecha o grupo / transfere lideranca
         Usuario sessionUser = new Usuario();
         sessionUser.setCodigo((Long) codigoUsuario);
         List<IdeiaUsuario> souLider = new IdeiaUsuarioDAO()
@@ -72,11 +71,10 @@ public class FecharGrupoServlet extends HttpServlet {
             return;
         }
 
-        // K.8 #1: escritas so sao PERSISTIDAS no final, todas juntas, via fecharGrupoAtomico.
+        // K.8 #1: escritas persistidas juntas via fecharGrupoAtomico
         List<IdeiaUsuario> vinculosParaAtualizar = new ArrayList<>();
         Usuario liderFinal = list.get(0).getUsuario();
 
-        // M.2: ao fechar, vinculos PENDENTES/REJEITADOS sao removidos -- sobram so os aprovados.
         List<IdeiaUsuario> todos = ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(null, ideia, null));
         List<IdeiaUsuario> vinculosParaRemover = new ArrayList<>();
         if (todos != null) {
@@ -98,7 +96,6 @@ public class FecharGrupoServlet extends HttpServlet {
                 return;
             }
             if (list.get(0).getUsuario().getCodigo() != radioId && todos != null) {
-                // M.2: acha o novo lider entre os APROVADOS antes de rebaixar o antigo (senao, sem lider).
                 IdeiaUsuario novoLider = null;
                 for (IdeiaUsuario iU : todos) {
                     String st = iU.getFlStatusVinculo();

@@ -13,7 +13,6 @@ import br.unisc.toolkit.repository.PersonaDAO;
 @Service
 public class PersonaServiceImpl implements PersonaService {
 
-	// need to inject persona dao
 	@Autowired
 	private PersonaDAO personaDAO;
 	

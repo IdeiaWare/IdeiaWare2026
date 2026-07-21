@@ -27,7 +27,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <%-- TITULO-MODULO-POPPINS: fonte dos titulos de modulo (ver K.4). --%>
-<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@700' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
 
 <!-- INFRA-10: jQuery carregado uma única vez (havia duas inclusões) -->
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -152,7 +152,7 @@
                       <span>
                         <form name="entrarCAixa" action="EntrarCaixaServlet" method="POST">
                           <input hidden="true" value="${caixa.ideia.codigo}" name="ideiaId" />
-                          <input hidden="true" value="${nome}" name="usuarioNome">
+                          <input hidden="true" value="<c:out value='${nome}'/>" name="usuarioNome">
                           <input class="btn red darken-1" type="submit" value="Entrar"  name="Caixa" />
                         </form>
                       </span>

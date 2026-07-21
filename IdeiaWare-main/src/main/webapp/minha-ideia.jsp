@@ -10,7 +10,19 @@
 
     <link type="text/css" rel="stylesheet" href="css/colaboracao.css"/>
     <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
-    <style>.titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }</style>
+    <style>
+      .titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }
+      /* UX-MINHA-IDEIA-BOTAO-CENTRO: os botoes da coluna de acao viraram <button> (o VALUE
+         de <input type=submit> nao respeitava text-align de forma confiavel quando o JS
+         mais abaixo forcava uma largura diferente da largura natural do texto) -- <button>
+         renderiza o texto como conteudo DOM normal, que centraliza sem essa inconsistencia.
+         white-space:nowrap: a coluna de acao e' so' 10% da tabela (ver colgroup) -- rotulos
+         de 2 palavras como "Em análise" quebravam linha dentro dessa largura (diferente do
+         <input>, que nunca quebra), e a altura fixa de 36px do Materialize cortava a 2a
+         linha pra fora da caixa. Sem quebra, o botao estica a coluna alem dos 10% (table-
+         layout automatico permite isso) em vez de cortar o texto. */
+      #lista-minhas tbody td:last-child .btn { text-align: center; white-space: nowrap; }
+    </style>
   </head>
 
   <body class="center-align blue-grey lighten-5">
@@ -28,7 +40,6 @@
             <jsp:setProperty name="ideiaUsuario" property="usuario" value="${usuarioClasse}" />
             <c:set var="minhasIdeias" value="${ideiaUsuarioDAO.listarParametro(ideiaUsuario)}" />
           <p/>
-          <%-- UX: busca e tabela so aparecem quando ha ideias (sem sentido pra uma lista vazia). --%>
           <c:if test="${empty minhasIdeias}">
             <div class="center-align grey-text" style="padding: 40px 20px;">
               <i class="material-icons" style="font-size: 3rem; display:block;">lightbulb_outline</i>
@@ -36,7 +47,6 @@
             </div>
           </c:if>
           <c:if test="${not empty minhasIdeias}">
-          <%-- Busca client-side: filtra as linhas da tabela pelo texto digitado. --%>
           <div class="input-field" style="margin:0 0 6px;">
             <input id="filtro-minhas" type="text" placeholder="Buscar ideia (título, descrição)" aria-label="Buscar ideia">
           </div>
@@ -91,7 +101,7 @@
                               <c:choose>
                                   <c:when test="${ideia.flStatusVinculo eq 'P'}">
                                       <%-- GT-10: "Em análise" (nao "Pendente", que colide com a coluna Status); type="button" evita sublinhado pontilhado do Materialize. --%>
-                                      <input type="button" class="btn disabled" disabled="true" value="Em análise" />
+                                      <button type="button" class="btn disabled" disabled="disabled">Em análise</button>
                                   </c:when>
                                   <c:when test="${ideia.flStatusVinculo eq 'R'}">
                                       <a href="#modalMembroRejeitado" class="btn modal-trigger red lighten-2" data-motivomembro="<c:out value='${ideia.motivoRejeicaoMembro}'/>" data-titulo="<c:out value='${ideia.ideia.titulo}'/>">Não aprovado</a>
@@ -102,13 +112,13 @@
                                               <form name="entrarColaboracao" action="EntrarDetalheServlet" method="POST">
                                                 <input hidden="true" value="${ideia.ideia.codigo}" name="codigo" />
                                                 <input hidden="true" value="${ideia.flLider}" name="lider" />
-                                                <input class="btn teal darken-1" type="submit" value="Entrar"  name="Entrar" />
+                                                <button class="btn teal darken-1" type="submit" name="Entrar" value="Entrar">Entrar</button>
                                               </form>
                                           </c:when>
                                           <c:otherwise>
                                               <form name="entrarColaboracao" action="EntrarColaboracaoServlet" method="POST">
                                                 <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
-                                                <input class="btn teal darken-1" type="submit" value="Entrar"  name="Entrar" />
+                                                <button class="btn teal darken-1" type="submit" name="Entrar" value="Entrar">Entrar</button>
                                               </form>
                                           </c:otherwise>
                                       </c:choose>
@@ -121,15 +131,14 @@
                           <c:when test="${ideia.ideia.status eq 'ST'}">
                               <form name="entrarStory" action="EntrarStorytellingServlet" method="POST">
                                 <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
-                                <input class="btn indigo lighten-1" type="submit" value="Entrar"  name="StoryTelling" />
+                                <button class="btn indigo lighten-1" type="submit" name="StoryTelling" value="Entrar">Entrar</button>
                               </form>
                           </c:when>
                           <c:when test="${ideia.ideia.status eq 'CF'}">
                               <form name="entrarCaixa" action="EntrarCaixaServlet" method="POST">
                                 <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
-                                <%-- XSS: nome de sessao (texto livre de cadastro) escapado dentro do atributo. --%>
                                 <input hidden="true" value="<c:out value='${nome}'/>" name="usuarioNome" />
-                                <input class="btn red darken-1" type="submit" value="Entrar"  name="Caixa" />
+                                <button class="btn red darken-1" type="submit" name="Caixa" value="Entrar">Entrar</button>
                               </form>
                           </c:when>
                           <c:when test="${ideia.ideia.status eq 'CV'}">
@@ -137,19 +146,19 @@
                               <form name="entrarCanva" action="EntrarCanvaServlet" method="POST">
                                 <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
                                 <input hidden="true" value="<c:out value='${nome}'/>" name="usuarioNome" />
-                                <input class="btn blue darken-4" type="submit" value="Entrar"  name="Canva" />
+                                <button class="btn blue darken-4" type="submit" name="Canva" value="Entrar">Entrar</button>
                               </form>
                           </c:when>
                           <c:when test="${ideia.ideia.status eq 'FN'}">
                               <%-- M.13: ideia finalizada abre a Retencao via GerenciarIdeiaServlet (antes, botao "Entrar" morto). --%>
                               <form name="entrarGerenciamento" action="GerenciarIdeiaServlet" method="POST">
                                 <input hidden="true" value="${ideia.ideia.codigo}" name="ideiaId" />
-                                <input class="btn deep-orange lighten-2" type="submit" value="Detalhes" name="Detalhes" />
+                                <button class="btn deep-orange lighten-2" type="submit" name="Detalhes" value="Detalhes">Detalhes</button>
                               </form>
                           </c:when>
                           <c:otherwise>
                             <%-- GT-10: mesmo botao de vinculo do rotulo "Em análise" acima. --%>
-                              <input type="button" class="btn disabled" disabled="true" value="Entrar" />
+                              <button type="button" class="btn disabled" disabled="disabled">Entrar</button>
                           </c:otherwise>
                       </c:choose>
                     </td>
@@ -165,7 +174,7 @@
               i.addEventListener('input',function(){
                 var s=i.value.toLowerCase();
                 t.forEach(function(r){
-                  // UX: busca escopada a nome+titulo+descricao+status (antes usava o textContent da linha inteira, incluindo o botao).
+                  // UX-BUSCA: busca escopada a nome+titulo+descricao+status.
                   var nome   = (r.querySelector('.name')        || {}).textContent || '';
                   var titulo = (r.querySelector('.title')       || {}).textContent || '';
                   var desc   = (r.querySelector('.description') || {}).textContent || '';
@@ -174,6 +183,23 @@
                   r.style.display = alvo.indexOf(s) > -1 ? '' : 'none';
                 });
               });
+            })();
+
+            <%-- UX-MINHA-IDEIA-BOTAO-LARGURA: Materialize .btn nao tem largura fixa -- cada
+                 rotulo (Entrar/Motivo/Detalhes/etc) ficava com um tamanho diferente. Usa o
+                 MAIOR botao natural (hoje "Detalhes") como referencia e AUMENTA os outros ate
+                 la -- nunca encolhe nenhum abaixo do proprio tamanho natural (encolher foi o
+                 que quebrava a centralizacao do texto antes). --%>
+            (function(){
+              var botoes = [].slice.call(document.querySelectorAll('#lista-minhas tbody td:last-child .btn'));
+              if (!botoes.length) return;
+              var maiorLargura = 0;
+              botoes.forEach(function(b){
+                var largura = b.getBoundingClientRect().width;
+                if (largura > maiorLargura) maiorLargura = largura;
+              });
+              if (!maiorLargura) return;
+              botoes.forEach(function(b){ b.style.width = maiorLargura + 'px'; });
             })();
           </script>
           </c:if>

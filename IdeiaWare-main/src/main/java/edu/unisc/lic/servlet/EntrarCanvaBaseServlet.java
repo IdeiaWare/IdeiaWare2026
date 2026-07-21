@@ -13,13 +13,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-// MNT-01: classe-base dos 9 servlets "EntrarCanva*" (antes, quase identicos e duplicados).
+// MNT-01: classe-base dos 9 servlets "EntrarCanva*"
 public abstract class EntrarCanvaBaseServlet extends HttpServlet {
 
-    /** Tipo do elemento (3o arg de listarCanvaElement). Ex.: "atividade". */
     protected abstract String getTipoCanva();
 
-    /** Pagina destino. Ex.: "canva-atividades-principais.jsp". */
     protected abstract String getPaginaDestino();
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -28,7 +26,7 @@ public abstract class EntrarCanvaBaseServlet extends HttpServlet {
         HttpSession session = request.getSession(true);
         request.setCharacterEncoding("UTF-8");
 
-        // CANM-03: guard contra acesso sem ideiaId na sessao.
+        // CANM-03: guard contra acesso sem ideiaId na sessao
         if (session.getAttribute("ideiaId") == null) {
             response.sendRedirect(request.getContextPath() + "/lista-canvas.jsp");
             return;
@@ -36,7 +34,7 @@ public abstract class EntrarCanvaBaseServlet extends HttpServlet {
 
         IdeiaDAO ideiaDAO = new IdeiaDAO();
         Ideia ideia = ideiaDAO.buscar((Long) session.getAttribute("ideiaId"));
-        // SRV-NPE-01: ideiaId na sessao pode apontar pra ideia que nao existe mais.
+        // SRV-NPE-01: ideiaId na sessao pode apontar pra ideia que nao existe mais
         if (ideia == null) {
             response.sendRedirect(request.getContextPath() + "/lista-canvas.jsp");
             return;

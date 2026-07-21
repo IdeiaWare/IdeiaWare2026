@@ -23,7 +23,7 @@ public class EnviaDadosPessoaisServlet extends HttpServlet {
             
             HttpSession session = request.getSession(true);
 
-            // RET-14: exige login (senao, buscar(null) causava NPE/500).
+            // RET-14: exige login
             Object codigoObj = session.getAttribute("codigoUsuario");
             if (codigoObj == null) {
                 response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -43,7 +43,7 @@ public class EnviaDadosPessoaisServlet extends HttpServlet {
                              usuario.getDadosPessoais()+"\n\n" +
                              "Se você não solicitou essas informação, por favor, entre em contato imediatamente com o administrador.";
             
-            // RET-14-EMAIL: IOException de rede no SendGrid agora cai no fluxo de erro amigavel.
+            // RET-14-EMAIL: erro de rede cai no fluxo de erro amigavel
             Boolean resp;
             try {
                 resp = EnvioEmail.EnviaEmail(usuario.getEmail(), "Dados pessoais - IdeiaWare", textoEmail);
@@ -63,7 +63,7 @@ public class EnviaDadosPessoaisServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // SEC-18: POST-only (antes, GET tambem disparava o e-mail -- CSRF via <img src=...>).
+        // SEC-18: POST-only
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 

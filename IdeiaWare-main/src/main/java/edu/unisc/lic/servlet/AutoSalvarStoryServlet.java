@@ -3,8 +3,11 @@ package edu.unisc.lic.servlet;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.ElementosStorytellingDAO;
+import edu.unisc.lic.dao.StorytellingDAO;
 import edu.unisc.lic.domain.ElementosStorytelling;
+import edu.unisc.lic.domain.Storytelling;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,8 +25,10 @@ public class AutoSalvarStoryServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        // ENCODING-01: sem isso o write de erro sai com acentuacao quebrada (charset default do container).
+        response.setCharacterEncoding("UTF-8");
 
-        // SEC-16: so edita elementos do storytelling ATIVO na sessao (antes, IDOR de escrita).
+        // SEC-16: so edita elementos do storytelling ativo na sessao
         javax.servlet.http.HttpSession session = request.getSession(false);
         Object storyId = session == null ? null : session.getAttribute("storytellingId");
         if (storyId == null) {
@@ -31,6 +36,14 @@ public class AutoSalvarStoryServlet extends HttpServlet {
             return;
         }
         Long storytellingId = (Long) storyId;
+
+        // UX-STORY-ETAPA-TRAVADA: bloqueia escrita se o Storytelling ja foi finalizado.
+        Storytelling storytelling = new StorytellingDAO().buscar(storytellingId);
+        if (storytelling == null || StatusIdeia.FINALIZADO.equals(storytelling.getStatus())) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("Este item já foi finalizado.");
+            return;
+        }
 
         String json = lerBody(request);
         if (json == null || json.trim().isEmpty()) {
@@ -40,7 +53,7 @@ public class AutoSalvarStoryServlet extends HttpServlet {
         JsonArray data = new Gson().fromJson(json, JsonArray.class);
         ElementosStorytellingDAO elementosStorytellingDAO = new ElementosStorytellingDAO();
 
-        // PERF-02: 1 SELECT em lote + 1 Session pra salvar tudo, em vez de 2N conexoes (N=elementos).
+        // PERF-02: 1 SELECT em lote + 1 Session pra salvar tudo
         Map<Long, ElementosStorytelling> existentes = buscarExistentes(elementosStorytellingDAO, data);
 
         List<ElementosStorytelling> paraSalvar = new ArrayList<>();
@@ -81,7 +94,7 @@ public class AutoSalvarStoryServlet extends HttpServlet {
         return existentes;
     }
 
-    // STR-02/SEC-16: ignora elemento deletado nesse meio-tempo ou de outro storytelling.
+    // STR-02/SEC-16: ignora elemento deletado ou de outro storytelling
     private boolean podeSalvar(ElementosStorytelling est, Long storytellingId) {
         return est != null
                 && est.getStorytelling() != null

@@ -15,20 +15,25 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.unisc.toolkit.classes.AdminCookies;
+import br.unisc.toolkit.classes.Constantes;
+import br.unisc.toolkit.classes.StatusGuard;
 import br.unisc.toolkit.classes.ToolkitValidacao;
 import org.springframework.validation.BindingResult;
 import br.unisc.toolkit.entity.Persona;
 
+import br.unisc.toolkit.service.IdeiaService;
 import br.unisc.toolkit.service.PersonaService;
 
 @Controller
 @RequestMapping("/persona")
 public class PersonaController {
-	
-	// need to inject our persona service
+
 	@Autowired
 	private PersonaService personaService;
-	
+
+	@Autowired
+	private IdeiaService ideiaService;
+
 	AdminCookies cookie = new AdminCookies();
 	
 	@GetMapping("/lista")
@@ -38,10 +43,8 @@ public class PersonaController {
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 			ideiaCodigo = cookie.getCookieIdeiaCodigo(request);
 			
-			// get personas from the service
 			List<Persona> thePersonas = personaService.getPersonas(ideiaCodigo);
-			
-			// add the personas to the model
+
 			theModel.addAttribute("pageTitle", "Personas - Lista");
 			theModel.addAttribute("personas", thePersonas);
 			
@@ -59,7 +62,13 @@ public class PersonaController {
 	@PostMapping("/salvar-persona")
 	public String savePersona(@ModelAttribute("persona") Persona thePersona, BindingResult result, HttpServletRequest request, RedirectAttributes redirectAttrs){
 		if(cookie.getCookieIdeiaCodigo(request) != null){
-			// TK-VAL: backstop server-side (client-side e burlavel); BindingResult captura idade nao-numerica (evita 400).
+			// UX-TOOLKIT-STATUS-GUARD: bloqueia escrita fora da etapa Caixa de Ferramentas.
+			if (!StatusGuard.podeEscrever(ideiaService, cookie.getCookieIdeiaCodigo(request))) {
+				redirectAttrs.addFlashAttribute("etapaEncerradaErro", "Esta etapa já foi encerrada.");
+				redirectAttrs.addFlashAttribute("redirecionarPara", Constantes.paginaMinhaIdeia(request));
+				return "redirect:/aviso-etapa-encerrada";
+			}
+			// TK-VAL: backstop server-side.
 			if (result.hasErrors() || !ToolkitValidacao.textoValido(thePersona.getName(), 45)
 					|| !ToolkitValidacao.idadeValida(thePersona.getAge())) {
 				redirectAttrs.addFlashAttribute("toastErro", "Não foi possível salvar a persona. Verifique o nome e a idade.");
@@ -67,7 +76,6 @@ public class PersonaController {
 			}
 			thePersona.setIdeiaCodigo(cookie.getCookieIdeiaCodigo(request));
 
-			// save the persona using our service
 			personaService.savePersona(thePersona);
 
 			redirectAttrs.addFlashAttribute("toastOk", "Persona salva com sucesso.");
@@ -78,12 +86,20 @@ public class PersonaController {
 		}	
 	}
 	
-	// TK-26: virou POST (antes, GET com token na query string).
+	// TK-26: virou POST.
 	@PostMapping("/deletar")
-	public String deletePersona(@RequestParam("personaId") int theId, Model theModel, HttpServletRequest request){
-		// TK-03: exige cookie de ideia; o filtro por ideia_codigo no DAO impede IDOR
+	public String deletePersona(@RequestParam("personaId") int theId, Model theModel, HttpServletRequest request, RedirectAttributes redirectAttrs){
+		// TK-03: exige cookie de ideia contra IDOR.
+		// UX-TOOLKIT-STATUS-GUARD: bloqueia escrita fora da etapa Caixa de Ferramentas.
 		if(cookie.getCookieIdeiaCodigo(request) != null){
-			personaService.deletePersona(theId, cookie.getCookieIdeiaCodigo(request));
+			if (StatusGuard.podeEscrever(ideiaService, cookie.getCookieIdeiaCodigo(request))) {
+				personaService.deletePersona(theId, cookie.getCookieIdeiaCodigo(request));
+			} else {
+				// UX-PADRAO-ETAPA-FINALIZADA: antes falhava em silencio (sem toast, sem excluir).
+				redirectAttrs.addFlashAttribute("etapaEncerradaErro", "Esta etapa já foi encerrada.");
+				redirectAttrs.addFlashAttribute("redirecionarPara", Constantes.paginaMinhaIdeia(request));
+				return "redirect:/aviso-etapa-encerrada";
+			}
 		}
 
 		return "redirect:/persona/lista";
@@ -96,10 +112,9 @@ public class PersonaController {
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 			 ideiaCodigo = cookie.getCookieIdeiaCodigo(request);
 			 
-			// get the customer from our service
 			Persona thePersona = personaService.getPersona(theId, ideiaCodigo);
 
-			// TK-02: getPersona() pode voltar null (senao, pagina renderizava quebrada em vez de redirecionar).
+			// TK-02: getPersona() pode voltar null.
 			if (thePersona == null) {
 				theModel.addAttribute("pageTitle", "Erro");
 				return "redirect";

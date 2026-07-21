@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8" session="true"%>
-<%@include file="header/headerCookies.jsp" %>
+<%@include file="header/headerCookiesColaboracao.jsp" %>
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
@@ -54,23 +54,7 @@
               </div>
             </div>
 
-            <div>
-              <c:if test="${sessionScope.lider eq 'S' and isRetencao eq false}">
-                <div>
-                  <form name="finalizar" action="FinalizarColaboracaoServlet" method="post">
-                    <input type="hidden" value="${sessionScope.ideiaId}" name="ideiaId">
-                    <input class="btn-large orange darken-1 right" name="Finalizar Ideia" value="Finalizar Ideia" type="submit" onclick="return confirm('Finalizar a ideia encerra a colaboração. Esta ação não pode ser desfeita. Confirmar?')">
-                  </form>
-                </div>
-                <div class="left">
-                  <form name="editarTexto" action="EditarTextoServlet" method="post">
-                    <input type="hidden" value="${sessionScope.ideiaId}" name="ideiaId">
-                    <input class="btn-large orange darken-1 right" name="Editar Texto" value="Editar Texto" type="submit">
-                  </form>
-                </div>
-              </c:if>
-            </div>
-            <br/>
+            <%-- UX-COLAB-BOTOES: "Finalizar Ideia"/"Editar Texto" subiram pro cabecalho (headerCookiesColaboracao.jsp). --%>
           </div>
 
           <%-- UX-01/TEST-04: tabela FICA sempre no DOM, so escondida via CSS -- remove-la via c:if quebra o appendTo do polling/envio. --%>
@@ -152,6 +136,17 @@
     </body>
 
   <script>
+    // UX-PADRAO-ETAPA-FINALIZADA: mesmo padrao usado no Storytelling (controle.js).
+    function tratarErroEtapaFinalizada(xhr, mensagemPadrao) {
+      if (xhr.status === 403) {
+        alert((xhr.responseText || "Esta colaboração já foi finalizada.") + " Você será redirecionado para a lista de ideias.");
+        window.location.href = "minha-ideia.jsp";
+        return true;
+      }
+      alert(mensagemPadrao);
+      return false;
+    }
+
     // TEST-04: revela a tabela e esconde a mensagem de vazio, chamado apos o 1o appendTo bem-sucedido.
     function revelarTabelaColaboracoes() {
       $("#colaboracoesVazio").hide();
@@ -180,8 +175,8 @@
           // GT-08: aria-label atualizado ao desabilitar (antes ficava com o texto antigo).
           form[0][1].setAttribute("aria-label", "Adicionar à Descrição (já enviado)");
         },
-        error: function () {
-          alert("Erro ao adicionar colaboração à descrição. Tente novamente.");
+        error: function (xhr) {
+          tratarErroEtapaFinalizada(xhr, "Erro ao adicionar colaboração à descrição. Tente novamente.");
         }
       });
     }
@@ -192,7 +187,7 @@
       var codigo = $btn.data("codigo");
       var $cell = $btn.closest("td");
       var $span = $cell.find(".colab-texto");
-      if ($cell.find(".edit-colab-ta").length) return; // ja esta editando
+      if ($cell.find(".edit-colab-ta").length) return;
 
       var textoAtual = $span.text();
       $span.hide();
@@ -225,7 +220,11 @@
             $span.text(resp.descricaoIdeiaAtual);
             restaurar();
           },
-          error: function () {
+          error: function (xhr) {
+            if (xhr.status === 403) {
+              tratarErroEtapaFinalizada(xhr, "");
+              return;
+            }
             alert("Não foi possível editar. A colaboração pode já ter sido adicionada à descrição pelo líder.");
             restaurar();
           }
@@ -242,10 +241,9 @@
     var meuCodigo = ${sessionScope.codigoUsuario};
     var isRetencaoJS = ${isRetencao};
 
-    // Monta a <tr> de uma colaboracao (reutilizado pelo envio e pelo polling).
     function renderColaboracao(cola) {
       if (cola == null || cola.usuario == null) return;
-      if (cola.codigo <= ultimoCodigo) return; // ja renderizada (ou corrida) -> ignora
+      if (cola.codigo <= ultimoCodigo) return;
 
       // M.10: botao de editar (lapis) so pro autor da colaboracao, nao-salvada, fora de retencao.
       var btnEditar = (!isRetencaoJS && cola.usuario.codigo === meuCodigo && cola.flSalvado == null)
@@ -286,8 +284,8 @@
           renderColaboracao(responseJson);
           $("#descricao").val("");
         },
-        error: function () {
-          alert("Erro ao enviar colaboração. Tente novamente.");
+        error: function (xhr) {
+          tratarErroEtapaFinalizada(xhr, "Erro ao enviar colaboração. Tente novamente.");
         }
       });
     }

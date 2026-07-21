@@ -136,4 +136,20 @@ public class EditarColaboracaoServletTest {
 
 		verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 	}
+
+	@Test
+	public void colaboracaoJaFinalizada_naoEdita_retorna403() throws Exception { // UX-COLAB-ETAPA-TRAVADA
+		Usuario autor = novoUsuario("Autor5");
+		Ideia ideia = novaIdeia(autor);
+		ColaboracaoIdeia c = novaColab(ideia, autor, "texto original");
+		ideia.setStatus(StatusIdeia.STORYTELLING);
+		ideiaDAO.editar(ideia);
+
+		HttpServletRequest request = mockRequest(autor.getCodigo(), c.getCodigo().toString(), "tentando editar tarde");
+		HttpServletResponse response = mockResponse();
+		new EditarColaboracaoServlet().doPost(request, response);
+
+		verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+		assertEquals("texto original", colaboracaoIdeiaDAO.buscar(c.getCodigo()).getDescricaoIdeiaAtual());
+	}
 }

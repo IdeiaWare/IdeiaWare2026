@@ -17,7 +17,7 @@ public class Usuario extends GenericDomain implements Serializable{
     @Column(length = 64, nullable = false)
     private String nome;
 
-    // RACE-01: unique=true trava no BANCO (antes, so em Java = 2 cadastros simultaneos travavam 2 contas).
+    // RACE-01: unique=true trava no banco, nao so em Java
     @Column(length = 32, nullable = false, unique = true)
     private String usuario;
 
@@ -27,7 +27,7 @@ public class Usuario extends GenericDomain implements Serializable{
     @Column(length = 3, nullable = false)
     private String permissao;
 
-    // RACE-01/MODELAGEM-01: unique=true (mesma razao); length=50 alinhado ao banco real (era 100).
+    // RACE-01/MODELAGEM-01: unique=true, length=50 alinhado ao banco real
     @Column(length = 50, nullable = true, unique = true)
     private String email;
     
@@ -38,7 +38,7 @@ public class Usuario extends GenericDomain implements Serializable{
     @Temporal(TemporalType.TIMESTAMP)
     private Date DataAnonimizado;
 
-    // RESET-TOKEN: hash SHA-256 do token de reset de senha (nunca o token em claro) + expiracao.
+    // RESET-TOKEN: hash SHA-256 do token, nunca o token em claro
     @Column(length = 64, nullable = true)
     private String resetTokenHash;
 
@@ -51,7 +51,7 @@ public class Usuario extends GenericDomain implements Serializable{
 
     public Usuario(String usuario, String senha) {
         this.usuario = usuario;
-        this.senha = CriptografaSenha(senha);   // SEC-22: bcrypt (era SHA-256)
+        this.senha = CriptografaSenha(senha);   // SEC-22: bcrypt
     }
 
     public Usuario(String nome, String usuario, String senha, String permissao, String email) {
@@ -130,12 +130,11 @@ public class Usuario extends GenericDomain implements Serializable{
         return new String(caracteres);
     }
     
-    // SEC-22: bcrypt (era SHA-256+usuario); ja gera salt aleatorio, verificacao via checaSenha().
+    // SEC-22: bcrypt com salt aleatorio
     private static String CriptografaSenha(String senha) {
         return BCrypt.hashpw(senha, BCrypt.gensalt());
     }
 
-    /** Verifica a senha em claro contra o hash bcrypt armazenado (this.senha). */
     public boolean checaSenha(String senhaEmClaro) {
         if (senhaEmClaro == null || this.senha == null || this.senha.isEmpty()) {
             return false;
@@ -143,7 +142,6 @@ public class Usuario extends GenericDomain implements Serializable{
         try {
             return BCrypt.checkpw(senhaEmClaro, this.senha);
         } catch (IllegalArgumentException e) {
-            // hash em formato invalido (dado legado/corrompido) -> nao autentica
             return false;
         }
     }
@@ -174,7 +172,7 @@ public class Usuario extends GenericDomain implements Serializable{
     
     public void setSenha(String senha, Boolean crip) {
         if (crip){
-            this.senha = CriptografaSenha(senha);   // SEC-22: bcrypt (era SHA-256+usuario)
+            this.senha = CriptografaSenha(senha);   // SEC-22: bcrypt
         } else {
             this.senha = senha;
         }

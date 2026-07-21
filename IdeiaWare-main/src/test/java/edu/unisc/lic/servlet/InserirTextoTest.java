@@ -118,4 +118,25 @@ public class InserirTextoTest {
 		assertEquals(criado.getCodigo().longValue(), resposta.get("codigo").getAsLong());
 		assertEquals("Ola mundo", resposta.get("informacaoTexto").getAsString());
 	}
+
+	@Test
+	public void storytellingJaFinalizado_bloqueiaInsercao() throws Exception { // UX-STORY-ETAPA-TRAVADA
+		Usuario autor = novoUsuario("AutorFinalizado");
+		Ideia ideia = novaIdeia(autor);
+		Storytelling st = novoStorytelling(autor, ideia);
+		st.setStatus(StatusIdeia.FINALIZADO);
+		storytellingDAO.editar(st);
+
+		String json = "{\"x\":1,\"y\":2,\"fonte\":\"Arial\",\"tamanho\":18,\"cor\":\"#123456\",\"informacaoTexto\":\"tarde\"}";
+		HttpServletRequest request = mockRequest(st.getCodigo(), json);
+		HttpServletResponse response = mock(HttpServletResponse.class);
+		mockResponseWriter(response);
+
+		new InserirTexto().doPost(request, response);
+
+		verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+		ElementosStorytelling filtro = new ElementosStorytelling();
+		filtro.setStorytelling(st);
+		assertEquals(0, elementosStorytellingDAO.listarParametro(filtro).size());
+	}
 }

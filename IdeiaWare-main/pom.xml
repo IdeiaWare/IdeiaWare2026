@@ -25,14 +25,40 @@
             </plugin>
             <!-- TEST-03: abre java.lang p/ o Hibernate 5.6.15 gerar proxies
                  (ClassLoader.defineClass via reflection) no JDK 17+/21, que enforca
-                 encapsulamento de modulos. Sem isso, o SessionFactory nao sobe nos testes. -->
+                 encapsulamento de modulos. Sem isso, o SessionFactory nao sobe nos testes.
+                 @{jacocoArgLine}: combina com o javaagent do JaCoCo abaixo (late-binding,
+                 resolvido DEPOIS do prepare-agent rodar; ${} resolveria cedo demais e
+                 quebraria a combinacao dos 2 argLine). -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
-                    <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.invoke=ALL-UNNAMED</argLine>
+                    <argLine>@{jacocoArgLine} --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.invoke=ALL-UNNAMED</argLine>
                 </configuration>
+            </plugin>
+            <!-- COVERAGE: relatorio de cobertura de teste (mvn test gera target/site/jacoco/index.html) -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <propertyName>jacocoArgLine</propertyName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

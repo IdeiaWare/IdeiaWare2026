@@ -10,7 +10,7 @@
   </head>
   <body class="center-align blue-grey lighten-5">
     <main>
-    <%-- UX-VOLTAR-V2: icone flutuante padrao do resto do app. --%>
+    <%-- UX-VOLTAR-V2: ícone flutuante padrão do resto do app. --%>
     <a href="index-colaboracao.jsp" class="btn-floating btn-large teal lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
     <div class="" style="min-height: 90vh" role="main">
       <div class="container">
@@ -26,6 +26,9 @@
                 </c:when>
                 <c:when test="${param.erro eq 'titulo_longo'}">
                   <i class="material-icons left">error_outline</i> O título deve ter no máximo 50 caracteres.
+                </c:when>
+                <c:when test="${param.erro eq 'titulo_curto'}">
+                  <i class="material-icons left">error_outline</i> O título deve ter no mínimo 4 caracteres.
                 </c:when>
                 <c:when test="${param.erro eq 'descricao_obrigatoria'}">
                   <i class="material-icons left">error_outline</i> A descrição é obrigatória.
@@ -55,7 +58,7 @@
                   <label for="descricao">Descrição</label>
                 </div>
                 <br />
-                <%-- UX-VOLTAR: Cancelar dentro do form, com peso visual de botao de verdade. --%>
+                <%-- UX-VOLTAR: Cancelar dentro do form com peso visual de botão. --%>
                 <input class="btn orange darken-1" type="submit" value="Inserir" name="Inserir" />
                 <a href="index-colaboracao.jsp" class="btn grey lighten-1 black-text" name="Cancelar" style="margin-left: 8px;">Cancelar</a>
               </div>
@@ -73,7 +76,7 @@
       var titulo    = document.getElementById("titulo").value.trim();
       var descricao = document.getElementById("descricao").value.trim();
       if (titulo === '' || descricao === '') {
-        M.toast({html: 'Preencha o título e a descrição antes de continuar.'});
+        Materialize.toast('Preencha o título e a descrição antes de continuar.', 4000);
         return false;
       }
       return true;

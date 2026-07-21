@@ -127,7 +127,6 @@
 
         var layer = new Konva.Layer({ name: "camadaImagens" });
 
-        // Carrega elementos em modo somente leitura
         $.get("RetornaElementos", function (responseJson) {
           $.each(responseJson, function (index, elemento) {
             if (elemento.tipo === "IMG") {

@@ -27,7 +27,6 @@ public class EntrarStorytellingServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // AUTORIZACAO: exige login. Antes o servlet nao checava sessao nenhuma.
         HttpSession session = request.getSession(true);
         Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
@@ -36,7 +35,7 @@ public class EntrarStorytellingServlet extends HttpServlet {
         }
 
         IdeiaDAO ideiaDAO = new IdeiaDAO();
-        // RET-14: protege o parse do parametro (evita 500 com valor invalido/nulo).
+        // RET-14: protege o parse do parametro
         Ideia ideia = null;
         try {
             ideia = ideiaDAO.buscar(Long.parseLong(request.getParameter("ideiaId")));
@@ -49,7 +48,7 @@ public class EntrarStorytellingServlet extends HttpServlet {
             return;
         }
 
-        // SRV-IDOR-02: exige participacao (antes, IDOR -- filtrava so por ideiaId, sem checar usuario).
+        // SRV-IDOR-02: exige participacao do usuario
         Usuario usuarioLogado = new UsuarioDAO().buscar((Long) codigoUsuarioObj);
         List<IdeiaUsuario> vinculo = new IdeiaUsuarioDAO()
                 .listarParametro(new IdeiaUsuario(usuarioLogado, ideia, null));

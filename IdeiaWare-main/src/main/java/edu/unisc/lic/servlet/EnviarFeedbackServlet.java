@@ -11,9 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-// FUT-02: botao de feedback/sugestao na home -- manda por e-mail pro destinatario configurado
-// em FEEDBACK_EMAIL. NUNCA usar o mesmo endereco do SENDGRID_FROM_EMAIL aqui -- from==to em
-// provedores como outlook.com cai no filtro anti-spoofing e o envio e descartado em silencio.
+// FUT-02: envia sugestao por e-mail pra FEEDBACK_EMAIL
+// SELF-SPOOF-EMAIL: nunca usar o mesmo endereco do SENDGRID_FROM_EMAIL aqui
 @WebServlet(name = "EnviarFeedbackServlet", urlPatterns = {"/EnviarFeedbackServlet"})
 public class EnviarFeedbackServlet extends HttpServlet {
 
@@ -59,7 +58,7 @@ public class EnviarFeedbackServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // SEC-18: POST-only. GET nao envia feedback (evita CSRF via GET).
+        // SEC-18: POST-only
         response.sendRedirect(request.getContextPath() + "/index.jsp");
     }
 

@@ -57,6 +57,16 @@ public class EnviaDadosPessoaisServletTest {
 	}
 
 	@Test
+	public void usuarioDoCodigoNaoExisteMais_redirecionaParaLogin() throws Exception { // sessao apontando pra usuario deletado
+		HttpServletRequest request = mockRequest(999999L);
+		HttpServletResponse response = mockResponse();
+
+		new EnviaDadosPessoaisServlet().doPost(request, response);
+
+		verify(response).sendRedirect("/login.jsp");
+	}
+
+	@Test
 	public void usuarioLogado_forwardParaPerfilComResultadoDoEnvio() throws Exception {
 		Usuario u = novoUsuario();
 		HttpServletRequest request = mockRequest(u.getCodigo());

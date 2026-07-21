@@ -157,6 +157,29 @@ public class AddDescricaoServletTest {
 		assertEquals("as 2 respostas devem ser identicas (idempotente)", saida1.toString(), descricaoFinal);
 	}
 
+	@Test
+	public void colaboracaoJaFinalizada_naoAdiciona_retorna403() throws Exception { // UX-COLAB-ETAPA-TRAVADA
+		Usuario autor = novoUsuario("Autor4");
+		Ideia ideia = novaIdeia(autor);
+		IdeiaUsuario vinculo = new IdeiaUsuario(autor, ideia, "S");
+		vinculo.setDtInscricao();
+		ideiaUsuarioDAO.salvar(vinculo);
+
+		ColaboracaoIdeia colab = new ColaboracaoIdeia(ideia, autor, Data.horaAtual(), "trecho tardio");
+		colaboracaoIdeiaDAO.salvar(colab);
+
+		ideia.setStatus(StatusIdeia.STORYTELLING);
+		ideiaDAO.editar(ideia);
+
+		HttpServletRequest request = mockRequest(autor.getCodigo(), colab.getCodigo().toString());
+		HttpServletResponse response = mockResponse();
+
+		new AddDescricaoServlet().doPost(request, response);
+
+		verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+		assertEquals("nao deve ser marcada como adicionada", null, colaboracaoIdeiaDAO.buscar(colab.getCodigo()).getFlSalvado());
+	}
+
 	private static int anyInt() {
 		return org.mockito.ArgumentMatchers.anyInt();
 	}

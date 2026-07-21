@@ -10,7 +10,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Base64;
@@ -172,6 +174,32 @@ public class ExportCanvaServletTest {
 		filtro.setIdeia(ideia);
 		List<Canvaexport> exports = canvaexportDAO.listarParametro(filtro);
 		assertEquals("so 1 canvaexport deve existir, mesmo com a corrida", 1, exports.size());
+	}
+
+	@Test
+	public void ideiaJaFinalizada_bloqueiaReExportacao() throws Exception { // UX-CANVA-EXPORT-DUPLO
+		Usuario autor = novoUsuario("AutorFinalizada");
+		Ideia ideia = novaIdeia(autor);
+
+		// 1a exportacao, com sucesso
+		HttpServletRequest request1 = mockRequest(ideia.getCodigo(), PDF_BASE64);
+		new ExportCanvaServlet().doPost(request1, mock(HttpServletResponse.class));
+		Canvaexport filtro = new Canvaexport();
+		filtro.setIdeia(ideia);
+		String caminhoOriginal = canvaexportDAO.listarParametro(filtro).get(0).getFile();
+
+		// 2a tentativa (aba antiga de outro participante), com conteudo DIFERENTE
+		String pdfSegundaVersao = Base64.getEncoder().encodeToString("outro-conteudo".getBytes(StandardCharsets.UTF_8));
+		HttpServletRequest request2 = mockRequest(ideia.getCodigo(), pdfSegundaVersao);
+		HttpServletResponse response2 = mock(HttpServletResponse.class);
+		when(response2.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
+
+		new ExportCanvaServlet().doPost(request2, response2);
+
+		verify(response2).setStatus(HttpServletResponse.SC_FORBIDDEN);
+		byte[] gravado = Files.readAllBytes(new File(Constantes.caminhoExports() + caminhoOriginal).toPath());
+		assertEquals("conteudo do PDF deve continuar sendo o da 1a exportacao",
+				"conteudo-pdf-fake", new String(gravado, StandardCharsets.UTF_8));
 	}
 
 	private Runnable criarTarefa(Ideia ideia, CyclicBarrier largada, CountDownLatch fim,

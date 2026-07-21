@@ -1,7 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
-<%-- TK-06: view "error" do ErrorController (alvo do <error-page> catch-all) nao existia -- erro real ficava mascarado. --%>
+<%-- TK-06: view error do ErrorController nao existia --%>
 <t:header></t:header>
 	<div id="error-page">
 		 <div class="row">

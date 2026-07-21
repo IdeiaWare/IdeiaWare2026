@@ -20,12 +20,15 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.unisc.toolkit.classes.AdminCookies;
+import br.unisc.toolkit.classes.Constantes;
 import br.unisc.toolkit.classes.ArquivoExport;
+import br.unisc.toolkit.classes.StatusGuard;
 import br.unisc.toolkit.entity.Empathy;
 import br.unisc.toolkit.entity.ExportFile;
 import br.unisc.toolkit.entity.Persona;
 import br.unisc.toolkit.service.EmpathyService;
 import br.unisc.toolkit.service.ExportFileService;
+import br.unisc.toolkit.service.IdeiaService;
 import br.unisc.toolkit.service.PersonaService;
 
 @Controller
@@ -34,16 +37,19 @@ public class EmpathyExportController {
 
 	@Autowired
 	private EmpathyService empathyService;
-	
+
 	@Autowired
 	private PersonaService personaService;
-	
+
 	@Autowired
 	private ExportFileService exportFileService;
-	
+
+	@Autowired
+	private IdeiaService ideiaService;
+
 	AdminCookies cookie = new AdminCookies();
 	
-	// TK-EMP-GUARD: guard de cookie explicito (antes, sem cookie a JSP explodia em vez de redirecionar).
+	// TK-EMP-GUARD: guard de cookie explicito.
 	@GetMapping("/visao-geral")
 	public String showFilledEmpathyMapOverview(@RequestParam("personaId") int theId, Model theModel,  HttpServletRequest request){
 		if (cookie.getCookieIdeiaCodigo(request) == null || !personaView(theId, theModel, "overview", request)) {
@@ -67,13 +73,18 @@ public class EmpathyExportController {
 	public String saveOverview(@ModelAttribute("overview") ExportFile file, HttpServletRequest request, Model theModel, RedirectAttributes redirectAttrs) throws IOException {
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 		   Long ideiaCodigo = cookie.getCookieIdeiaCodigo(request);
+		   // UX-TOOLKIT-EXPORT-TRAVADO: bloqueia exportacao fora da etapa Caixa de Ferramentas.
+		   if (!StatusGuard.podeEscrever(ideiaService, ideiaCodigo)) {
+			   redirectAttrs.addFlashAttribute("etapaEncerradaErro", "Esta etapa já foi encerrada.");
+			   redirectAttrs.addFlashAttribute("redirecionarPara", Constantes.paginaMinhaIdeia(request));
+			   return "redirect:/aviso-etapa-encerrada";
+		   }
 		   file.setIdeiaCodigo(ideiaCodigo);
 		   file.setCreated(new Date());
 		   file.setFileLocation(ArquivoExport.salvar(file.getFileLocation(), ideiaCodigo));
 
 		   exportFileService.saveFile(file);
 
-		   // Apos exportar, volta para a listagem de personas (a pedido do usuario) + toast.
 		   redirectAttrs.addFlashAttribute("toastOk", "Exportação concluída. O arquivo foi salvo na Retenção do Conhecimento.");
 		   return "redirect:/persona/lista";
 		}
@@ -86,13 +97,18 @@ public class EmpathyExportController {
 	public String saveDetailed(@ModelAttribute("detailed") ExportFile file, HttpServletRequest request, Model theModel, RedirectAttributes redirectAttrs) throws IOException {
 		if(cookie.getCookieIdeiaCodigo(request) != null){
 		   Long ideiaCodigo = cookie.getCookieIdeiaCodigo(request);
+		   // UX-TOOLKIT-EXPORT-TRAVADO: bloqueia exportacao fora da etapa Caixa de Ferramentas.
+		   if (!StatusGuard.podeEscrever(ideiaService, ideiaCodigo)) {
+			   redirectAttrs.addFlashAttribute("etapaEncerradaErro", "Esta etapa já foi encerrada.");
+			   redirectAttrs.addFlashAttribute("redirecionarPara", Constantes.paginaMinhaIdeia(request));
+			   return "redirect:/aviso-etapa-encerrada";
+		   }
 		   file.setIdeiaCodigo(ideiaCodigo);
 		   file.setCreated(new Date());
 		   file.setFileLocation(ArquivoExport.salvar(file.getFileLocation(), ideiaCodigo));
 
 		   exportFileService.saveFile(file);
 
-		   // Apos exportar, volta para a listagem de personas (a pedido do usuario) + toast.
 		   redirectAttrs.addFlashAttribute("toastOk", "Exportação concluída. O arquivo foi salvo na Retenção do Conhecimento.");
 		   return "redirect:/persona/lista";
 		}
@@ -101,7 +117,7 @@ public class EmpathyExportController {
 		}
 	}
 	
-	// TK-02: getPersona() pode voltar null; boolean permite ao caller redirecionar em vez de renderizar quebrado.
+	// TK-02: getPersona() pode voltar null; caller redireciona em vez de renderizar quebrado.
 	private boolean personaView(int theId, Model theModel, String viewType, HttpServletRequest request){
 		Long ideiaCodigo = Long.valueOf(0);
 

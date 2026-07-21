@@ -31,7 +31,7 @@ public class AlteraUsuarioServlet extends HttpServlet {
             usuario = usuarioDAO.buscar((Long) session.getAttribute("codigoUsuario"));
 
             if (request.getParameterMap().containsKey("nome")) {
-                // RKM-04: null-safe (POST com "nome" mas sem "email" gerava NPE).
+                // RKM-04: null-safe, POST com "nome" sem "email" gerava NPE
                 String nomeParam = request.getParameter("nome");
                 String emailParam = request.getParameter("email");
                 if (nomeParam == null || nomeParam.isEmpty() || emailParam == null || emailParam.isEmpty()){
@@ -46,7 +46,6 @@ public class AlteraUsuarioServlet extends HttpServlet {
             
             List<Usuario> lista;
             
-            //Se mudou e-mail não pode ter outro igual
             if (request.getParameterMap().containsKey("email")) {
                 if (!request.getParameter("email").equals(usuario.getEmail())) {
                     Usuario usuarioE = new Usuario();
@@ -65,12 +64,12 @@ public class AlteraUsuarioServlet extends HttpServlet {
             }
             
             if (request.getParameterMap().containsKey("senhaAtual")) {
-                // BLINDA-05: null-safe (POST com senhaAtual sem senhaNova gerava NPE); so troca se as 2 vierem.
+                // BLINDA-05: null-safe, so troca senha se os 2 campos vierem
                 String senhaAtualParam = request.getParameter("senhaAtual");
                 String senhaNovaParam  = request.getParameter("senhaNova");
                 if (senhaAtualParam != null && !senhaAtualParam.isEmpty()
                         && senhaNovaParam != null && !senhaNovaParam.isEmpty()){
-                    // SEC-22: verifica a senha atual com bcrypt (checaSenha), nao mais por "WHERE senha=hash".
+                    // SEC-22: verifica a senha atual com bcrypt
                     if (!usuario.checaSenha(senhaAtualParam)) {
                         request.setAttribute("respostaSenhaInvalida", true);
                         request.getRequestDispatcher("index-perfil.jsp").forward(request, response);
@@ -101,7 +100,7 @@ public class AlteraUsuarioServlet extends HttpServlet {
                 try {
                     usuarioDAO.editar(usuario);
                 } catch (RuntimeException ex) {
-                    // K.8 #6: mesma corrida do RACE-01 -- UNIQUE do banco protege, catch da a mensagem amigavel.
+                    // K.8 #6: UNIQUE do banco protege, catch da a mensagem amigavel
                     if (!isConstraintViolation(ex)) {
                         throw ex;
                     }
@@ -109,9 +108,8 @@ public class AlteraUsuarioServlet extends HttpServlet {
                     request.getRequestDispatcher("index-perfil.jsp").forward(request, response);
                     return;
                 }
-                // TEST-04: atualiza a sessao junto (senao o header so mostrava o nome novo apos relogar).
+                // TEST-04: atualiza a sessao junto, senao o header so mostrava apos relogar
                 session.setAttribute("nomeUsuario", usuario.getNome());
-                // UX: confirma o sucesso na propria tela (antes nao dava feedback nenhum).
                 request.setAttribute("respostaSucesso", true);
             }
             request.getRequestDispatcher("index-perfil.jsp").forward(request, response);
@@ -121,7 +119,7 @@ public class AlteraUsuarioServlet extends HttpServlet {
 @Override
 protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // SEC-18: POST-only. GET nao altera dados/senha (evita CSRF via GET).
+        // SEC-18: POST-only, GET nao altera dados/senha
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 
@@ -131,7 +129,7 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
         processRequest(request, response);
     }
 
-    // K.8 #6: percorre a cadeia de causas (Hibernate as vezes envolve a excecao, as vezes nao).
+    // K.8 #6: percorre a cadeia de causas do Hibernate
     private static boolean isConstraintViolation(Throwable t) {
         while (t != null) {
             if (t instanceof ConstraintViolationException) {

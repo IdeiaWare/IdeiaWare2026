@@ -12,14 +12,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-// RKM-02: exclui Canvaexport da Retencao, espelha o DeletarExportedFileServlet (auth admin + null check).
+// RKM-02: exclui Canvaexport da Retencao, espelha o DeletarExportedFileServlet
 public class DeletarCanvaexportServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        // Auth: so admin pode excluir (mesma regra do DeletarExportedFileServlet / RKM-02).
+        // RKM-02: so admin pode excluir
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("codigoUsuario") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -48,7 +48,6 @@ public class DeletarCanvaexportServlet extends HttpServlet {
         CanvaexportDAO canvaexportDAO = new CanvaexportDAO();
         Canvaexport canvaexport = canvaexportDAO.buscar(codigo);
 
-        // Evita excluir(null) quando o codigo nao existe.
         if (canvaexport != null) {
             String caminho = canvaexport.getFile();
             canvaexportDAO.excluir(canvaexport);

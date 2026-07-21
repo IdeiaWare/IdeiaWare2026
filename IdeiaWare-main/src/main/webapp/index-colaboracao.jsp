@@ -6,7 +6,7 @@
     <head>
         <title>IdeiaWare - Módulo Colaborativo</title>
         <%-- TITULO-MODULO-POPPINS: fonte dos titulos de modulo (ver K.4). --%>
-        <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@700' rel='stylesheet'>
+        <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
         <style>.titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; }</style>
     </head>
     <body class="center-align blue-grey lighten-5">

@@ -115,4 +115,24 @@ public class InserirFormaTest {
 		assertEquals(criado.getCodigo().longValue(), resposta.get("codigo").getAsLong());
 		assertTrue(resposta.get("caminho").getAsString().endsWith("circulo.png"));
 	}
+
+	@Test
+	public void storytellingJaFinalizado_bloqueiaInsercao() throws Exception { // UX-STORY-ETAPA-TRAVADA
+		Usuario autor = novoUsuario("AutorFinalizado");
+		Ideia ideia = novaIdeia(autor);
+		Storytelling st = novoStorytelling(autor, ideia);
+		st.setStatus(StatusIdeia.FINALIZADO);
+		storytellingDAO.editar(st);
+
+		HttpServletRequest request = mockRequest(st.getCodigo(), "{\"tipo\":\"circulo\",\"x\":10,\"y\":20}");
+		HttpServletResponse response = mock(HttpServletResponse.class);
+		mockResponseWriter(response);
+
+		new InserirForma().doPost(request, response);
+
+		verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+		ElementosStorytelling filtro = new ElementosStorytelling();
+		filtro.setStorytelling(st);
+		assertEquals(0, elementosStorytellingDAO.listarParametro(filtro).size());
+	}
 }

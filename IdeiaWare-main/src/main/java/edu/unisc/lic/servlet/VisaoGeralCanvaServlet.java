@@ -24,7 +24,7 @@ public class VisaoGeralCanvaServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
         
-        // CAN-09: protege contra ideiaId ausente na sessao (senao, buscar(null) dava 500).
+        // CAN-09: protege contra ideiaId ausente na sessao
         Long ideiaId = (Long) request.getSession().getAttribute("ideiaId");
         if (ideiaId == null) {
             response.sendRedirect(request.getContextPath() + File.separator + "lista-canvas.jsp");

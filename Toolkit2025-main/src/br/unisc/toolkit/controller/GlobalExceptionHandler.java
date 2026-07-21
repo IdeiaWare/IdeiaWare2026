@@ -11,7 +11,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-	// TK-28: @ResponseStatus (antes, toda excecao tratada aqui voltava como 200 OK).
+	// TK-28: @ResponseStatus (antes voltava sempre 200 OK).
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public String handleTypeMismatch(MethodArgumentTypeMismatchException ex, Model model) {
@@ -20,11 +20,9 @@ public class GlobalExceptionHandler {
 		return "error";
 	}
 
-	// Rede final: qualquer excecao nao tratada nos controllers vira pagina amigavel.
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	public String handleGeneric(Exception ex, Model model) {
-		// log simples no console do Tomcat (catalina.out) para diagnostico
 		System.err.println("[TK-EXC] Excecao nao tratada: " + ex.getClass().getSimpleName()
 				+ " - " + ex.getMessage());
 		model.addAttribute("pageTitle", "Erro");

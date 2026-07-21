@@ -1,7 +1,9 @@
 package edu.unisc.lic.servlet;
 
+import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.ColaboracaoIdeiaDAO;
 import edu.unisc.lic.domain.ColaboracaoIdeia;
+import edu.unisc.lic.domain.Ideia;
 import edu.unisc.lic.util.JsonUtil;
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -10,14 +12,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-// M.10: edita colaboracao ja enviada -- so o AUTOR, so antes de virar descricao oficial.
 public class EditarColaboracaoServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        // ENCODING-01: sem isso os writes de erro saem com acentuacao quebrada (charset default do container).
+        response.setCharacterEncoding("UTF-8");
 
-        // AUTORIZACAO: exige login.
         HttpSession session = request.getSession(false);
         Object codigoUsuarioObj = session == null ? null : session.getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
@@ -27,7 +29,7 @@ public class EditarColaboracaoServlet extends HttpServlet {
 
         ColaboracaoIdeiaDAO colaboracaoIdeiaDAO = new ColaboracaoIdeiaDAO();
 
-        // RET-14: protege o parse do parametro (evita 500 com valor invalido/nulo).
+        // RET-14: protege o parse do parametro, evita 500
         ColaboracaoIdeia colaboracaoIdeia = null;
         try {
             colaboracaoIdeia = colaboracaoIdeiaDAO.buscar(
@@ -42,7 +44,6 @@ public class EditarColaboracaoServlet extends HttpServlet {
             return;
         }
 
-        // AUTORIZACAO: so o AUTOR edita.
         Long codigoUsuario = (Long) codigoUsuarioObj;
         if (colaboracaoIdeia.getUsuario() == null
                 || !codigoUsuario.equals(colaboracaoIdeia.getUsuario().getCodigo())) {
@@ -51,10 +52,18 @@ public class EditarColaboracaoServlet extends HttpServlet {
             return;
         }
 
-        // REGRA: nao edita depois de adicionada a descricao (flSalvado == "ad").
         if ("ad".equals(colaboracaoIdeia.getFlSalvado())) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("Esta colaboração já foi adicionada à descrição e não pode mais ser editada.");
+            return;
+        }
+
+        // UX-COLAB-ETAPA-TRAVADA: mesmo guard de EnviarColaboracaoServlet -- bloqueia edicao
+        // se a Colaboração ja foi finalizada.
+        Ideia ideiaDaColab = colaboracaoIdeia.getIdeia();
+        if (ideiaDaColab == null || !StatusIdeia.EM_DESENVOLVIMENTO.equals(ideiaDaColab.getStatus())) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("A colaboração desta ideia já foi encerrada.");
             return;
         }
 
@@ -65,12 +74,10 @@ public class EditarColaboracaoServlet extends HttpServlet {
             return;
         }
         novoTexto = novoTexto.trim();
-        // A coluna descricaoIdeiaAtual e varchar(1500) -- limita p/ caber sempre.
         if (novoTexto.length() > 1500) {
             novoTexto = novoTexto.substring(0, 1500);
         }
 
-        // M.10: guarda o texto anterior como historico simples da edicao.
         colaboracaoIdeia.setDescricaoIdeiaAnterior(colaboracaoIdeia.getDescricaoIdeiaAtual());
         colaboracaoIdeia.setDescricaoIdeiaAtual(novoTexto);
         colaboracaoIdeia.setDtModificacao();
@@ -78,7 +85,7 @@ public class EditarColaboracaoServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        // GT-01: GSON_SEM_SENHA (nao new Gson()) -- senao vaza o hash bcrypt de .usuario.
+        // GT-01: GSON_SEM_SENHA, senao vaza o hash bcrypt
         response.getWriter().write(JsonUtil.GSON_SEM_SENHA.toJson(colaboracaoIdeia));
     }
 

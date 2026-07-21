@@ -22,7 +22,7 @@ public class ValidarIdeiaServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // COL-07: validar ideia e acao de gestor (antes, qualquer logado validava/rejeitava).
+        // COL-07: validar ideia e acao de gestor
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("codigoUsuario") == null) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -37,7 +37,7 @@ public class ValidarIdeiaServlet extends HttpServlet {
         IdeiaDAO ideiaDAO = new IdeiaDAO();
         UsuarioDAO usuDAO = new UsuarioDAO();
 
-        // BLINDA-03: parametros invalidos/nulos causavam NFE/NPE (500) antes.
+        // BLINDA-03: parametros invalidos/nulos
         Ideia ideia;
         Usuario usu;
         try {
@@ -56,7 +56,6 @@ public class ValidarIdeiaServlet extends HttpServlet {
 
         String acao = request.getParameter("validar");
         if ("validar".equals(acao) || "reabrir".equals(acao)) {
-            // M.1: "reabrir" destrava uma ideia REJEITADA de volta pra VALIDADA (antes, era terminal).
             ideia.setStatus(StatusIdeia.VALIDADA);
             ideia.setDtValidacao();
             ideia.setStatusGrupo(StatusIdeia.GRUPO_ABERTO);
@@ -78,7 +77,7 @@ public class ValidarIdeiaServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // SEC-18: POST-only. GET nao valida/rejeita ideia (evita CSRF via GET).
+        // SEC-18: POST-only
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 

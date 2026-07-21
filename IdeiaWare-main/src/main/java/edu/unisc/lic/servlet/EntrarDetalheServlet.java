@@ -22,7 +22,6 @@ public class EntrarDetalheServlet extends HttpServlet {
         
         request.setCharacterEncoding("UTF-8");
 
-        // AUTORIZACAO: exige login. Antes o servlet nao checava sessao nenhuma.
         HttpSession session = request.getSession(true);
         Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
@@ -46,7 +45,7 @@ public class EntrarDetalheServlet extends HttpServlet {
             return;
         }
 
-        // SRV-IDOR-03: "lider" calculado no servidor, nao mais confiado de parametro do form.
+        // SRV-IDOR-03: "lider" calculado no servidor
         Usuario usuarioLogado = new UsuarioDAO().buscar((Long) codigoUsuarioObj);
         List<IdeiaUsuario> vinculo = new IdeiaUsuarioDAO()
                 .listarParametro(new IdeiaUsuario(usuarioLogado, ideia, null));

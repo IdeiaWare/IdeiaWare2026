@@ -14,12 +14,12 @@ import javax.persistence.TemporalType;
 @Entity
 public class Storytelling extends GenericDomain {
 
-    // GT-07: @ManyToOne (era @OneToOne, mas 1 lider tem N storytellings -- 1 por ideia).
+    // GT-07: @ManyToOne, 1 lider pode ter N storytellings
     @ManyToOne
     @JoinColumn(nullable = false)
     private Usuario usuario;
 
-    // K.8 #3: unique=true trava no BANCO que uma ideia tenha mais de 1 storytelling.
+    // K.8 #3: unique=true trava no banco 1 storytelling por ideia
     @OneToOne
     @JoinColumn(name = "ideia_codigo", nullable = false, unique = true)
     private Ideia ideia;

@@ -19,7 +19,7 @@ public class PermissaoUsuarioServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
 
-        // RKM-01: so admin altera permissao (antes, qualquer logado se promovia a admin).
+        // RKM-01: so admin altera permissao
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("codigoUsuario") == null) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -64,7 +64,7 @@ public class PermissaoUsuarioServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // SEC-18: POST-only (antes, GET dava pra escalar privilegio via CSRF/link).
+        // SEC-18: POST-only
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 

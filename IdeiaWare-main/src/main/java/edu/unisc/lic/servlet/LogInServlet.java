@@ -17,7 +17,7 @@ public class LogInServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // SEC-22: bcrypt tem salt aleatorio, entao busca so por usuario e verifica com checaSenha().
+        // SEC-22: busca so por usuario, verifica senha com checaSenha()
         Usuario filtro = new Usuario();
         filtro.setUsuario(request.getParameter("usuario"));
 
@@ -42,7 +42,7 @@ public class LogInServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // SEC-18: POST-only. GET nao loga (evita credencial em log/historico e CSRF via GET).
+        // SEC-18: POST-only
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 

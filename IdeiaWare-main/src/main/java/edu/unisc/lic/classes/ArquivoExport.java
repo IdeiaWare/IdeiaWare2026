@@ -11,8 +11,7 @@ import java.util.UUID;
 // PDF-DISCO
 public class ArquivoExport {
 
-    // CONC-01: escreve num arquivo temporario e so troca pro destino final com um move atomico,
-    // pra exports concorrentes da mesma ideia nunca intercalarem escrita no mesmo arquivo.
+    // CONC-01: escreve em arquivo temp e move atomicamente pro destino
     public static String salvar(String conteudoBase64OuDataUri, String caminhoRelativo) throws IOException {
         String base64 = conteudoBase64OuDataUri.trim();
         int virgula = base64.indexOf(',');

@@ -1,26 +1,23 @@
 package edu.unisc.lic.classes;
 
-// REFAC-01: constantes dos status (antes, strings magicas "PE"/"VA"/"ST" espalhadas pelo codigo).
+// REFAC-01: constantes dos status, antes strings magicas espalhadas pelo codigo
 public final class StatusIdeia {
 
-    // ----- Status da Ideia -----
-    public static final String PENDENTE = "PE";            // aguardando validacao do admin
-    public static final String VALIDADA = "VA";            // aceita pelo admin
-    public static final String REJEITADA = "RE";           // rejeitada pelo admin
-    public static final String EM_DESENVOLVIMENTO = "DE";  // colaboracao em andamento
+    public static final String PENDENTE = "PE";
+    public static final String VALIDADA = "VA";
+    public static final String REJEITADA = "RE";
+    public static final String EM_DESENVOLVIMENTO = "DE";
     public static final String STORYTELLING = "ST";
     public static final String CAIXA_FERRAMENTAS = "CF";
     public static final String CANVAS = "CV";
     public static final String FINALIZADO = "FN";
 
-    // ----- Status do Grupo -----
-    public static final String GRUPO_ABERTO = "AB";        // aberto para novos colaboradores
-    public static final String GRUPO_FECHADO = "FE";       // fechado
+    public static final String GRUPO_ABERTO = "AB";
+    public static final String GRUPO_FECHADO = "FE";
 
-    // ----- Status do Vinculo (IdeiaUsuario) -- M.2: lista de espera de entrada no grupo -----
-    public static final String VINCULO_PENDENTE = "P";     // pediu pra entrar, aguarda o lider
-    public static final String VINCULO_APROVADO = "A";     // lider aprovou (ou lider/legado)
-    public static final String VINCULO_REJEITADO = "R";    // lider recusou (com motivo, M.3)
+    public static final String VINCULO_PENDENTE = "P";
+    public static final String VINCULO_APROVADO = "A";
+    public static final String VINCULO_REJEITADO = "R";
 
     private StatusIdeia() {
     }

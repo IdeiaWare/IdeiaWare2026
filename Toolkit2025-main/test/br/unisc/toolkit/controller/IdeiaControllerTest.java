@@ -6,6 +6,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -60,7 +62,9 @@ public class IdeiaControllerTest {
 
 	@Test
 	public void ideiaValida_finalizaEMostraTelaDeConfirmacao() throws Exception { // TK-11
+		// UX-TOOLKIT-FINALIZE-TRAVADO: status CF libera o guard novo (StatusGuard.podeEscrever).
 		Ideia ideia = new Ideia();
+		ideia.setStatus("CF");
 		when(service.getIdeia(5L)).thenReturn(ideia);
 
 		mvc.perform(post("/ideia/finalize")
@@ -68,5 +72,22 @@ public class IdeiaControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(view().name("finalize"));
 		verify(service).finalize(ideia);
+	}
+
+	@Test
+	public void ideiaForaDaEtapaCF_naoFinaliza() throws Exception { // UX-TOOLKIT-FINALIZE-TRAVADO
+		Ideia ideia = new Ideia();
+		ideia.setStatus("CV"); // ja passou da Caixa de Ferramentas
+		when(service.getIdeia(5L)).thenReturn(ideia);
+
+		mvc.perform(post("/ideia/finalize")
+				.cookie(new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("5"))))
+				.andExpect(status().is3xxRedirection())
+				// UX-PADRAO-ETAPA-FINALIZADA: antes caia na view "redirect", que terminava no login do
+				// LIC; agora passa pelo hop /aviso-etapa-encerrada (alert() e SO' DEPOIS redireciona).
+				.andExpect(redirectedUrl("/aviso-etapa-encerrada"))
+				.andExpect(flash().attribute("etapaEncerradaErro", "Esta etapa já foi encerrada."))
+				.andExpect(flash().attribute("redirecionarPara", "/LIC/minha-ideia.jsp"));
+		verify(service, never()).finalize(any());
 	}
 }

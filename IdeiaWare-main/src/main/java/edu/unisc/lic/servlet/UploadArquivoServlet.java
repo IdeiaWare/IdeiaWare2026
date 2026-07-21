@@ -24,11 +24,11 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 public class UploadArquivoServlet extends HttpServlet {
 
-    // STR-06: limites de upload de imagem/áudio do storytelling.
+    // STR-06: limites de upload de imagem/audio do storytelling
     private static final int MAX_MEMORY_SIZE = 1024 * 1024 * 16;
-    private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 10; // 10 MB
+    private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 10;
 
-    // SEC-12: allowlist de extensoes de imagem (bloqueia .jsp/.html executavel na pasta do webapp).
+    // SEC-12: allowlist de extensoes de imagem
     private static final java.util.Set<String> EXTENSOES_IMAGEM =
             new java.util.HashSet<>(java.util.Arrays.asList("png", "jpg", "jpeg", "gif", "webp", "bmp"));
 
@@ -39,7 +39,6 @@ public class UploadArquivoServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
 
-        // Exige um storytelling ativo na sessao (sem isso, buscar((long) null) dava NPE/500).
         Object storyId = session == null ? null : session.getAttribute("storytellingId");
         if (storyId == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -78,7 +77,7 @@ public class UploadArquivoServlet extends HttpServlet {
                 FileItem item = (FileItem) iter.next();
 
                 if (!item.isFormField()) {
-                    // SEC-12: so aceita extensao de imagem (allowlist).
+                    // SEC-12: so aceita extensao de imagem
                     String original = new File(item.getName()).getName();
                     String ext = "";
                     int ponto = original.lastIndexOf('.');
@@ -86,16 +85,15 @@ public class UploadArquivoServlet extends HttpServlet {
                         ext = original.substring(ponto + 1).toLowerCase();
                     }
                     if (!EXTENSOES_IMAGEM.contains(ext)) {
-                        continue; // ignora qualquer coisa que nao seja imagem
+                        continue;
                     }
 
-                    // SEC-12: nome aleatorio, nao confia no nome enviado.
+                    // SEC-12: nome aleatorio, nao confia no nome enviado
                     fileName = System.currentTimeMillis() + "_"
                             + java.util.UUID.randomUUID().toString().replace("-", "") + "." + ext;
                     File uploadedFile = new File(uploadFolder + File.separator + fileName);
                     item.write(uploadedFile);
 
-                    // Confirma que e MESMO uma imagem decodificavel; senao apaga e ignora.
                     BufferedImage bimg = ImageIO.read(uploadedFile);
                     if (bimg == null) {
                         uploadedFile.delete();
@@ -108,7 +106,6 @@ public class UploadArquivoServlet extends HttpServlet {
 
             }
 
-            // Nenhuma imagem valida -> volta sem gravar lixo no banco.
             if (fileName == null) {
                 response.sendRedirect(request.getContextPath() + File.separator + "storytelling.jsp");
                 return;

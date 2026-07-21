@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-// M.2/M.3: o LIDER rejeita a entrada de alguem no grupo (P -> R) com motivo obrigatorio.
 @WebServlet(name = "RejeitarMembroServlet", urlPatterns = {"/RejeitarMembroServlet"})
 public class RejeitarMembroServlet extends HttpServlet {
 
@@ -23,7 +22,6 @@ public class RejeitarMembroServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        // AUTORIZACAO: exige login.
         HttpSession session = request.getSession(false);
         Object codigoUsuario = session == null ? null : session.getAttribute("codigoUsuario");
         if (codigoUsuario == null) {
@@ -46,7 +44,6 @@ public class RejeitarMembroServlet extends HttpServlet {
 
         Ideia ideia = vinculo.getIdeia();
 
-        // AUTORIZACAO: so o LIDER da ideia rejeita.
         Usuario sessionUser = new Usuario();
         sessionUser.setCodigo((Long) codigoUsuario);
         List<IdeiaUsuario> souLider = ideiaUsuarioDAO
@@ -56,14 +53,13 @@ public class RejeitarMembroServlet extends HttpServlet {
             return;
         }
 
-        // GT-04: motivo era exigido so no client -- exige tambem no servidor.
+        // GT-04: exige motivo tambem no servidor
         String motivo = request.getParameter("motivo");
         if (motivo == null || motivo.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + File.separator + "detalhes-ideia.jsp");
             return;
         }
 
-        // So rejeita quem esta PENDENTE.
         if (StatusIdeia.VINCULO_PENDENTE.equals(vinculo.getFlStatusVinculo())) {
             vinculo.setFlStatusVinculo(StatusIdeia.VINCULO_REJEITADO);
             vinculo.setMotivoRejeicaoMembro(motivo.trim());
@@ -76,7 +72,6 @@ public class RejeitarMembroServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // POST-only.
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 

@@ -3,10 +3,12 @@ package edu.unisc.lic.servlet;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.unisc.lic.classes.Constantes;
+import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.ElementosStorytellingDAO;
 import edu.unisc.lic.dao.StorytellingDAO;
 import edu.unisc.lic.domain.ElementosStorytelling;
 import edu.unisc.lic.domain.Storytelling;
+import edu.unisc.lic.util.JsonUtil;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -25,13 +27,20 @@ public class InserirTexto extends HttpServlet {
         JsonObject data = new Gson().fromJson(request.getReader(), JsonObject.class);
 
         HttpSession session = request.getSession();
-        // STM-04: evita NPE de unboxing se a sessão não tiver storytellingId.
+        // STM-04: evita NPE de unboxing sem storytellingId
         Object storyId = session.getAttribute("storytellingId");
         if (storyId == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
         Storytelling st = new StorytellingDAO().buscar((long) storyId);
+
+        // UX-STORY-ETAPA-TRAVADA: bloqueia escrita se o Storytelling ja foi finalizado.
+        if (st == null || StatusIdeia.FINALIZADO.equals(st.getStatus())) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("Este item já foi finalizado.");
+            return;
+        }
 
         ElementosStorytelling est = new ElementosStorytelling();
         est.setStorytelling(st);
@@ -44,10 +53,11 @@ public class InserirTexto extends HttpServlet {
         est.setCaminho("texto");
         est.setTipo("TXT");
         
-        // STM-19: salvar() ja preenche o id em 'est' (o antigo ultimoAdicionado() tinha race).
+        // STM-19: salvar() ja preenche o id em 'est'
         new ElementosStorytellingDAO().salvar(est);
 
-        response.getWriter().write(new Gson().toJson(est));
+        // GT-01: GSON_SEM_SENHA evita vazar Usuario.senha (fetch EAGER)
+        response.getWriter().write(JsonUtil.GSON_SEM_SENHA.toJson(est));
     }
 
     @Override

@@ -12,7 +12,6 @@ import br.unisc.toolkit.repository.EmpathyDAO;
 @Service
 public class EmpathyServiceImpl implements EmpathyService {
 	
-	// need to inject persona dao
 	@Autowired
 	private EmpathyDAO empathyDAO;
 	

@@ -12,7 +12,6 @@ import javax.persistence.TemporalType;
 @SuppressWarnings("serial")
 @Entity
 public class LogColaboracao extends GenericDomain {
-    // Chaves estrangeiras
     @ManyToOne
     @JoinColumn(nullable = false)
     private Ideia ideia;
@@ -21,7 +20,6 @@ public class LogColaboracao extends GenericDomain {
     @JoinColumn(nullable = false)
     private Usuario usuario;
     
-    // Atributos
     @Column
     @Temporal(TemporalType.TIMESTAMP)
     private Date dtModificacao;
@@ -29,7 +27,6 @@ public class LogColaboracao extends GenericDomain {
     @Column(nullable = false, length = 1500)
     private String descricao;
 
-    // Métodos construtores
     public LogColaboracao() {
         ideia = new Ideia();
         usuario = new Usuario();
@@ -42,7 +39,6 @@ public class LogColaboracao extends GenericDomain {
         this.descricao = descricao;
     }
 
-    // Getters and Setters
     public Ideia getIdeia() {
         return ideia;
     }

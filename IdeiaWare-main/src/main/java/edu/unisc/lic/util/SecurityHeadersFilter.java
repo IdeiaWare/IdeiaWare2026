@@ -10,8 +10,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
-// SEC-26: Referrer-Policy (nao coberto pelo HttpHeaderSecurityFilter nativo do Tomcat, SEC-01).
-// K.2: sem CSP de proposito -- exige 'unsafe-inline' + QA visual manual de cada tela (ver relatorio).
+// SEC-26: Referrer-Policy, nao coberto pelo filtro nativo do Tomcat
 public class SecurityHeadersFilter implements Filter {
 
     @Override
@@ -24,11 +23,9 @@ public class SecurityHeadersFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        // no-op
     }
 
     @Override
     public void destroy() {
-        // no-op
     }
 }

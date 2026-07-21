@@ -113,7 +113,6 @@
 
       </div>
     </nav>
-    <%-- UX: FAB removido -- so tinha atalhos do modulo Colaborativo, nenhum e uma acao de Retencao. --%>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script type="text/javascript" src="js/materialize.js"></script>
@@ -169,6 +168,12 @@
           <c:if test="${canvaList.size() > 0}">
               <c:set var="canva" value="${canvaList.get(0)}" />
           </c:if>
+
+          <%-- UX-GERENCIAMENTO-ETAPAS: etapa REAL da ideia (0=colaboracao, 1=storytelling, 2=caixa, 3=canvas/finalizado). --%>
+          <c:set var="etapaIdx" value="0"/>
+          <c:if test="${ideia.status == 'ST'}"><c:set var="etapaIdx" value="1"/></c:if>
+          <c:if test="${ideia.status == 'CF'}"><c:set var="etapaIdx" value="2"/></c:if>
+          <c:if test="${ideia.status == 'CV' or ideia.status == 'FN'}"><c:set var="etapaIdx" value="3"/></c:if>
 
           <div id="idea-description" style="display:none;"><c:out value="${ideia.descricao}"/></div>
           <h1 class="blue-grey-text text-darken-2 titulo-modulo">Gerenciamento de Ideias</h1>
@@ -329,7 +334,8 @@
                     <!--fim processo de colaboração-->
 
                     <!--início storytelling-->
-                    <c:if test="${storytelling == 'true'}">
+                    <%-- UX-GERENCIAMENTO-ETAPAS: gate real (etapaIdx >= 1), nao mais o cascade sempre-true. --%>
+                    <c:if test="${etapaIdx >= 1}">
                         <div class="col s1 center-align valign-wrapper" style="height: 110px;">
                           <i class="small material-icons">arrow_forward</i>
                         </div>
@@ -351,7 +357,8 @@
               <!--fim da segunda linha de opções-->
 
               <!--início da terceira linha de opções-->
-              <c:if test="${persona == 'true'}">
+              <%-- UX-GERENCIAMENTO-ETAPAS: gate real (etapaIdx >= 2, caixa de ferramentas alcancada). --%>
+              <c:if test="${etapaIdx >= 2}">
                   <div class="row">                
                     <!--início persona -->
                     <div class="col s2">
@@ -364,7 +371,8 @@
                     <!--fim persona-->
 
                     <!--início pointOfView -->
-                    <c:if test="${pointOfView == 'true'}">
+                    <%-- UX-GERENCIAMENTO-ETAPAS: mesmo gate de Persona (etapaIdx >= 2), mesmo modulo. --%>
+                    <c:if test="${etapaIdx >= 2}">
                         <div class="col s1 center-align valign-wrapper" style="height: 110px;">
                           <i class="small material-icons">arrow_forward</i>
                         </div>
@@ -380,7 +388,8 @@
                     <!--fim pointOfView-->
                     
                      <!--início Canva -->
-                    <c:if test="${canva == 'true'}">
+                    <%-- UX-GERENCIAMENTO-ETAPAS: gate real (etapaIdx >= 3, canvas alcancado). --%>
+                    <c:if test="${etapaIdx >= 3}">
                         <div class="col s1 center-align valign-wrapper" style="height: 110px;">
                           <i class="small material-icons">arrow_forward</i>
                         </div>
@@ -500,12 +509,21 @@
                 "              </tr>\n" +
                 "            </thead>";
         html += "<tbody>";
-        // UX: mensagem consistente com storytelling()/canva() abaixo (CTA com link pra onde exportar).
-        if (${exportDAO.listarParametro(export).size()} === 0)
+        if (${exportDAO.listarParametro(export).size()} === 0) {
+          <%-- UX-GERENCIAMENTO-ETAPAS: link "Acesse-o agora" so' faz sentido se a ideia ainda esta na Caixa (status CF). --%>
+          <c:choose>
+            <c:when test="${ideia.status == 'CF'}">
           html = "<div style='text-align:center'>\n" +
                  "   Nenhum Point of View foi exportado. <a href='lista-caixa-de-ferramentas.jsp'>Acesse-o agora</a>, exporte-o e volte aqui :)\n" +
                  "</div>";
-        else {
+            </c:when>
+            <c:otherwise>
+          html = "<div style='text-align:center'>\n" +
+                 "   Nenhum Point of View foi cadastrado nesta ideia.\n" +
+                 "</div>";
+            </c:otherwise>
+          </c:choose>
+        } else {
           html += "<c:forEach var="pov" items="${exportDAO.listarParametro(export)}">";
           html += "<tr>";
           html += "<td style='white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;'><c:out value="${pov.fileName}"/></td>";
@@ -549,12 +567,21 @@
                 "              </tr>\n" +
                 "            </thead>";
         html += "<tbody>";
-        // UX: mensagem consistente com storytelling()/canva() abaixo (CTA com link pra onde exportar).
-        if (${export1DAO.listarParametro(export1).size()} === 0)
+        if (${export1DAO.listarParametro(export1).size()} === 0) {
+          <%-- UX-GERENCIAMENTO-ETAPAS: mesmo motivo do pov() acima. --%>
+          <c:choose>
+            <c:when test="${ideia.status == 'CF'}">
           html = "<div style='text-align:center'>\n" +
                  "   Nenhuma Persona foi exportada. <a href='lista-caixa-de-ferramentas.jsp'>Acesse-o agora</a>, exporte-a e volte aqui :)\n" +
                  "</div>";
-        else {
+            </c:when>
+            <c:otherwise>
+          html = "<div style='text-align:center'>\n" +
+                 "   Nenhuma Persona foi cadastrada nesta ideia.\n" +
+                 "</div>";
+            </c:otherwise>
+          </c:choose>
+        } else {
           html += "<c:forEach var="persona" items="${export1DAO.listarParametro(export1)}">";
           html += "<tr>";
           html += "<td style='white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;'><c:out value="${persona.fileName}"/></td>";
@@ -679,7 +706,6 @@
       function inscricao() {
         var html = "";
 
-        //            busca o usuário líder
         html += "<b>Líder:</b></br>";
         html += "<jsp:setProperty name="iu" property="flLider" value="S" />";
         html += "<jsp:setProperty name="iu" property="ideia" value="${ideia}" />";
@@ -688,7 +714,6 @@
         html += "</c:forEach>";
 
         html += "</br>";
-        //            busca os demais usuários cadastrados
         html += "<b>Demais usuários</b></br>";
         html += "<jsp:setProperty name="iu" property="flLider" value="N" />";
         html += "<c:forEach var="ideiaUsuario" items="${iuDAO.listarParametro(iu)}" varStatus="cod">";

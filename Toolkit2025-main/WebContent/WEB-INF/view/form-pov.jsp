@@ -4,7 +4,7 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
-	<%-- UX-VOLTAR-V2: icone circular flutuante, volta pra lista de personas. --%>
+	<%-- UX-VOLTAR-V2: icone circular flutuante volta pra lista de personas --%>
 	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
@@ -22,7 +22,7 @@
 	<div class="pov-form-wrapper">
 		<div class="persona-names">
 			<strong><em>Persona(s)</em>:</strong> 
-			<%-- TK-45b: fn:split(tempPersona,'+') quebrava com "+" no nome; agora indexOf+substring corta so no 1o "+". --%>
+			<%-- TK-45b: split por "+" quebrava com "+" no nome, trocado por indexOf --%>
 			<c:forEach var="tempPersona" items="${personas}">
 				<c:set var="separatorIdx" value="${fn:indexOf(tempPersona, '+')}" />
 				<c:set var="personaId" value="${fn:substring(tempPersona, 0, separatorIdx)}" />
@@ -56,7 +56,6 @@
 							<td class="need-tour">
 								<div class="input-field col s12">
 						          <form:textarea id="need-text" class="materialize-textarea" path="needText" />
-						          <%-- M.12: label for apontava pra "necessity-text" (id inexistente, era "need-text"). --%>
 						          <label for="need-text">Descrição</label>
 						          <div class="need-error"></div>
 						        </div>

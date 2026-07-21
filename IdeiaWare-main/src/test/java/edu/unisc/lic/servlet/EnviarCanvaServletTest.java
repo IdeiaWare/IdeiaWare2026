@@ -136,6 +136,42 @@ public class EnviarCanvaServletTest {
 	}
 
 	@Test
+	public void ideiaFinalizada_bloqueiaEnvioNaoCriaPostIt() throws Exception { // UX-CANVA-ETAPA-TRAVADA
+		Usuario autor = novoUsuario("AutorFinalizada");
+		Ideia ideia = new Ideia(autor, "Ideia Finalizada", "desc", StatusIdeia.FINALIZADO, StatusIdeia.GRUPO_ABERTO);
+		ideia.setDtCriacao();
+		ideiaDAO.salvar(ideia);
+
+		HttpServletRequest request = mockRequest(autor.getCodigo(), ideia.getCodigo(), "receita", null,
+				"Texto novo post-it", "ffeb3b");
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new EnviarCanvaServlet().doPost(request, response);
+
+		// UX-PADRAO-ETAPA-FINALIZADA: volta pra minhas ideias, nao pro quadro.
+		verify(response).sendRedirect("minha-ideia.jsp");
+		Canva filtro = new Canva();
+		filtro.setIdeia(ideia);
+		assertEquals(0, canvaDAO.listarCanvaElement(filtro, "receita").size());
+	}
+
+	@Test
+	public void textoCurto_bloqueadoServerSideMesmoSemMinlengthNoClient() throws Exception { // UX-CANVA-VALIDACAO-SERVIDOR
+		Usuario autor = novoUsuario("AutorTextoCurto");
+		Ideia ideia = novaIdeia(autor);
+
+		HttpServletRequest request = mockRequest(autor.getCodigo(), ideia.getCodigo(), "receita", null, "abc", "ffeb3b");
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new EnviarCanvaServlet().doPost(request, response);
+
+		verify(response).sendRedirect(contains("EntrarCanvaServlet"));
+		Canva filtro = new Canva();
+		filtro.setIdeia(ideia);
+		assertEquals(0, canvaDAO.listarCanvaElement(filtro, "receita").size());
+	}
+
+	@Test
 	public void editaPostItExistente_atualizaCamposERedirecionaParaTelaCorreta() throws Exception {
 		Usuario autor = novoUsuario("Autor4");
 		Ideia ideia = novaIdeia(autor);

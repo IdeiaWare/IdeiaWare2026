@@ -1,6 +1,6 @@
 package edu.unisc.lic.servlet;
 
-/** MNT-01: subclasse fina de EntrarCanvaBaseServlet (logica comum la). */
+// MNT-01: subclasse fina de EntrarCanvaBaseServlet
 public class EntrarCanvaAtividadeServlet extends EntrarCanvaBaseServlet {
 
     @Override

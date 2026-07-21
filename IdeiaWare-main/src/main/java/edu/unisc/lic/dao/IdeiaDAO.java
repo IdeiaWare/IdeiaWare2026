@@ -15,7 +15,6 @@ import org.hibernate.Transaction;
 
 public class IdeiaDAO extends GenericDAO<Ideia> {
 
-    // Sobrescrito pra listar da ideia mais NOVA pra mais antiga.
     @Override
     public List<Ideia> listar() {
         Session s = HibernateUtil.getFabricaDeSessoes().openSession();
@@ -49,7 +48,6 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
                 predicados.add(builder.equal(raiz.get("usuario"), ideia.getUsuario()));
             }
 
-            // Mais NOVO pro mais antigo ('codigo' e auto-incremento).
             consulta.select(raiz)
                     .where(predicados.toArray(new Predicate[0]))
                     .orderBy(builder.desc(raiz.get("codigo")));
@@ -61,7 +59,7 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
         }
     }
 
-    // COL-10/COL-14: ideias VA/AB que o usuario ainda nao participa, numa unica query HQL.
+    // COL-10/COL-14: ideias VA/AB que o usuario ainda nao participa
     @SuppressWarnings("unchecked")
     public List<Ideia> listarIdeiasDisponiveis(Usuario usuario) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
@@ -83,7 +81,7 @@ public class IdeiaDAO extends GenericDAO<Ideia> {
         }
     }
 
-    // K.8 #5: Ideia + vinculo de lideranca NUMA UNICA transacao (antes, falha deixava Ideia orfa).
+    // K.8 #5: Ideia + vinculo de lideranca numa unica transacao
     public void criarComLider(Ideia ideia, IdeiaUsuario vinculoLider) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
         Transaction transacao = null;

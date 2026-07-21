@@ -5,6 +5,7 @@ import edu.unisc.lic.dao.ElementosStorytellingDAO;
 import edu.unisc.lic.dao.StorytellingDAO;
 import edu.unisc.lic.domain.ElementosStorytelling;
 import edu.unisc.lic.domain.Storytelling;
+import edu.unisc.lic.util.JsonUtil;
 import java.io.IOException;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -22,7 +23,7 @@ public class RetornaAudio extends HttpServlet {
 
         HttpSession session = request.getSession();
 
-        // STM-04: evita NPE de unboxing se a sessão não tiver storytellingId.
+        // STM-04: evita NPE de unboxing sem storytellingId
         Object storyId = session.getAttribute("storytellingId");
         if (storyId == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -35,7 +36,8 @@ public class RetornaAudio extends HttpServlet {
         est.setTipo("AUD");
 
         List<ElementosStorytelling> lista = new ElementosStorytellingDAO().listarParametro(est);
-        String json = new Gson().toJson(lista);
+        // GT-01: GSON_SEM_SENHA evita vazar Usuario.senha (fetch EAGER)
+        String json = JsonUtil.GSON_SEM_SENHA.toJson(lista);
 
         response.getWriter().write(json);
     }

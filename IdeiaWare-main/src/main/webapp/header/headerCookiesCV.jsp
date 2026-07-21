@@ -1,6 +1,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page import="edu.unisc.lic.dao.UsuarioDAO"%>
 <%@page import="edu.unisc.lic.domain.Usuario"%>
+<%-- CACHE-BUST-GERAPDFCANVA-JS: mesmo padrao do controle.js/geraPDF.js (Storytelling). --%>
+<%! private static final long BUILD_TS = System.currentTimeMillis(); %>
 <%
     UsuarioDAO usuarioDAO = new UsuarioDAO();
     Usuario usuario = null;
@@ -17,6 +19,14 @@
         request.setAttribute("nome", usuario.getNome());
         request.setAttribute("permicao", usuario.getPermissao());
         request.setAttribute("usuario", usuario.getUsuario());
+    }
+
+    // UX-PADRAO-ETAPA-FINALIZADA: flash de sessao setado por EnviarCanvaServlet/DeleteCanvaServlet
+    // quando o Canvas ja foi finalizado -- pego aqui (include comum a toda pagina de canva) e limpo
+    // logo em seguida pra nao reaparecer num F5.
+    String mensagemErroEtapa = (String) session.getAttribute("mensagemErroEtapa");
+    if (mensagemErroEtapa != null) {
+        session.removeAttribute("mensagemErroEtapa");
     }
 %>
 
@@ -69,6 +79,9 @@
   }
 </style>
 <body>
+  <% if (mensagemErroEtapa != null) { %>
+  <script>alert(<%= new com.google.gson.Gson().toJson(mensagemErroEtapa) %>);</script>
+  <% } %>
   <nav>
     <div class="nav-wrapper blue darken-4 z-depth-2">
       <a href="index.jsp" class="brand-logo" style="left: 50px">
@@ -85,8 +98,15 @@
         </ul>
       </a>
 
+      <%-- UX-CANVA-HEADER-ICONE: "Visão Geral" icone+texto; "Exportar" virou "Finalizar Canva" (so' aparece nesta pagina). --%>
+      <%
+        boolean isVisaoGeral = request.getRequestURI().endsWith("canva-visao-geral.jsp");
+      %>
       <ul id="nav-mobile" class="right hide-on-med-and-down" >
-      	<li><a href="VisaoGeralCanvaServlet">Visão Geral<i style="padding-left: 20px" class="fa fa-eye" aria-hidden="true"></i></a></li>
+      	<li><a href="VisaoGeralCanvaServlet"><i class="material-icons left">visibility</i>Visão Geral</a></li>
+        <% if (isVisaoGeral) { %>
+        <li><a href="#" onclick="geraPDF(); return false;"><i class="material-icons left">flag</i>Finalizar Canva</a></li>
+        <% } %>
         <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
       </ul>
 
@@ -96,5 +116,5 @@
   <script type="text/javascript" src="js/materialize.min.js"></script>
   <script type="text/javascript" src="js/materialize.js"></script>
   <script type="text/javascript" src="js/canva.js"></script>
-  <script type="text/javascript" src="js/MenuSuperior/geraPDFCanva.js"></script>
+  <script type="text/javascript" src="js/MenuSuperior/geraPDFCanva.js?v=<%= BUILD_TS %>"></script>
 </body>

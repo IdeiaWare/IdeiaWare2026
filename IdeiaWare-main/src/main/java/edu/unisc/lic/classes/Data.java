@@ -8,8 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Data {
 
-    // INFRA-TZ: formatacao sempre em America/Sao_Paulo, independente do TZ default da JVM
-    // (fora do Docker, que ja fixa TZ=America/Sao_Paulo via env, o default variava com o host).
+    // INFRA-TZ: formatacao sempre em America/Sao_Paulo, independente do TZ da JVM
     private static final TimeZone FUSO = TimeZone.getTimeZone("America/Sao_Paulo");
 
     public Data() {
@@ -30,7 +29,7 @@ public class Data {
         return formato("dd/MM/yyyy").format(new Date());
     }
 
-    // INFRA-09: null nao vira mais "hoje" (mostrava uma data que nunca aconteceu) -- vira vazio.
+    // INFRA-09: null vira vazio, nao "hoje"
     public static String formatarData(Date dt) {
         if (dt == null) {
             return "";

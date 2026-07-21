@@ -27,7 +27,7 @@ public class EntrarCanvaServlet extends HttpServlet {
         
         IdeiaDAO ideiaDAO = new IdeiaDAO();
 
-        // CAN-09: ideiaId do parametro ou da sessao; se nenhum existir, redireciona (evita 500).
+        // CAN-09: ideiaId do parametro ou sessao; redireciona se ausente
         Long ideiaId = null;
         String paramIdeia = request.getParameter("ideiaId");
         if (paramIdeia != null) {
@@ -50,7 +50,7 @@ public class EntrarCanvaServlet extends HttpServlet {
             return;
         }
 
-        // TEST-04: faltava checagem de login (codigoUsuario nulo dava NPE no unboxing).
+        // TEST-04: checagem de login evita NPE no unboxing
         Object codigoUsuarioObj = request.getSession().getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
             response.sendRedirect(request.getContextPath() + File.separator + "login.jsp");
@@ -72,7 +72,7 @@ public class EntrarCanvaServlet extends HttpServlet {
         	iu = null;
         }
 
-        // CAN-ACESSO-V2: exige participacao (antes so calculava flLider, nunca barrava acesso).
+        // CAN-ACESSO-V2: exige participacao na ideia
         if (iu == null) {
         	response.sendRedirect(request.getContextPath() + File.separator + "lista-canvas.jsp");
         	return;
@@ -80,12 +80,9 @@ public class EntrarCanvaServlet extends HttpServlet {
 
         HttpSession session = request.getSession(true);
 
+        // ISRETENCAO-TIPO: sempre Boolean (antes o branch com parametro guardava String cru).
         String retencao = request.getParameter("retencao");
-        if (retencao == null || retencao.isEmpty()) {
-            session.setAttribute("isRetencao", false);
-        } else {
-            session.setAttribute("isRetencao", retencao);
-        }
+        session.setAttribute("isRetencao", retencao != null && !retencao.isEmpty());
 
         session.setAttribute("ideiaId", ideia.getCodigo());
         session.setAttribute("ideiaTitulo", ideia.getTitulo());

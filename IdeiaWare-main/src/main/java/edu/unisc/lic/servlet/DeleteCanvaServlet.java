@@ -1,5 +1,6 @@
 package edu.unisc.lic.servlet;
 
+import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.CanvaDAO;
 import edu.unisc.lic.dao.IdeiaDAO;
 import edu.unisc.lic.domain.Canva;
@@ -17,7 +18,7 @@ import javax.servlet.http.HttpSession;
 
 public class DeleteCanvaServlet extends HttpServlet {
 
-    // CAN-04/TEST-04: lista fechada de destinos validos (antes bastava comecar com "EntrarCanva").
+    // CAN-04/TEST-04: lista fechada de destinos validos
     private static final Set<String> DESTINOS_VALIDOS = new HashSet<>(Arrays.asList(
             "EntrarCanvaServlet", "EntrarCanvaAtividadeServlet", "EntrarCanvaCanalServlet",
             "EntrarCanvaEstruturaServlet", "EntrarCanvaParceriaServlet", "EntrarCanvaPropostaServlet",
@@ -31,7 +32,7 @@ public class DeleteCanvaServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // CANM-09: exige usuário logado e um canva ativo na sessão.
+        // CANM-09: exige usuario logado e canva ativo na sessao
         if (session == null || session.getAttribute("codigoUsuario") == null
                 || session.getAttribute("ideiaId") == null) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -40,7 +41,7 @@ public class DeleteCanvaServlet extends HttpServlet {
 
         CanvaDAO canvaDAO = new CanvaDAO();
 
-        // CANM-04: valida o parâmetro antes de converter
+        // CANM-04: valida o parametro antes de converter
         String canvaParam = request.getParameter("canva");
         long canvaId;
         try {
@@ -52,14 +53,21 @@ public class DeleteCanvaServlet extends HttpServlet {
 
         Canva canva = canvaDAO.buscar(canvaId);
 
-        // CANM-09 (IDOR): só exclui se o post-it pertence à ideia da sessão.
+        // CANM-09: so exclui se o post-it pertence a ideia da sessao
+        // UX-CANVA-ETAPA-TRAVADA: nao exclui se o Canvas ja foi finalizado (export gerado
+        // ficaria desatualizado em relacao aos post-its que ainda podiam ser apagados).
         Long ideiaId = (Long) session.getAttribute("ideiaId");
-        if (canva != null && canva.getIdeia() != null
-                && ideiaId.equals(canva.getIdeia().getCodigo())) {
+        if (canva != null && canva.getIdeia() != null && ideiaId.equals(canva.getIdeia().getCodigo())) {
+            if (StatusIdeia.FINALIZADO.equals(canva.getIdeia().getStatus())) {
+                // UX-PADRAO-ETAPA-FINALIZADA: mensagem via flash de sessao, lida por headerCookies.jsp.
+                session.setAttribute("mensagemErroEtapa", "Este Canva já foi finalizado. O post-it não foi excluído.");
+                response.sendRedirect("minha-ideia.jsp");
+                return;
+            }
             canvaDAO.excluir(canva);
         }
 
-        // CAN-04: 'context' ia direto pro sendRedirect sem validar (open redirect).
+        // CAN-04: valida 'context' antes do sendRedirect (open redirect)
         String context = request.getParameter("context");
         if (!DESTINOS_VALIDOS.contains(context)) {
             context = "EntrarCanvaServlet";

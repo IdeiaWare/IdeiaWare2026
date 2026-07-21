@@ -22,14 +22,14 @@ public class AbrirPersona extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         response.setContentType("application/pdf");
 
-        // SEC-17: exige login (antes, PDF exportado abria sem auth pra quem chutasse o id).
+        // SEC-17: exige login
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("codigoUsuario") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
-        // RET-14: protege parse + null (fluxo legado pouco usado, mas evita 500).
+        // RET-14: protege parse + null, evita 500
         String codParam = request.getParameter("codigoPersona");
         ExportFile p = null;
         if (codParam != null) {
@@ -41,7 +41,7 @@ public class AbrirPersona extends HttpServlet {
             return;
         }
 
-        // SRV-IDOR-07: exige participacao na ideia dona do export, ou admin (antes, IDOR).
+        // SRV-IDOR-07: exige participacao na ideia dona do export, ou admin
         Usuario sessionUser = new UsuarioDAO().buscar((Long) session.getAttribute("codigoUsuario"));
         if (sessionUser == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

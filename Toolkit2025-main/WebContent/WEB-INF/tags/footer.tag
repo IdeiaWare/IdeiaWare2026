@@ -1,16 +1,30 @@
 <%@ tag pageEncoding="UTF-8" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%-- CACHE-BUST-ESTATICO: timestamp calculado 1x na carga da classe, nao a cada request
+     (senão o "cache-busting" na verdade desativava o cache do navegador por completo). --%>
+<%! private static final long BUILD_TS = System.currentTimeMillis(); %>
 					</div>
 				</div>
 			</div>
 		</main>
-		
+
+		<%-- UX-PADRAO-ETAPA-FINALIZADA: movido pro footer compartilhado (antes so existia em
+		     list-personas.jsp/list-point-of-view.jsp) -- toastErro/toastOk agora aparecem em
+		     QUALQUER pagina do Toolkit, nao so nas 2 listas. --%>
+		<c:if test="${not empty toastOk}">
+			<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastOk}"/>', 4000, 'green'); });</script>
+		</c:if>
+		<c:if test="${not empty toastErro}">
+			<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastErro}"/>', 5000, 'red'); });</script>
+		</c:if>
+
 		<footer class="center red darken-3 page-footer">
 	    <div class="container">
 	      <div class="row">
 	        <i class="small material-icons">account_circle</i><h6 class="white-text usuario"></h6>
 	      </div>
 	    </div>
-	    <%-- UX-FOOTER-2TONS-V4: meio-termo entre "sem contraste" e "contraste forte demais" das tentativas anteriores. --%>
+	    <%-- UX-FOOTER-2TONS-V4: meio-termo de contraste no footer --%>
 	    <div class="footer-copyright" style="background-color:#a52724;">
 	      <div class="container">
 	        © 2026 IdeiaWare UNISC
@@ -21,12 +35,12 @@
 		<script src="${pageContext.request.contextPath}/resources/js/corejs-typeahead.bundle.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/materialize-tags/js/materialize-tags.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/masonry.pkgd.min.js"></script>
-		<%-- EXPORT-CORTADO: cache-busting (?v=timestamp) -- navegador servia lib velha do cache. --%>
-		<script src="${pageContext.request.contextPath}/resources/js/html2canvas.min.js?v=<%= System.currentTimeMillis() %>"></script>
+		<%-- EXPORT-CORTADO: cache-busting no html2canvas --%>
+		<script src="${pageContext.request.contextPath}/resources/js/html2canvas.min.js?v=<%= BUILD_TS %>"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/jspdf.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/enjoyhint.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/custom.tour.js"></script>
-		<%-- TK-44: cache-busting no custom.js tambem (mesmo motivo). --%>
-		<script src="${pageContext.request.contextPath}/resources/js/custom.js?v=<%= System.currentTimeMillis() %>"></script>
+		<%-- TK-44: cache-busting no custom.js --%>
+		<script src="${pageContext.request.contextPath}/resources/js/custom.js?v=<%= BUILD_TS %>"></script>
 	</body>
 </html>

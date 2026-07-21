@@ -1,5 +1,6 @@
 package edu.unisc.lic.servlet;
 
+import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.ElementosStorytellingDAO;
 import edu.unisc.lic.dao.StorytellingDAO;
 import edu.unisc.lic.domain.ElementosStorytelling;
@@ -18,9 +19,10 @@ public class SalvarAudioServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        // ENCODING-01: sem isso o write de erro sai com acentuacao quebrada (charset default do container).
+        response.setCharacterEncoding("UTF-8");
         HttpSession session = request.getSession(true);
 
-        // Lê o body completo (áudio em base64 pode ser grande)
         BufferedReader reader = request.getReader();
         StringBuilder sb = new StringBuilder();
         String line;
@@ -33,7 +35,13 @@ public class SalvarAudioServlet extends HttpServlet {
             return;
         }
 
-        // BLINDA-02: sessao sem storytellingId ou id invalido dava NPE/500 cru antes.
+        // AUDIO-DATAURI: guarda so' a parte base64 pura, sem o prefixo "data:...;base64,".
+        int comma = fileData.indexOf(',');
+        if (fileData.startsWith("data:") && comma >= 0) {
+            fileData = fileData.substring(comma + 1);
+        }
+
+        // BLINDA-02: sessao sem storytellingId ou id invalido
         Object storyIdAttr = session.getAttribute("storytellingId");
         if (storyIdAttr == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -51,20 +59,26 @@ public class SalvarAudioServlet extends HttpServlet {
             return;
         }
 
-        // Remove áudio anterior do mesmo storytelling
+        // UX-STORY-ETAPA-TRAVADA: faltava aqui -- os outros 4 servlets de escrita do
+        // Storytelling ja bloqueavam apos FINALIZADO, este continuava aceitando audio novo.
+        if (StatusIdeia.FINALIZADO.equals(st.getStatus())) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("Este item já foi finalizado.");
+            return;
+        }
+
         ElementosStorytelling filtro = new ElementosStorytelling();
         filtro.setTipo("AUD");
         filtro.setStorytelling(st);
 
         List<ElementosStorytelling> estList = new ElementosStorytellingDAO().listarParametro(filtro);
 
-        // Novo áudio
         ElementosStorytelling est = new ElementosStorytelling();
         est.setStorytelling(st);
         est.setCaminho(fileData);
         est.setTipo("AUD");
 
-        // K.8 #7: apaga o antigo e salva o novo NUMA SO transacao (antes, falha no meio perdia o audio).
+        // K.8 #7: apaga o antigo e salva o novo numa so transacao
         new ElementosStorytellingDAO().substituirAudio(estList, est);
     }
 

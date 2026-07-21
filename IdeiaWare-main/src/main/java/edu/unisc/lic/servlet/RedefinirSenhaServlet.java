@@ -11,9 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-// RESET-TOKEN: 2a etapa do reset de senha -- valida o token do link (RedefinirSenhaServlet)
-// e so troca a senha depois do usuario confirmar a nova senha (a 1a etapa, ResetPasswordServlet,
-// so gera o token e manda o link por e-mail).
+// RESET-TOKEN: 2a etapa, valida token do link e troca a senha
 @WebServlet(name = "RedefinirSenhaServlet", urlPatterns = {"/RedefinirSenhaServlet"})
 public class RedefinirSenhaServlet extends HttpServlet {
 
@@ -69,7 +67,7 @@ public class RedefinirSenhaServlet extends HttpServlet {
             return;
         }
 
-        // Uso unico: troca a senha e invalida o token na mesma operacao (nao da pra reusar o link).
+        // RESET-TOKEN: troca a senha e invalida o token, uso unico
         usuario.setSenha(novaSenha, true);
         usuario.setResetTokenHash(null);
         usuario.setResetTokenExpira(null);

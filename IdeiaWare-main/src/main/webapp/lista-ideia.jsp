@@ -98,14 +98,13 @@
             $('#modal-detalhe-ideia').modal('open');
         });
 
-        // UX: guard evita TypeError ao chamar addEventListener em null quando a lista esta vazia (campo nao existe no DOM).
         var input = document.getElementById('filtro-nome');
         if (input) {
             var trs = Array.prototype.slice.call(document.querySelectorAll('#lista tbody tr'));
             input.addEventListener('input', function () {
                 var search = input.value.toLowerCase();
                 trs.forEach(function (elem) {
-                    // Busca so em titulo + descricao (antes usava o textContent da linha inteira, incluindo data e botao).
+                    // UX-BUSCA: busca so em titulo + descricao, nao a linha inteira.
                     var titulo    = (elem.querySelector('.title')       || {}).textContent || '';
                     var descricao = (elem.querySelector('.description')  || {}).textContent || '';
                     var alvo = (titulo + ' ' + descricao).toLowerCase();

@@ -5,8 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
-// RESET-TOKEN: token aleatorio de reset de senha + hash pra guardar no banco (nunca o token em claro,
-// mesmo raciocinio de nunca guardar senha em claro -- se o banco vazar, o hash sozinho nao reseta nada).
+// RESET-TOKEN: token de reset, so o hash vai pro banco
 public class TokenReset {
 
     private TokenReset() {

@@ -186,6 +186,7 @@ public class EntrarColaboracaoServletTest {
 		new EntrarColaboracaoServlet().doGet(request, response);
 
 		verify(response).sendRedirect(org.mockito.ArgumentMatchers.contains("colaboracao.jsp"));
-		assertTrue(attrs.get("isRetencao").equals("true"));
+		// ISRETENCAO-TIPO: sempre Boolean agora (antes guardava a String crua do parametro).
+		assertEquals(Boolean.TRUE, attrs.get("isRetencao"));
 	}
 }

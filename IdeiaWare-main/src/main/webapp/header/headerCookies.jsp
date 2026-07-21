@@ -18,6 +18,12 @@
         request.setAttribute("permicao", usuario.getPermissao());
         request.setAttribute("usuario", usuario.getUsuario());
     }
+
+    // UX-PADRAO-ETAPA-FINALIZADA: mesmo flash de sessao usado em headerCookiesCV.jsp (Canva).
+    String mensagemErroEtapa = (String) session.getAttribute("mensagemErroEtapa");
+    if (mensagemErroEtapa != null) {
+        session.removeAttribute("mensagemErroEtapa");
+    }
 %>
 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -68,6 +74,9 @@
   }
 </style>
 <body>
+  <% if (mensagemErroEtapa != null) { %>
+  <script>alert(<%= new com.google.gson.Gson().toJson(mensagemErroEtapa) %>);</script>
+  <% } %>
   <nav>
     <div class="nav-wrapper teal darken-2 z-depth-2">
       <a href="index.jsp" class="brand-logo" style="left: 50px">
@@ -85,7 +94,7 @@
       </a>
 
       <ul id="nav-mobile" class="right hide-on-med-and-down">
-        <%-- UX-GERENCIAR-USUARIOS: acoes de admin subiram pra ca (dropdown "Ideias" era redundante com os cards). --%>
+        <%-- UX-GERENCIAR-USUARIOS: ações de admin subiram pra cá, dropdown "Ideias" era redundante. --%>
         <c:if test="${permicao eq 'adm'}">
           <li><a href="validar-ideia.jsp"><i class="material-icons left">done</i>Validar Ideias</a></li>
           <li><a href="lista-ideia-gerenciamento.jsp"><i class="material-icons left">assessment</i>Gerenciar Ideias</a></li>

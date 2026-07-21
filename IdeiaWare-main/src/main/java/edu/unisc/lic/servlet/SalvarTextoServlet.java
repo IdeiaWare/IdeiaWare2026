@@ -26,7 +26,7 @@ public class SalvarTextoServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // SEC-15: autor vem da SESSAO, nao de parametro (antes, falsificacao de identidade).
+        // SEC-15: autor vem da sessao, nao de parametro
         HttpSession session = request.getSession(false);
         Object codigoUsuario = session == null ? null : session.getAttribute("codigoUsuario");
         if (codigoUsuario == null) {
@@ -34,7 +34,7 @@ public class SalvarTextoServlet extends HttpServlet {
             return;
         }
 
-        // RET-14: valida parametro/entidade antes de gravar (evita 500/NPE).
+        // RET-14: valida parametro/entidade antes de gravar
         String ideiaIdParam = request.getParameter("ideiaId");
         Ideia ideia = null;
         try {
@@ -50,7 +50,7 @@ public class SalvarTextoServlet extends HttpServlet {
             return;
         }
 
-        // SRV-IDOR-05: exige lideranca (antes, so restrito na UI).
+        // SRV-IDOR-05: exige lideranca
         List<IdeiaUsuario> souLider = new IdeiaUsuarioDAO()
                 .listarParametro(new IdeiaUsuario(autor, ideia, "S"));
         if (souLider == null || souLider.isEmpty()) {
@@ -73,7 +73,7 @@ public class SalvarTextoServlet extends HttpServlet {
         if (s == null) {
             return "";
         }
-        // STM-02: só recorta se as tags existirem; senão substring(-1) estouraria.
+        // STM-02: so recorta se as tags existirem
         int inicio = s.indexOf("<p>");
         if (inicio >= 0) {
             s = s.substring(inicio);

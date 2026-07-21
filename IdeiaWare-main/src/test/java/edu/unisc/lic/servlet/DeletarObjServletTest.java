@@ -5,7 +5,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -105,6 +107,7 @@ public class DeletarObjServletTest {
 
 		HttpServletRequest request = mockRequest(1L, 999999L, elemento.getCodigo().toString());
 		HttpServletResponse response = mock(HttpServletResponse.class);
+		when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
 
 		new DeletarObjServlet().doPost(request, response);
 
@@ -123,5 +126,22 @@ public class DeletarObjServletTest {
 		new DeletarObjServlet().doPost(request, response);
 
 		org.junit.Assert.assertNull("elemento deve ter sido excluido", elementosDAO.buscar(elemento.getCodigo()));
+	}
+
+	@Test
+	public void storytellingJaFinalizado_naoExclui() throws Exception { // UX-STORY-ETAPA-TRAVADA
+		Storytelling st = novoStorytelling();
+		ElementosStorytelling elemento = novoElemento(st);
+		st.setStatus(StatusIdeia.FINALIZADO);
+		storytellingDAO.editar(st);
+
+		HttpServletRequest request = mockRequest(1L, st.getCodigo(), elemento.getCodigo().toString());
+		HttpServletResponse response = mock(HttpServletResponse.class);
+		when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
+
+		new DeletarObjServlet().doPost(request, response);
+
+		verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+		org.junit.Assert.assertNotNull("elemento nao deve ter sido excluido", elementosDAO.buscar(elemento.getCodigo()));
 	}
 }

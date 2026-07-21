@@ -13,7 +13,6 @@
     <main>
 		<%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/canva-mapa.jsp. --%>
 		<a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
-		<%-- expoe o fluxo (retencao x finalizacao normal) pro geraPDFCanva.js decidir o redirect pos-export. --%>
 		<script>window.isRetencaoCanva = ('${sessionScope.isRetencao}' === 'true');</script>
 		<div style="min-height: 80vh">
 			<!-- VARIAVEIS -->
@@ -32,11 +31,6 @@
 		  			</nav>
 		  		</div>
 		  		
-		  		<!-- BOTÃO DE EXPORTAÇÃO -->
-		  		<%-- UX-COR: blue darken-4 (cor do proprio modulo Canvas); era red, sem relacao com o header/footer. --%>
-		  		<div>
-					<button class="btn btn-lg blue darken-4 mt4" onclick="geraPDF()">Exportar</button>
-				</div>
 			</div>
 			<div id="overlay">
 				<div class="loader"></div>

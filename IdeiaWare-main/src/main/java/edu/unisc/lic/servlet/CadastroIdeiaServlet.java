@@ -21,7 +21,7 @@ public class CadastroIdeiaServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // GT-05: exige login (antes, POST sem sessao dava NPE em vez de redirecionar).
+        // GT-05: exige login
         HttpSession session = request.getSession(true);
         Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
@@ -29,12 +29,18 @@ public class CadastroIdeiaServlet extends HttpServlet {
             return;
         }
 
-        // COL-15: validação server-side — não depende apenas do JavaScript do cliente
+        // COL-15: validacao server-side
         String titulo    = request.getParameter("titulo");
         String descricao = request.getParameter("descricao");
 
         if (titulo == null || titulo.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/cadastro-ideia.jsp?erro=titulo_obrigatorio");
+            return;
+        }
+        // UX-CADASTRO-TITULO-CURTO: minlength=4 so' era checado no client (cadastro-ideia.jsp);
+        // um POST direto passava titulo de 1 caractere sem checagem nenhuma no servidor.
+        if (titulo.trim().length() < 4) {
+            response.sendRedirect(request.getContextPath() + "/cadastro-ideia.jsp?erro=titulo_curto");
             return;
         }
         if (titulo.trim().length() > 50) {
@@ -61,11 +67,10 @@ public class CadastroIdeiaServlet extends HttpServlet {
         ideia.setStatusGrupo(StatusIdeia.GRUPO_ABERTO);
 
         IdeiaUsuario ideiaUsuario = new IdeiaUsuario(usuario, ideia, "S");
-        // M.2: o criador ja e lider e entra APROVADO direto (nao passa pela lista de espera).
         ideiaUsuario.setFlStatusVinculo(StatusIdeia.VINCULO_APROVADO);
         ideiaUsuario.setDtInscricao();
 
-        // K.8 #5: Ideia + vinculo de lideranca numa SO transacao (senao, falha deixava Ideia sem lider).
+        // K.8 #5: Ideia + vinculo de lideranca numa so transacao
         new IdeiaDAO().criarComLider(ideia, ideiaUsuario);
 
         response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");

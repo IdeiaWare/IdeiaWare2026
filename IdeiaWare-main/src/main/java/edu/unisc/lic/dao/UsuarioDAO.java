@@ -58,7 +58,7 @@ public class UsuarioDAO extends GenericDAO<Usuario> {
         }
     }
 
-    // RESET-TOKEN: busca pelo hash do token de reset (nunca pelo token em claro).
+    // RESET-TOKEN: busca pelo hash do token, nunca pelo token em claro
     public Usuario buscarPorTokenHash(String hash) {
         if (hash == null) {
             return null;

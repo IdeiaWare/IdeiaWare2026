@@ -79,6 +79,13 @@
             box-shadow: 0 0 0 0 rgba(255,255,255, 0);
         }
     }
+    /* UX-LOGIN-BOTAO-HOVER: mesmo bug/fix do login.jsp. */
+    #feedback-form button.blue.accent-1 {
+        background-color: #448aff !important;
+    }
+    #feedback-form button.blue.accent-1:hover {
+        background-color: #82b1ff !important;
+    }
   </style>
   <body class="blue-grey lighten-5">
     <main>
@@ -97,15 +104,16 @@
             </div>
           </ul>
         </a>
+        <%-- UX-INDEX-HEADER-PERFIL: Perfil movido pra ficar do lado de Sair. --%>
         <ul id="nav-mobile" class="right hide-on-med-and-down" >
-          <%-- FOOTER-XSS: nome do usuario (texto livre de cadastro) escapado com c:out. --%>
-          <li><a href="index-perfil.jsp"><c:out value="${sessionScope.nomeUsuario}"/><i style="padding-left: 10px" class="fa fa-user-o" aria-hidden="true"></i></a></li>
+          <%-- FUT-02: feedback/sugestao, abre modal em vez de navegar. --%>
+          <li><a href="#feedback-modal" class="modal-trigger">Feedback<i style="padding-left: 10px" class="fa fa-comment-o" aria-hidden="true"></i></a></li>
           <%-- UX-GERENCIAR-USUARIOS: nao pertence a nenhum modulo, mora aqui na home em vez do header de algum modulo. --%>
           <c:if test="${usuario.permissao eq 'adm'}">
             <li><a href="gerenciar-usuarios.jsp">Gerenciar Usuários<i style="padding-left: 10px" class="fa fa-users" aria-hidden="true"></i></a></li>
           </c:if>
-          <%-- FUT-02: feedback/sugestao, abre modal em vez de navegar. --%>
-          <li><a href="#feedback-modal" class="modal-trigger">Feedback<i style="padding-left: 10px" class="fa fa-comment-o" aria-hidden="true"></i></a></li>
+          <%-- FOOTER-XSS: nome do usuario (texto livre de cadastro) escapado com c:out. --%>
+          <li><a href="index-perfil.jsp"><c:out value="${sessionScope.nomeUsuario}"/><i style="padding-left: 10px" class="fa fa-user-o" aria-hidden="true"></i></a></li>
           <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
         </ul>
       </div>
@@ -250,17 +258,14 @@
 
     <script>
         $(document).ready(function () {
-            // MODAL-NAMESPACE: essa versao do Materialize (v0.100.1, local -- MAT-CONSOLIDA
-            // trocou de CDN v1.0.0) se expõe como `window.Materialize`, NUNCA `window.M` (o
-            // atalho `M` so foi introduzido no 1.0.0). Alem disso Modal.init() exige objeto
-            // jQuery de verdade (usa .each() por dentro), nao NodeList puro.
+            // MAT-CONSOLIDA: Materialize local expõe window.Materialize, não window.M.
             var modalInstance = Materialize.Modal.init($('#feedback-modal'))[0];
             $('a[href="#feedback-modal"]').on('click', function (e) {
                 e.preventDefault();
                 modalInstance.open();
             });
         });
-        // FUT-02: flash de resultado do envio de feedback, mesmo padrao de toast ja usado em cadastro-ideia.jsp.
+        // FUT-02: toast de resultado do feedback, mesmo padrao do cadastro.
         var feedbackEnviado = ${feedbackEnviado or false};
         var feedbackErro = ${feedbackErro or false};
         if (feedbackEnviado) {

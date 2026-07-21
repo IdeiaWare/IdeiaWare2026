@@ -14,7 +14,7 @@
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
         <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900'>
-        <%-- TITULO-MODULO-POPPINS: Montserrat nunca era usada em lugar nenhum -- trocada pela Poppins (mesma fonte dos titulos de modulo). --%>
+        <%-- TITULO-MODULO-POPPINS: Montserrat trocada pela Poppins. --%>
         <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -75,6 +75,13 @@
             font-weight: 500;
             margin: 14px 0 2px 0;
         }
+        /* UX-LOGIN-BOTAO-HOVER: mesmo bug/fix do login.jsp. */
+        #redefinir-senha-form button.blue.accent-1 {
+            background-color: #448aff !important;
+        }
+        #redefinir-senha-form button.blue.accent-1:hover {
+            background-color: #82b1ff !important;
+        }
     </style>
 
     <body class="blue-grey lighten-5" id="app">
@@ -124,7 +131,6 @@
                 <form id="redefinir-senha-form" action="RedefinirSenhaServlet" method="POST">
                     <input type="hidden" name="token" value="<%= token %>"/>
 
-                    <%-- UX: mesmo "olhinho" pra revelar senha usado no login/cadastro. --%>
                     <div style="position:relative;">
                         <input name="senha" id="senha" type="password" placeholder="nova senha" aria-label="nova senha"
                                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,32}$" required
@@ -160,7 +166,6 @@
         </div>
 
         <script>
-            // UX: "olhinho" pra revelar/ocultar a senha digitada (mesma funcao do login/cadastro).
             function toggleSenhaVisibility(inputId, buttonId) {
                 var input = document.getElementById(inputId);
                 var icon = document.getElementById(buttonId).querySelector('i');

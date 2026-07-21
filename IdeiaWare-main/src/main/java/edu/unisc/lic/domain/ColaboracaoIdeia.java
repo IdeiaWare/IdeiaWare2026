@@ -13,7 +13,6 @@ import javax.persistence.TemporalType;
 @Entity
 public class ColaboracaoIdeia extends GenericDomain {
 
-    // Chaves estrangeiras
     @ManyToOne
     @JoinColumn(nullable = false)
     private Ideia ideia;
@@ -22,7 +21,6 @@ public class ColaboracaoIdeia extends GenericDomain {
     @JoinColumn(nullable = false)
     private Usuario usuario;
 
-    // Atributos
     @Column
     @Temporal(TemporalType.TIMESTAMP)
     private Date dtModificacao;
@@ -42,7 +40,6 @@ public class ColaboracaoIdeia extends GenericDomain {
     @Column(length = 2)
     private String flSalvado;
 
-    // Métodos Construtores
     public ColaboracaoIdeia() {
         this.ideia = new Ideia();
         this.usuario = new Usuario();
@@ -55,13 +52,11 @@ public class ColaboracaoIdeia extends GenericDomain {
         this.descricaoIdeiaAtual = descricaoIdeiaAtual;
     }
 
-    // Métodos
-    @Override    
+    @Override
     public String toString() {
         return "ColaboracaoIdeia{" + "ideia=" + ideia + ", usuario=" + usuario + ", dtModificacao=" + dtModificacao + ", descricaoIdeiaAnterior=" + descricaoIdeiaAnterior + ", descricaoIdeiaAtual=" + descricaoIdeiaAtual + ", descricaoIdeiaLider=" + descricaoIdeiaLider + ", flEditadoLider=" + flEditadoLider + ", flSalvado=" + flSalvado + '}';
     }
 
-    // Getters and Setters
     public Ideia getIdeia() {
         return ideia;
     }

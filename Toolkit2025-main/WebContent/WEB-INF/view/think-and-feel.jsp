@@ -3,7 +3,7 @@
 <%@ taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
-	<%-- UX-VOLTAR-V2: icone circular flutuante, volta pro Mapa de Empatia (pai imediato). --%>
+	<%-- UX-VOLTAR-V2: icone circular flutuante volta pro Mapa de Empatia --%>
 	<a href="${pageContext.request.contextPath}/persona/empatia/mapa?personaId=${personaId}" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
@@ -61,7 +61,7 @@
 			<div class="row">
 				<c:if test="${empty attributes}"><div class="col s12 center-align grey-text" style="padding: 30px 20px;">Nenhum item adicionado ainda.</div></c:if>
 				<c:forEach var="tempAttribute" items="${attributes}">
-					<%-- TK-26: mesmo fix do gain.jsp. --%>
+					<%-- TK-26: excluir atributo virou form POST --%>
 					<form id="deleteAttributeForm${tempAttribute.id}" action="${pageContext.request.contextPath}/persona/empatia/o-que-pensa-e-sente/delete" method="POST" style="display:none;">
 						<input type="hidden" name="csrfToken" value="${csrfToken}"/>
 						<input type="hidden" name="personaId" value="${tempAttribute.personaId}"/>
@@ -78,7 +78,7 @@
 			              			<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 			              		</a>
 			              		<a href="javascript:;"
-									onclick="if (confirm('Você tem certeza que deseja deletar este atributo?')) document.getElementById('deleteAttributeForm${tempAttribute.id}').submit();">
+									onclick="if (confirm('Excluir este atributo? Esta ação não pode ser desfeita.')) document.getElementById('deleteAttributeForm${tempAttribute.id}').submit();">
 										<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 			            	</div>

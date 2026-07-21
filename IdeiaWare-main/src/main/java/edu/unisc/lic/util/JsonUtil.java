@@ -5,10 +5,9 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-// GT-01: exclui Usuario.senha so na serializacao (marcar `transient` quebraria a persistencia pelo Hibernate).
+// GT-01: exclui Usuario.senha so na serializacao
 public final class JsonUtil {
 
-    /** Gson que nunca inclui Usuario.senha no JSON de saida. Uso: JsonUtil.GSON_SEM_SENHA.toJson(obj). */
     public static final Gson GSON_SEM_SENHA = new GsonBuilder()
             .addSerializationExclusionStrategy(new ExclusionStrategy() {
                 @Override

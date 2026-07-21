@@ -207,7 +207,7 @@
     <script src="js/csrf.js"></script>
   </main>
     </body>
-    <%-- UX: footer padronizado com a cor do header da home (antes era o teal do colaborativo, destoante). --%>
+    <%-- UX-FOOTER-PADRAO: footer com cor do header da home, antes era teal. --%>
     <footer class="center blue-grey lighten-1 page-footer">
         <div class="container">
             <div class="row">

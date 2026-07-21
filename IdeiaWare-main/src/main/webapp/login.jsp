@@ -21,7 +21,7 @@
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
         <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900'>
-        <%-- TITULO-MODULO-POPPINS: Montserrat nunca era usada em lugar nenhum -- trocada pela Poppins (mesma fonte dos titulos de modulo). --%>
+        <%-- TITULO-MODULO-POPPINS: Montserrat trocada pela Poppins. --%>
         <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -30,11 +30,7 @@
         <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" href="css/style.css">
         <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
-        <%-- SCRIPT-ORDER: jQuery TEM que carregar antes do materialize.min.js -- essa versao
-             local (v0.100.1, desde o MAT-CONSOLIDA) usa jQuery internamente; carregando na
-             ordem errada, o proprio materialize.min.js falha ao rodar e `window.Materialize`
-             nunca fica definido (era CDN v1.0.0 antes, sem essa dependencia, por isso nao
-             dava pra notar). --%>
+        <%-- MAT-CONSOLIDA: jQuery precisa carregar antes do materialize.min.js local. --%>
         <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script src="js/materialize.min.js"></script>
     </head>
@@ -195,6 +191,17 @@
             font-weight: 500;
             margin: 14px 0 2px 0;
         }
+        /* UX-LOGIN-BOTAO-HOVER: .blue.accent-1 do Materialize trava a cor com !important, sem hover. */
+        .login-form button.blue.accent-1,
+        .register-form button.blue.accent-1,
+        .reset-password-form button.blue.accent-1 {
+            background-color: #448aff !important;
+        }
+        .login-form button.blue.accent-1:hover,
+        .register-form button.blue.accent-1:hover,
+        .reset-password-form button.blue.accent-1:hover {
+            background-color: #82b1ff !important;
+        }
     </style>
 
     <body class="blue-grey lighten-5" id="app">
@@ -223,9 +230,6 @@
                 <h5 id="form-heading" class="text-darken-2 blue-grey-text" style="font-family:'Poppins',sans-serif; font-weight:600;">Login</h5>
             </div>
         </div>
-        <%-- CADASTRO-LOGO-REDUNDANTE: logo grande (150px) tirada da posicao compartilhada (empurrava
-             o Cadastro, que tem mais campos, pra baixo da dobra). Mantida so' no login-form (poucos
-             campos, cabe sem forcar scroll) -- ver abaixo, dentro do <form id="login-form">. --%>
         <div class="form">
             <c:if test="${resposta}">
                 <div class="erro">
@@ -273,7 +277,6 @@
                     <img src="imagens/idea.png" alt="IdeiaWare"/>
                 </div>
                 <input name="usuario" type="text" placeholder="usuário" aria-label="usuário" pattern=".{4,32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres"/>
-                <%-- UX: "olhinho" pra revelar a senha digitada. --%>
                 <div style="position:relative;">
                     <input name="senha" id="login-senha" type="password" placeholder="senha" aria-label="senha"/>
                     <button type="button" id="toggle-login-senha" tabindex="-1" aria-label="Mostrar senha" onclick="toggleSenhaVisibility('login-senha','toggle-login-senha')" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; min-width:0; background:none; border:0; padding:0; margin:0; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="material-icons" style="color:#9e9e9e;">visibility_off</i></button>
@@ -285,12 +288,9 @@
             </form>
 
             <form id="register-form" class="register-form" action="CadastroUsuarioServlet" method="POST" style="display:none;">
-                <%-- CADASTRO-PLACEHOLDER-DUPLICADO: placeholder repetia o label ("Nome"/"nome") --
-                     como o input herda text-align:center do .form enquanto o label e' left-aligned,
-                     lia como texto duplicado. Placeholder agora e' um exemplo, nao o label de novo,
-                     e o texto do campo passa a ficar alinhado a esquerda (.register-form input). --%>
+                <%-- CADASTRO-PLACEHOLDER-DUPLICADO: placeholder nao repete mais o label. --%>
                 <label for="reg-nome" class="perfil-label">Nome</label>
-                <input id="reg-nome" name="nome" type="text" placeholder="Digite seu nome completo" aria-label="nome" pattern=".{4,64}" required title="O campo nome deve conter entre 6 e 64 caracteres" />
+                <input id="reg-nome" name="nome" type="text" placeholder="Digite seu nome completo" aria-label="nome" pattern=".{4,64}" required title="O campo nome deve conter entre 4 e 64 caracteres" />
                 <label for="reg-usuario" class="perfil-label">Usuário</label>
                 <input id="reg-usuario" name="usuario" type="text" placeholder="Escolha um nome de usuário" aria-label="usuário" pattern=".{4,32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres" />
                 <label for="reg-email" class="perfil-label">E-mail</label>
@@ -377,10 +377,7 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                // MODAL-NAMESPACE: essa versao do Materialize (v0.100.1, local -- MAT-CONSOLIDA
-                // trocou de CDN v1.0.0) se expõe como `window.Materialize`, NUNCA `window.M`
-                // (o atalho `M` so foi introduzido no 1.0.0). Alem disso Modal.init() exige
-                // objeto jQuery de verdade (usa .each() por dentro), nao NodeList puro.
+                // MAT-CONSOLIDA: Materialize local expõe window.Materialize, não window.M.
                 var modalInstance = Materialize.Modal.init($('#modal1'))[0];
                 $('.modal-trigger').on('click', function (e) {
                     e.preventDefault();
@@ -388,7 +385,6 @@
                 });
             });
 
-            // UX: "olhinho" pra revelar/ocultar a senha digitada (login e cadastro).
             function toggleSenhaVisibility(inputId, buttonId) {
                 var input = document.getElementById(inputId);
                 var icon = document.getElementById(buttonId).querySelector('i');
@@ -514,7 +510,7 @@
                     setFormHeading('Login');
                 });
 
-                // UX-LOGIN-REABRE: reabre o formulario correspondente ao erro (senao ficava mostrando o login com a mensagem perdida).
+                // UX-LOGIN-REABRE: reabre o formulario do erro, nao sempre o login.
                 var erroCadastro = ${respostaCadastro or respostaCadastro2 or respostaCadastro3 or respostaCadastro4};
                 var erroRedefinicao = ${resposta5 or ErroRedefinicaoSenha};
                 if (erroCadastro) {

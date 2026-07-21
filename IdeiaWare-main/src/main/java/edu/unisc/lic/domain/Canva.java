@@ -9,12 +9,10 @@ import javax.persistence.ManyToOne;
 @Entity
 public class Canva extends GenericDomain {
 
-    //Chave estrangeira
     @ManyToOne
-    @JoinColumn(nullable = false) // chave estrangeira é obrigatória
+    @JoinColumn(nullable = false)
     private Ideia ideia;
 
-    //Atributos
     @Column(nullable = false)
     private String text;
 
@@ -24,7 +22,6 @@ public class Canva extends GenericDomain {
     @Column(length = 14, nullable = false)
     private String attribute;
 
-    //Métodos Construtores
     public Canva() {
         ideia = new Ideia();
     }
@@ -36,13 +33,11 @@ public class Canva extends GenericDomain {
         this.attribute = attribute;
     }
 
-    //Métodos
     @Override
 	public String toString() {
 		return "Canva [ideia=" + ideia + ", text=" + text + ", color=" + color + ", attribute=" + attribute + "]";
 	}
 
-    //Getters and Setters
 	public Ideia getIdeia() {
 		return ideia;
 	}

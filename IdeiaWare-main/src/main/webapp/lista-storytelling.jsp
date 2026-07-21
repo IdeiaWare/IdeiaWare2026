@@ -24,7 +24,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link href='https://fonts.googleapis.com/css?family=Condiment' rel='stylesheet'>
 <%-- TITULO-MODULO-POPPINS: fonte dos titulos de modulo (ver K.4). --%>
-<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@700' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <script type="text/javascript" src="js/Bibliotecas/jquery-3.2.1.js"></script>

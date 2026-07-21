@@ -24,8 +24,10 @@ public class ExportCanvaServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        // ENCODING-01: sem isso o write de erro sai com acentuacao quebrada (charset default do container).
+        response.setCharacterEncoding("UTF-8");
 
-        // CAN-10/CANM-06: le o body inteiro ANTES de validar (senao, ERR_CONNECTION_RESET).
+        // CAN-10/CANM-06: le o body inteiro antes de validar
         BufferedReader reader = request.getReader();
         StringBuilder sb = new StringBuilder();
         String linha;
@@ -34,7 +36,7 @@ public class ExportCanvaServlet extends HttpServlet {
         }
         String fileData = sb.toString();
 
-        // CANM-03: so prossegue com sessao valida e ideiaId presente.
+        // CANM-03: so prossegue com sessao valida e ideiaId
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("ideiaId") == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -49,6 +51,16 @@ public class ExportCanvaServlet extends HttpServlet {
             Ideia ideia = new IdeiaDAO().buscar((Long) session.getAttribute("ideiaId"));
             if (ideia == null) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+
+            // UX-CANVA-EXPORT-DUPLO: bloqueia re-exportacao -- mesmo bug ja corrigido no
+            // Storytelling (ExportaStoryServlet): o PDF e' gravado num caminho deterministico
+            // por ideia, uma 2a exportacao (aba antiga de outro participante) sobrescrevia o
+            // arquivo da 1a em silencio.
+            if (StatusIdeia.FINALIZADO.equals(ideia.getStatus())) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter().write("Este Canva já foi finalizado.");
                 return;
             }
 
@@ -73,7 +85,7 @@ public class ExportCanvaServlet extends HttpServlet {
                 try {
                     canvaDAO.salvar(canva);
                 } catch (ConstraintViolationException ex) {
-                    // K.8 #4: outro export quase-simultaneo ja inseriu a linha -- trata como update.
+                    // K.8 #4: export concorrente ja inseriu, trata como update
                     List<Canvaexport> agora = canvaDAO.listarParametro(canva);
                     if (agora != null && !agora.isEmpty()) {
                         Canvaexport existente = agora.get(0);
@@ -86,7 +98,7 @@ public class ExportCanvaServlet extends HttpServlet {
             ideia.setStatus(StatusIdeia.FINALIZADO);
             new IdeiaDAO().editar(ideia);
         } catch (RuntimeException | IOException e) {
-            // CAN-10: falha ao salvar (ex.: base64 invalido, disco cheio) retorna 500 explicito.
+            // CAN-10: falha ao salvar retorna 500 explicito
             System.out.println("Erro ao exportar canva: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }

@@ -8,7 +8,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -92,7 +94,13 @@ public class AutoSalvarStoryServletTest {
 
 	@Test
 	public void corpoVazio_naoFazNadaNemErro() throws Exception {
-		HttpServletRequest request = mockRequest(1L, "");
+		// UX-STORY-ETAPA-TRAVADA: id real (nao mais magico) -- o guard novo de status
+		// precisa achar um Storytelling de verdade, senao bloqueia com FORBIDDEN.
+		Usuario autor = novoUsuario("AutorCorpoVazio");
+		Ideia ideia = novaIdeia(autor);
+		Storytelling st = novoStorytelling(autor, ideia);
+
+		HttpServletRequest request = mockRequest(st.getCodigo(), "");
 		HttpServletResponse response = mock(HttpServletResponse.class);
 
 		new AutoSalvarStoryServlet().doPost(request, response);
@@ -179,5 +187,29 @@ public class AutoSalvarStoryServletTest {
 		ElementosStorytelling naoAlterado = elementosStorytellingDAO.buscar(est.getCodigo());
 		assertEquals(1.0, naoAlterado.getX(), 0.001);
 		assertEquals(1.0, naoAlterado.getY(), 0.001);
+	}
+
+	@Test
+	public void storytellingJaFinalizado_bloqueiaAutosave() throws Exception { // UX-STORY-ETAPA-TRAVADA
+		Usuario autor = novoUsuario("AutorFinalizado");
+		Ideia ideia = novaIdeia(autor);
+		Storytelling st = novoStorytelling(autor, ideia);
+		st.setStatus(StatusIdeia.FINALIZADO);
+		storytellingDAO.editar(st);
+
+		ElementosStorytelling est = new ElementosStorytelling(st, "IMG", "", 1, 1, 10, 10);
+		elementosStorytellingDAO.salvar(est);
+
+		String json = "[{\"codigo\":" + est.getCodigo()
+				+ ",\"tipo\":\"forma\",\"x\":999.0,\"y\":999.0,\"height\":999.0,\"width\":999.0}]";
+		HttpServletRequest request = mockRequest(st.getCodigo(), json);
+		HttpServletResponse response = mock(HttpServletResponse.class);
+		when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
+
+		new AutoSalvarStoryServlet().doPost(request, response);
+
+		verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+		ElementosStorytelling naoAlterado = elementosStorytellingDAO.buscar(est.getCodigo());
+		assertEquals(1.0, naoAlterado.getX(), 0.001);
 	}
 }

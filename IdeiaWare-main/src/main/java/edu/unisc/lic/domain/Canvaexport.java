@@ -15,7 +15,7 @@ import edu.unisc.lic.classes.Data;
 @Entity
 public class Canvaexport extends GenericDomain {
 
-    // K.8 #4: unique=true trava no BANCO que uma ideia tenha mais de 1 export de Canvas.
+    // K.8 #4: unique=true trava no banco 1 export de Canvas por ideia
 	@OneToOne
     @JoinColumn(name = "ideia_codigo", nullable = false, unique = true)
     private Ideia ideia;

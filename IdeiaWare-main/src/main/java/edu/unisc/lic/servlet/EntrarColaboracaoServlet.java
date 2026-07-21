@@ -23,7 +23,7 @@ public class EntrarColaboracaoServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // SRV-IDOR-01: exige login (antes, acesso sem login dava NPE no unboxing).
+        // SRV-IDOR-01: exige login
         HttpSession session = request.getSession(true);
         Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
@@ -31,7 +31,7 @@ public class EntrarColaboracaoServlet extends HttpServlet {
             return;
         }
 
-        // RET-14: valida parametro/ideia antes de usar (evita 500/NPE).
+        // RET-14: valida parametro/ideia antes de usar
         String ideiaIdParam = request.getParameter("ideiaId");
         Ideia ideia = null;
         if (ideiaIdParam != null) {
@@ -54,7 +54,7 @@ public class EntrarColaboracaoServlet extends HttpServlet {
         iu.setIdeia(ideia);
         iu.setUsuario(u);
 
-        // COL-08: protege o .get(0) quando a lista de vinculo vem vazia.
+        // COL-08: protege .get(0) de lista vazia
         List<IdeiaUsuario> lista = iuDAO.listarParametro(iu);
         if (lista.size() > 0) {
         	iu = lista.get(0);
@@ -62,7 +62,7 @@ public class EntrarColaboracaoServlet extends HttpServlet {
         	iu = null;
         }
 
-        // SRV-IDOR-01/GT-02: exige vinculo APROVADO (nao so existir) ou admin -- antes furava a lista de espera.
+        // SRV-IDOR-01/GT-02: exige vinculo APROVADO ou admin
         boolean vinculoAprovado = iu != null && (iu.getFlStatusVinculo() == null
                 || edu.unisc.lic.classes.StatusIdeia.VINCULO_APROVADO.equals(iu.getFlStatusVinculo()));
         if (u == null || (!vinculoAprovado && !"adm".equals(u.getPermissao()))) {
@@ -70,12 +70,9 @@ public class EntrarColaboracaoServlet extends HttpServlet {
             return;
         }
 
+        // ISRETENCAO-TIPO: sempre Boolean (antes o branch com parametro guardava String cru).
         String retencao = request.getParameter("retencao");
-        if (retencao == null || retencao.isEmpty()) {
-            session.setAttribute("isRetencao", false);
-        } else {
-            session.setAttribute("isRetencao", retencao);
-        }
+        session.setAttribute("isRetencao", retencao != null && !retencao.isEmpty());
 
         session.setAttribute("ideiaId", ideia.getCodigo());
         session.setAttribute("ideiaTitulo", ideia.getTitulo());

@@ -29,7 +29,7 @@ public class AnonimizaUsuarioServlet extends HttpServlet {
             UsuarioDAO usuarioDAO = new UsuarioDAO();
             usuario = usuarioDAO.buscar((Long) session.getAttribute("codigoUsuario"));
 
-            // RKM-04: valida a senha antes de usa-la (evita comportamento indefinido sem o parametro).
+            // RKM-04: valida a senha antes de usa-la
             String senhaAtual = request.getParameter("senhaAtual");
             if (senhaAtual == null || senhaAtual.isEmpty()) {
                 request.setAttribute("respostaSenhaInvalida", true);
@@ -37,7 +37,7 @@ public class AnonimizaUsuarioServlet extends HttpServlet {
                 return;
             }
 
-            // SEC-22: verifica a senha atual com bcrypt (checaSenha).
+            // SEC-22: verifica a senha atual com bcrypt
             if (!usuario.checaSenha(senhaAtual)) {
                 request.setAttribute("respostaSenhaInvalida", true);
                 request.getRequestDispatcher("index-perfil.jsp").forward(request, response);
@@ -56,7 +56,7 @@ public class AnonimizaUsuarioServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // SEC-18: POST-only. GET nao anonimiza (evita CSRF via GET).
+        // SEC-18: POST-only, GET nao anonimiza
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 

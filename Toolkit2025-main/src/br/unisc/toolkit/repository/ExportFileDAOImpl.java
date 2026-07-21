@@ -25,18 +25,15 @@ public class ExportFileDAOImpl implements ExportFileDAO {
 
 	@Override
 	public List<ExportFile> getFiles(Long ideiaCodigo) {
-		// get the current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
-		
-		// TK-HQL: nome de propriedade Java, nao de coluna (mesmo motivo do EmpathyDAOImpl).
+
+		// TK-HQL: nome de propriedade Java, nao de coluna.
 		Query<ExportFile> theQuery =
 				currentSession.createQuery("from ExportFile where ideiaCodigo=:IdeiaCodigo order by fileName", ExportFile.class);
 		theQuery.setParameter("IdeiaCodigo", ideiaCodigo);
-		
-		// execute query and get result list
+
 		List<ExportFile> files = theQuery.getResultList();
-		
-		// return the results
+
 		return files;
 	}
 

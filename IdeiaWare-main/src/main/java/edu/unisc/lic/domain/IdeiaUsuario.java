@@ -16,7 +16,7 @@ import edu.unisc.lic.classes.Data;
 
 @SuppressWarnings("serial")
 @Entity
-// K.8 #2: unique(usuario_codigo, ideia_codigo) trava no BANCO que o mesmo usuario entre 2x na ideia.
+// K.8 #2: unique(usuario_codigo, ideia_codigo) trava no banco entrada duplicada
 @Table(uniqueConstraints = @UniqueConstraint(name = "uk_ideiausuario_par", columnNames = {"usuario_codigo", "ideia_codigo"}))
 public class IdeiaUsuario extends GenericDomain {
 
@@ -31,11 +31,9 @@ public class IdeiaUsuario extends GenericDomain {
     @Column(length = 1)
     private String flLider;
 
-    // M.2: status na "lista de espera" -- P(endente)/A(provado)/R(ejeitado); NULL = vinculo legado (aprovado).
     @Column(length = 1)
     private String flStatusVinculo;
 
-    // M.3: motivo do lider ao REJEITAR a entrada de alguem.
     @Column(length = 200)
     private String motivoRejeicaoMembro;
 

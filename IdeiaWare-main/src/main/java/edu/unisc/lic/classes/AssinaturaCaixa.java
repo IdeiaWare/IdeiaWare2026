@@ -4,11 +4,10 @@ import java.nio.charset.StandardCharsets;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-// SEC-23: assinatura HMAC do ideiaId (LIC assina, Toolkit valida) -- antes, cookie ideiaId forjavel.
-// IMPORTANTE: o SEGREDO DEVE ser IGUAL ao do br.unisc.toolkit.classes.AssinaturaCaixa.
+// SEC-23: assinatura HMAC do ideiaId (LIC assina, Toolkit valida)
+// IMPORTANTE: SEGREDO deve ser igual ao de br.unisc.toolkit.classes.AssinaturaCaixa
 public class AssinaturaCaixa {
 
-    // SEGREDO via env CAIXA_HMAC_SECRET (mesmo container no Docker = mesma env automaticamente).
     private static final String SEGREDO = segredo();
 
     private static String segredo() {
@@ -28,7 +27,6 @@ public class AssinaturaCaixa {
             }
             return sb.toString();
         } catch (Exception e) {
-            // Propaga em vez de virar cookie ideiaSig nulo/quebrado (degradaria a seguranca em silencio).
             throw new IllegalStateException("Falha ao gerar assinatura HMAC da Caixa de Ferramentas", e);
         }
     }

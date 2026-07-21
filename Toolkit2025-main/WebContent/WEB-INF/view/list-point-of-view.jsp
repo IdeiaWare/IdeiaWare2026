@@ -4,7 +4,7 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
-	<%-- UX-VOLTAR-V2: icone circular flutuante (tela funda, so tinha a logo que pula pro /LIC). --%>
+	<%-- UX-VOLTAR-V2: icone circular flutuante, tela so tinha a logo pro LIC --%>
 	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
@@ -15,10 +15,10 @@
   	
   	<div class="row">
   		<div class="col s12 m5">
-			<h2 class="title-page">Point of Views - Lista</h2>
+			<%-- TK-48-COMPLETO: "Point of Views" -> "Point of View", consistente com o breadcrumb acima. --%>
+			<h2 class="title-page">Point of View - Lista</h2>
 		</div>
 	</div>
-	<div id="editor"></div>
 	<div class="row">
 		<div class="col s12 pov-list">
 			<table class="striped">
@@ -34,7 +34,7 @@
 		        <tbody>
 					<c:if test="${empty povs}"><tr><td colspan="5" class="center-align grey-text" style="padding: 30px;">Nenhum Point of View criado ainda. Crie uma persona e gere o primeiro POV.</td></tr></c:if>
 					<c:forEach var="tempPOV" items="${povs}">						
-						<%-- TK-26: excluir POV virou form POST (mesmo motivo do list-personas.jsp). --%>
+						<%-- TK-26: excluir POV virou form POST --%>
 						<form id="deletePOVForm${tempPOV.value.povID}" action="${pageContext.request.contextPath}/point-of-view/deletar" method="POST" style="display:none;">
 							<input type="hidden" name="csrfToken" value="${csrfToken}"/>
 							<input type="hidden" name="povId" value="${tempPOV.value.povID}"/>
@@ -72,8 +72,7 @@
 								</div>
 							</td>
 							<td>
-								<%-- UX: acoes viraram btn-floating (mesmo padrao do list-personas.jsp), separadores removidos. --%>
-								<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/5: aria-label pra nao depender so do tooltip (hover) pra descrever a acao. --%>
+								<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/5: aria-label pra nao depender so do tooltip --%>
 								<a class="btn-floating btn-small blue-grey darken-1 tooltipped pov-overview" aria-label="Visão Geral" href="${pageContext.request.contextPath}/point-of-view/visao-geral?povId=${tempPOV.value.povID}"
 									data-position="top"
 									data-delay="50"
@@ -91,7 +90,7 @@
 									data-position="top"
 									data-delay="50"
 									data-tooltip="Excluir"
-									onclick="if (confirm('Você tem certeza que deseja deletar este Point of View?')) document.getElementById('deletePOVForm${tempPOV.value.povID}').submit();">
+									onclick="if (confirm('Excluir este Point of View? Esta ação não pode ser desfeita.')) document.getElementById('deletePOVForm${tempPOV.value.povID}').submit();">
 									<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 							</td>
@@ -113,7 +112,6 @@
 		</span>
 	</span>	
 	
-  	<!-- Modal Information View -->
   	<div class="modal modal-pov-info">
 	   	<div class="modal-content">
      		<h4>Informações Gerais</h4>
@@ -131,7 +129,6 @@
 	   	</div>
   	</div>
   	
-  	<!-- Modal Information Edit-->
   	<div class="modal modal-pov-edit pov-modal">
   		<form:form action="${pageContext.request.contextPath}/point-of-view/atualizar" modelAttribute="pov" method="POST" class="col s12">
 	   	<div class="modal-content">
@@ -168,11 +165,4 @@
 	   	<input type="hidden" name="csrfToken" value="${csrfToken}"/></form:form>
   	</div>
 
-	<%-- UX: feedback (toast) na propria pagina apos salvar/exportar, sem tela intermediaria. --%>
-	<c:if test="${not empty toastOk}">
-		<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastOk}"/>', 4000, 'green'); });</script>
-	</c:if>
-	<c:if test="${not empty toastErro}">
-		<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastErro}"/>', 5000, 'red'); });</script>
-	</c:if>
 <t:footer></t:footer>

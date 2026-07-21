@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/")
 public class ErrorController {
  
-	// @RequestMapping sem method aceita GET e POST (antes era so @GetMapping, erro em POST dava 405).
 	@RequestMapping("/error")
     public String renderErrorPage(Model theModel, HttpServletRequest httpRequest) {
          
@@ -26,7 +25,7 @@ public class ErrorController {
                 errorMsg = "Você precisa estar autenticado para acessar isso.";
                 break;
             }
-            // TK-27: caso 403 (o proprio CsrfInterceptor gera ao bloquear token invalido).
+            // TK-27: caso 403, gerado pelo CsrfInterceptor.
             case 403: {
                 errorMsg = "Ação bloqueada por segurança (token inválido ou expirado). Recarregue a página e tente novamente.";
                 break;
@@ -46,7 +45,7 @@ public class ErrorController {
     }
      
     private int getErrorCode(HttpServletRequest httpRequest) {
-        // TK-06: usa 500 como padrao (acessar /error direto deixava status_code nulo, (Integer)null->int dava NPE).
+        // TK-06: usa 500 como padrao pra evitar NPE.
         Object statusCode = httpRequest.getAttribute("javax.servlet.error.status_code");
         return statusCode != null ? (Integer) statusCode : 500;
     }

@@ -1,14 +1,13 @@
 document.write(unescape("%3Cscript src='js/Bibliotecas/jspdf.js' type='text/javascript'%3E%3C/script%3E"));
 
-// EXP-CAN: desenha o Business Model Canvas 2D NATIVO/vetorial (antes era screenshot html2canvas, cortava no Ctrl+P).
+// EXP-CAN: desenha o Canvas 2D nativo/vetorial em vez de screenshot html2canvas.
 function geraPDF() {
-	// TK-37: confirm() (exportar Canva tambem finaliza a ideia, mesma consequencia irreversivel do Storytelling).
-	var confirmation = confirm("Ao exportar o PDF, seu Canvas não poderá mais ser editado. Tem certeza disso?");
+	// TK-37/UX-CANVA-HEADER-ICONE: confirm(), finalizar o Canva gera o PDF e encerra a edição (irreversível).
+	var confirmation = confirm("Finalizar o Canvas gera o PDF final e encerra a edição. Esta ação não pode ser desfeita. Confirmar?");
 	if (!confirmation) return;
 
 	$("#overlay").css('display', 'block');
 
-	// --- le os blocos do #myPDF: titulo -> [{text, bg}] ---
 	var data = {};
 	$('#myPDF .postit_title').each(function() {
 		var title = $(this).text().replace(/\s+/g, ' ').trim();
@@ -55,14 +54,12 @@ function geraPDF() {
 	var w5 = gW - (w1 + w2 + w3 + w4);
 	var cx1 = gx, cx2 = cx1 + w1, cx3 = cx2 + w2, cx4 = cx3 + w3, cx5 = cx4 + w4;
 
-	// faixas coloridas dos grupos (como na tela)
 	var bands = [
 		{ t: 'Como?',      x: cx1, y: y0,       w: w1 + w2, c: band.como },
 		{ t: 'O que?',     x: cx3, y: y0,       w: w3,      c: band.oque },
 		{ t: 'Para quem?', x: cx4, y: y0,       w: w4 + w5, c: band.paraquem },
 		{ t: 'Quanto?',    x: gx,  y: botBandY, w: gW,      c: band.quanto }
 	];
-	// posicoes classicas do Business Model Canvas
 	var blocks = [
 		{ x: cx1, y: topBY,           w: w1, h: topBH,     key: 'Parcerias Principais' },
 		{ x: cx2, y: topBY,           w: w2, h: topBH / 2, key: 'Atividades Principais' },
@@ -75,7 +72,6 @@ function geraPDF() {
 		{ x: gx + gW / 2, y: botBY, w: gW / 2, h: botBH,   key: 'Receita' }
 	];
 
-	// escreve texto quebrado e CENTRADO; devolve a altura usada
 	function wrapCentered(text, x, w, y, font, rgb, maxLines, lineH) {
 		pdf.setFontSize(font);
 		pdf.setTextColor(rgb[0], rgb[1], rgb[2]);
@@ -106,7 +102,7 @@ function geraPDF() {
 			var rgb = parseRGB(cards[j].bg);
 			var lines = pdf.splitTextToSize(cards[j].text, w - cardPad * 2);
 			var ch = lines.length * lineH + cardPad * 2;
-			if (cy + ch > y + h) { break; } // piso atingido: nao cabe mais
+			if (cy + ch > y + h) { break; }
 			pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
 			pdf.rect(x, cy, w, ch, 'F');
 			var tc = darkText(rgb) ? 33 : 255;
@@ -117,7 +113,7 @@ function geraPDF() {
 			cy += ch + cardGap;
 			desenhados++;
 		}
-		// TK-36: indicador de quantos post-its ficaram de fora (antes, descartados em silencio).
+		// TK-36: indicador de quantos post-its ficaram de fora.
 		var faltando = cards.length - desenhados;
 		if (faltando > 0) {
 			pdf.setFontSize(6);
@@ -126,7 +122,6 @@ function geraPDF() {
 		}
 	}
 
-	// conteudo do bloco (fundo branco + titulo + descricao + post-its). SEM borda aqui.
 	function drawBlockContent(blk) {
 		pdf.setFillColor(255, 255, 255);
 		pdf.rect(blk.x, blk.y, blk.w, blk.h, 'F');
@@ -136,11 +131,9 @@ function geraPDF() {
 		drawCards(data[blk.key] || [], ix, yy, iw, blk.y + blk.h - yy - pad);
 	}
 
-	// titulo do documento
 	pdf.setFontSize(13); pdf.setTextColor(33, 33, 33);
 	pdf.text('Business Model Canvas', gx, margin + 9);
 
-	// 1) faixas coloridas (preenchimento + titulo do grupo)
 	for (var bi = 0; bi < bands.length; bi++) {
 		var bd = bands[bi];
 		pdf.setFillColor(bd.c[0], bd.c[1], bd.c[2]);
@@ -150,14 +143,11 @@ function geraPDF() {
 		var btw = pdf.getStringUnitWidth(bd.t) * 11;
 		pdf.text(bd.t, bd.x + (bd.w - btw) / 2, bd.y + superH / 2 + 3.8);
 	}
-	// 2) conteudo dos blocos
 	for (var k = 0; k < blocks.length; k++) { drawBlockContent(blocks[k]); }
-	// 3) TODAS as bordas por cima (separadores limpos entre cores adjacentes)
 	pdf.setDrawColor(80); pdf.setLineWidth(0.6);
 	for (var bi2 = 0; bi2 < bands.length; bi2++) { pdf.rect(bands[bi2].x, bands[bi2].y, bands[bi2].w, superH, 'S'); }
 	for (var k2 = 0; k2 < blocks.length; k2++) { pdf.rect(blocks[k2].x, blocks[k2].y, blocks[k2].w, blocks[k2].h, 'S'); }
 
-	// --- envia ao banco (mesmo fluxo de antes) ---
 	var blob = pdf.output("blob");
 	var reader = new window.FileReader();
 	reader.readAsDataURL(blob);
@@ -175,8 +165,14 @@ function geraPDF() {
 					window.location.href = "canvas-finalizado.jsp";
 				}
 			},
-			error: function() {
+			error: function(xhr) {
 				$("#overlay").css('display', 'none');
+				// UX-PADRAO-ETAPA-FINALIZADA: mensagem do servidor + redireciona pra minhas ideias.
+				if (xhr.status === 403) {
+					alert((xhr.responseText || "Este Canva já foi finalizado.") + " Você será redirecionado.");
+					window.location.href = "minha-ideia.jsp";
+					return;
+				}
 				alert('Erro ao exportar o PDF');
 			}
 		});

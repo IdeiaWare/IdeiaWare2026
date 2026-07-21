@@ -28,8 +28,7 @@
 		Materialize.updateTextFields();
 	}	
 	
-	// BUG-POV-VAZIO: contava <tr> direto, mas a linha do estado vazio tambem e um <tr> --
-	// checkbox so existe nas linhas reais, e um indicador confiavel.
+	// BUG-POV-VAZIO: linha de estado vazio tambem e <tr>, usa checkbox como indicador
 	Toolkit.Persona.thereIsPersonaCreated = function(){
 		return $(".personas-list .chkPersona").length > 0;
 	}
@@ -47,7 +46,7 @@
 	}
 	
 	Toolkit.Persona.selectColorPicker = function(){
-		// TK-A11Y-COR: post-its de cor sao <div>, so respondiam a mouse -- keydown (Enter/Espaco) adicionado.
+		// TK-A11Y-COR: post-its respondiam so a mouse, keydown adicionado
 		function selecionarCor(el){
 			$(".card-color").val($(el).attr("data-color"))
 			$(".post-it .btn").removeClass("active");
@@ -76,7 +75,7 @@
 	
 	
 	Toolkit.Persona.exportFile = function(areaClass, forceOrient){
-		// TK-08/09/10/14/17: usa "onrendered" (API de callback do html2canvas 0.5.0-beta3, nao Promise .then).
+		// TK-08/09/10/14/17: usa onrendered (callback do html2canvas, nao Promise)
 		$("#overlay").attr('style','display: block !important');
 
 		var section = $(areaClass)[0];
@@ -85,7 +84,7 @@
 			return;
 		}
 
-		// TK-08/09/10/14/17/CAN-13: mesma abordagem do Canvas do LIC -- scrollTo(0,0) + width/height=scrollWidth/scrollHeight.
+		// TK-08/09/10/14/17/CAN-13: mesma abordagem do Canvas do LIC
 		window.scrollTo(0, 0);
 		var fullWidth  = section.scrollWidth;
 		var fullHeight = section.scrollHeight;
@@ -97,7 +96,7 @@
 			windowWidth:  fullWidth,
 			windowHeight: fullHeight,
 			onrendered: function (canvas) {
-				// TK-10: pinta fundo branco atras do screenshot (export e JPEG sem alpha, transparente vira preto).
+				// TK-10: pinta fundo branco atras do screenshot (JPEG sem alpha)
 				var whiteCanvas = document.createElement('canvas');
 				whiteCanvas.width  = canvas.width;
 				whiteCanvas.height = canvas.height;
@@ -112,29 +111,28 @@
 
 				var pageData = canvas.toDataURL('image/jpeg', 1.0);
 
-				// TK-17: folha A4 padrao com margem, imagem centralizada; formato 'a4' nomeado evita o jsPDF girar a pagina.
+				// TK-17: folha A4 com margem, imagem centralizada
 				var orient = forceOrient || ((contentWidth >= contentHeight) ? 'l' : 'p');
 				var pdf = new jsPDF(orient, 'pt', 'a4');
-				var pageW = (orient === 'l') ? 841.89 : 595.28; // A4 em pt
+				var pageW = (orient === 'l') ? 841.89 : 595.28;
 				var pageH = (orient === 'l') ? 595.28 : 841.89;
-				var margin = 28; // ~1cm
+				var margin = 28;
 
-				// TK-10: pinta a folha A4 inteira de branco antes da imagem (senao ficava transparente/preta ao abrir).
+				// TK-10: pinta a folha A4 de branco antes da imagem
 				pdf.setFillColor(255, 255, 255);
 				pdf.rect(0, 0, pageW, pageH, 'F');
 				var scale = Math.min((pageW - margin * 2) / contentWidth,
 				                     (pageH - margin * 2) / contentHeight);
 				var drawW = contentWidth * scale;
 				var drawH = contentHeight * scale;
-				var x = (pageW - drawW) / 2; // centra na horizontal
-				var y = margin;              // alinha ao TOPO (cara de documento; conteudo
-				                             // curto como a tabela POV nao "flutua" no meio)
+				var x = (pageW - drawW) / 2;
+				var y = margin;
 				pdf.addImage(pageData, 'JPEG', x, y, drawW, drawH);
 
 				var blob = pdf.output("blob");
 				var reader = new FileReader();
 				reader.readAsDataURL(blob);
-				// TK-PDF-ERR: onloadend dispara em sucesso OU falha -- checa reader.error antes de usar reader.result.
+				// TK-PDF-ERR: checa reader.error antes de usar reader.result
 				reader.onloadend = function () {
 					if (reader.error) {
 						console.error('Falha ao ler o PDF gerado:', reader.error);
@@ -148,14 +146,14 @@
 				};
 			}
 		}).catch(function (err) {
-			// TK-PDF-ERR: catch() esconde o overlay em falha do html2canvas (antes ficava visivel pra sempre).
+			// TK-PDF-ERR: catch esconde o overlay em falha do html2canvas
 			console.error('Falha ao gerar o PDF:', err);
 			$("#overlay").attr('style','display: none !important');
 			alert('Não foi possível gerar o PDF. Tente novamente.');
 		});
 	}
 	
-	// EXP-EMP: grade de post-its vetorial no PDF (antes screenshot html2canvas, cortava no Ctrl+P).
+	// EXP-EMP: grade de post-its vetorial no PDF, nao screenshot
 	Toolkit.Persona.exportEmpathyMap = function() {
 		$("#overlay").attr('style', 'display: block !important');
 
@@ -186,7 +184,7 @@
 			var m = /(\d+)\D+(\d+)\D+(\d+)/.exec(s || '');
 			return m ? [+m[1], +m[2], +m[3]] : [245, 245, 245];
 		}
-		function darkText(rgb) { // luminancia -> escolhe texto preto ou branco
+		function darkText(rgb) {
 			return (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) > 140;
 		}
 		function sectionHeight(sec) {
@@ -243,14 +241,21 @@
 		var blob = pdf.output('blob');
 		var reader = new FileReader();
 		reader.readAsDataURL(blob);
+		// TK-PDF-ERR: checa reader.error antes de usar reader.result
 		reader.onloadend = function() {
+			if (reader.error) {
+				console.error('Falha ao ler o PDF gerado:', reader.error);
+				$("#overlay").attr('style', 'display: none !important');
+				alert('Não foi possível gerar o PDF. Tente novamente.');
+				return;
+			}
 			$("#file-location").val(reader.result);
 			$("#overlay").attr('style', 'display: none !important');
 			$("form#overview, form#detailed").submit();
 		};
 	};
 
-	// EXP-POV: tabela nativa vetorial no PDF (antes screenshot cortava a borda direita no Ctrl+P).
+	// EXP-POV: tabela nativa vetorial no PDF, nao screenshot
 	Toolkit.PointOfView.exportTable = function() {
 		$("#overlay").attr('style', 'display: block !important');
 
@@ -270,7 +275,7 @@
 		var colW = (pageW - margin * 2) / nCols;
 		var pad = 5, lineH = 11;
 
-		pdf.setDrawColor(117); // #757575
+		pdf.setDrawColor(117);
 		pdf.setLineWidth(0.5);
 
 		function measure(cells, font) {
@@ -288,7 +293,7 @@
 			var m = measure(cells, font);
 			if (!isHeader && y + m.height > pageH - margin) {
 				pdf.addPage();
-				y = drawRow(headers, margin, 10, true); // repete cabecalho
+				y = drawRow(headers, margin, 10, true);
 				m = measure(cells, font);
 			}
 			pdf.setFontSize(font);
@@ -315,7 +320,14 @@
 		var blob = pdf.output('blob');
 		var reader = new FileReader();
 		reader.readAsDataURL(blob);
+		// TK-PDF-ERR: checa reader.error antes de usar reader.result
 		reader.onloadend = function() {
+			if (reader.error) {
+				console.error('Falha ao ler o PDF gerado:', reader.error);
+				$("#overlay").attr('style', 'display: none !important');
+				alert('Não foi possível gerar o PDF. Tente novamente.');
+				return;
+			}
 			$("#file-location").val(reader.result);
 			$("#overlay").attr('style', 'display: none !important');
 			$("form#overview, form#detailed").submit();
@@ -335,7 +347,7 @@
 			}
 		})
 		
-		// TK-12: seletor era ".btn input" (nao casava nada); botao e <input class="btn">, nao <div><input>.
+		// TK-12: seletor errado, botao e <input class="btn">
 		$(".attribute form input.btn").val("Atualizar");
 		$(".attribute form .btn-cancelar").closest("div").show();
 		
@@ -344,7 +356,7 @@
 
 	Toolkit.EmpathyAttribute.cancelEditAttribute = function(){
 		$(".attribute form .btn-cancelar").click(function(){
-			$(".attribute form input.btn").val("Adicionar"); // TK-12: ver acima
+			$(".attribute form input.btn").val("Adicionar"); // TK-12: seletor corrigido
 			$(".attribute form .btn-cancelar").closest("div").hide();
 			$(".attribute form textarea").val("");
 			$('.attribute form textarea').blur();
@@ -359,7 +371,7 @@
 			var info = $(this).find(".card-content").text().trim();
 			var color = $(this).attr("class");
 
-			// TK-19: .empty()+.append().text() em vez de .html() (evita re-injetar entidades decodificadas como HTML, XSS).
+			// TK-19: empty+append text em vez de html, evita XSS
 			$(".modal-card-info .card-content").empty().append($("<p>").text(info));
 			$(".modal-card-info .card-content").css("word-break", "break-all")
 			$(".modal-card-info .card").attr("class", color);
@@ -385,7 +397,7 @@
 			var need = $(this).closest("tr").find("td:nth-child(3) .pov-info").text().trim();
 			var insight = $(this).closest("tr").find("td:nth-child(4) .pov-info").text().trim();
 
-			// TK-20: mesmo padrao do TK-19 (buildCardViewOnModal), 4 pontos de injecao (nome/usuario/necessidade/introspeccao).
+			// TK-20: mesmo padrao do TK-19, 4 pontos de injecao
 			$(".modal-pov-info .names").empty().append($("<p>").text(names));
 			$(".modal-pov-info .user").empty().append($("<p>").text(user));
 			$(".modal-pov-info .need").empty().append($("<p>").text(need));
@@ -611,12 +623,12 @@ $(document).ready(function(){
 	$(".button-collapse").sideNav();
 	$('.collapsible').collapsible();
 
-	// TK-40: deriva aria-label de data-tooltip pra qualquer elemento sem um -- cobre todos os botoes so-icone.
+	// TK-40: deriva aria-label de data-tooltip pra botoes so-icone
 	$('[data-tooltip]:not([aria-label])').each(function(){
 		$(this).attr('aria-label', $(this).attr('data-tooltip'));
 	});
 
-		// TK-13 (v2 - JS): wrapper do Waves (input do tamanho do texto) nao submetia se clicado na borda -- repassa o clique pro input.
+		// TK-13: clique na borda do wrapper Waves nao submetia
 		$(document).on('click', '.waves-input-wrapper', function(e){
 			if (e.target === this) {
 				var inp = this.querySelector('.waves-button-input');
@@ -634,7 +646,7 @@ $(document).ready(function(){
 	Toolkit.Validation.empathyAttributeForm();
 	Toolkit.Validation.pointOfViewForm();
 	
-	// UX-FAB-VISIVEL: tooltip do botao "Novo Point of View" reflete o estado.
+	// UX-FAB-VISIVEL: tooltip do botao reflete o estado
 	Toolkit.PointOfView.updateCriarPovTooltip = function(){
 		var $btn = $(".btn.criar-pov");
 		var texto = $btn.hasClass("disabled")
@@ -645,7 +657,7 @@ $(document).ready(function(){
 		$btn.attr("data-tooltip", texto).attr("aria-label", texto);
 	}
 
-	// TOOLKIT-PERSONA-LISTA-MODELAGEM/4: contador visivel + linha destacada, sem depender so do tooltip.
+	// TOOLKIT-PERSONA-LISTA-MODELAGEM/4: contador + linha destacada
 	Toolkit.PointOfView.updatePovSelectionCount = function(){
 		var n = $(".personas-list .chkPersona:checked").length;
 		var texto = n === 0 ? "" : (n === 1 ? "1 persona selecionada" : n + " personas selecionadas");
@@ -683,23 +695,23 @@ $(document).ready(function(){
 				}
 			})
 
-			// TK-45b: personas via query string (path com espaco/"+" dava 404 no Tomcat); 1 "personas=" por persona (nao junta com ",", evita colisao de delimitador).
+			// TK-45b: personas via query string, 1 par por persona
 			window.location.href = contextPath + "/point-of-view/criar-pov?" + data.join("&");
 		}
 		else
 			Materialize.toast('Voc&ecirc; deve selecionar pelo menos uma Persona', 4000)
 	})
 	
-	// TK-39: binding trocado de #logout (id) pra .logout-link (classe) -- "Sair" existe 2x no HTML (nav + drawer mobile).
+	// TK-39: binding trocado de #logout pra .logout-link (existe 2x no HTML)
 	$(".logout-link").click(function(){
 		Toolkit.eraseCookie("ideiaId")
 		Toolkit.eraseCookie("usuarioNome")
 		Toolkit.eraseCookie("ideiaSig")
-		// LOGOUT-FIX: vai direto pro LogOutServlet (invalida sessao, 1 clique). DRY-LIC: licBasePath vem global de header.tag.
+		// LOGOUT-FIX/DRY-LIC: vai direto pro LogOutServlet, licBasePath global
 		window.location.href = licBasePath + "/LogOutServlet"
 	})
 	
-	// TK-43: if sem chaves rodava sempre + readCookie() null falhava em `!= ""` -- leitura unica com checagem truthy.
+	// TK-43: if sem chaves rodava sempre, leitura com checagem truthy
 	var nomeUsuario = Toolkit.readCookie("usuarioNome");
 	if (nomeUsuario) {
 		$("footer .usuario").text(decodeURIComponent(nomeUsuario.replace(/\+/g, '%20')));

@@ -21,7 +21,7 @@ public class EntrarIdeiaServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // COLM-05: exige sessão válida e código de ideia numérico.
+        // COLM-05: exige sessao valida e codigo numerico
         Object codigoUsuarioObj = request.getSession().getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -44,7 +44,7 @@ public class EntrarIdeiaServlet extends HttpServlet {
 
         IdeiaUsuarioDAO ideiaUsuarioDAO = new IdeiaUsuarioDAO();
 
-        // COL-DUP: nao cria vinculo duplicado (antes, "Entrar" 2x inscrevia 2x).
+        // COL-DUP: nao cria vinculo duplicado
         List<IdeiaUsuario> jaVinculado = ideiaUsuarioDAO
                 .listarParametro(new IdeiaUsuario(usuario, ideia, null));
         if (jaVinculado != null && !jaVinculado.isEmpty()) {
@@ -52,14 +52,13 @@ public class EntrarIdeiaServlet extends HttpServlet {
             return;
         }
 
-        // M.2: "Participar" entra na LISTA DE ESPERA (P), lider aprova/rejeita depois.
         IdeiaUsuario ideiaUsuario = new IdeiaUsuario(usuario, ideia, "N");
         ideiaUsuario.setFlStatusVinculo(edu.unisc.lic.classes.StatusIdeia.VINCULO_PENDENTE);
         ideiaUsuario.setDtInscricao();
         try {
             ideiaUsuarioDAO.salvar(ideiaUsuario);
         } catch (org.hibernate.exception.ConstraintViolationException ex) {
-            // K.8 #2: 2 cliques quase-simultaneos -- UNIQUE do banco barra o 2o insert, segue normal.
+            // K.8 #2: UNIQUE do banco barra o 2o insert
         }
 
         response.sendRedirect(request.getContextPath() + File.separator + "minha-ideia.jsp");

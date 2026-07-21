@@ -2,7 +2,7 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
-	<%-- UX-VOLTAR-V2: icone circular flutuante no canto superior esquerdo. --%>
+	<%-- UX-VOLTAR-V2: icone circular flutuante no canto superior esquerdo --%>
 	<a href="${pageContext.request.contextPath}/persona/lista" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
@@ -10,8 +10,13 @@
 	        <span class="breadcrumb active">Informações Gerais</span>
 	    </div>
   	</nav>	
-	<%-- UX-INFO-COLLAPSIBLE: seta de expandir adicionada na direita. --%>
+	<%-- UX-INFO-COLLAPSIBLE: seta de expandir adicionada na direita --%>
 	<style>
+		/* UX-INFO-CARD-CINZA: o fundo cinza da pagina (blue-grey lighten-5) vazava por dentro
+		   da caixa do collapsible onde o Materialize nao cobre com branco explicito (o <ul>
+		   em si nao tem background-color proprio, so os .collapsible-header/.collapsible-body
+		   internos tem) -- fundo branco explicito no container inteiro fecha esse vazamento. */
+		.info-collapsible { background-color: #fff; }
 		.info-collapsible .collapsible-header { position: relative; padding-right: 3rem; }
 		.info-collapsible .collapsible-header .arrow-icon { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: #009688; float: none; margin: 0; }
 	</style>

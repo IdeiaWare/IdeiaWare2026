@@ -8,7 +8,7 @@ function deleteFile(id){
           contentType: 'application/json',
           data: id.toString(),
           success: function () {
-            // TK-32: faltava o "]" de fechar o seletor (DELETE funcionava, mas a linha nunca sumia da lista).
+            // TK-32: seletor com "]" faltando, linha não sumia da lista.
             $('.modal.open i[data-id="'+ id +'"]').closest('tr').remove();
 
             if ($('.modal.open i').length === 0)
@@ -31,7 +31,7 @@ function deleteCanvaExport(codigo){
           contentType: 'application/json',
           data: codigo.toString(),
           success: function () {
-            // TK-32: mesmo bug de copy-paste do deleteFile() acima.
+            // TK-32: mesmo bug de copy-paste do deleteFile().
             $('.modal.open i[data-id="'+ codigo +'"]').closest('tr').remove();
 
             if ($('.modal.open i').length === 0)

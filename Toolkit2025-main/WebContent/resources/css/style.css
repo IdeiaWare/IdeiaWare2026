@@ -7,7 +7,7 @@ a{
 	color: #000;
 }
 
-/* UX-SAIR-OVERLAP: flex + gap generoso (texto/icone sobrepondo em algumas telas). */
+/* UX-SAIR-OVERLAP: flex + gap para texto/icone sobrepondo */
 .logout-link{ display: inline-flex; align-items: center; white-space: nowrap; }
 .logout-link i{ margin-left: 12px !important; padding-left: 0 !important; font-size: 1.1rem; }
 blockquote{
@@ -15,9 +15,8 @@ blockquote{
 }
 .fa-file-pdf-o {color:red;}
 
-/* UX-TOOLKIT-ACOES/UX-TOOLKIT-ICONE-LIXEIRA: esta versao do Materialize nao define .btn-small
-   (renderizava no tamanho padrao); icone da lixeira era quase invisivel (cor igual ao fundo). */
-/* TOOLKIT-PERSONA-LISTA-MODELAGEM/4: linha destacada quando a persona esta marcada pra criar POV. */
+/* UX-TOOLKIT-ACOES/UX-TOOLKIT-ICONE-LIXEIRA: icone lixeira invisivel */
+/* TOOLKIT-PERSONA-LISTA-MODELAGEM/4: linha destacada quando marcada pra POV */
 .personas-list tr.row-selected {
 	background-color: #bbdefb !important;
 }
@@ -68,8 +67,8 @@ nav .title-app{
 	height: 100%;
 	min-height: 90vh;
 }
-/* TITULO-MODULO-POPPINS: mesma fonte/cor aplicada nos titulos de modulo do LIC (ver K.4). */
-/* TOOLKIT-PERSONA-LISTA-MODELAGEM/2: traço teal (#009688, cor do LIC) destoava do vermelho ja aplicado no resto do Toolkit. */
+/* TITULO-MODULO-POPPINS: mesma fonte/cor dos titulos de modulo do LIC */
+/* TOOLKIT-PERSONA-LISTA-MODELAGEM/2: traço vermelho no lugar do teal */
 h2.title-page {
 	border-bottom:2px solid #a52724;
 	font-size:1.7rem;
@@ -85,7 +84,7 @@ h2.title-page {
     padding-left: 5px;
 }
 
-/* LISTAGEM-CINZA: fundo quase-branco + sombra, no lugar do #fff puro. */
+/* LISTAGEM-CINZA: fundo quase-branco + sombra no lugar de #fff puro */
 ul.collapsible { box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12); }
 .collapsible-header, .collapsible-body { background-color: #f5f5f5; }
 
@@ -123,7 +122,7 @@ nav.crumb .breadcrumb:before{
 	color: #26a69a;
 	font-size: 1.2rem;
 }
-/* TOOLKIT-PERSONA-LISTA-MODELAGEM/3: pill secundario (nao compete com os botoes solidos vermelho/azul da mesma linha). */
+/* TOOLKIT-PERSONA-LISTA-MODELAGEM/3: pill secundario, nao compete com botoes solidos */
 .tour-page-link{
 	display: inline-flex;
 	align-items: center;
@@ -164,8 +163,8 @@ a.empathy-overview:hover{
     z-index: 999;
 }
 #overlay .loader {
-    border: 8px solid #f3f3f3; /* Light grey */
-    border-top: 8px solid #C62828; /* Red */
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #C62828;
     border-radius: 50%;
     width: 60px;
     height: 60px;
@@ -180,14 +179,13 @@ a.empathy-overview:hover{
     100% { transform: rotate(360deg); }
 }
 
-/*-- BEGIN - Empathy Map --*/
 #attribute {margin-top:15px;}
 
 .persona-all-data-detailed{display:inline-table; width:100%}
-/* UI-EMP: inline-table e INLINE-level, width:100% nao estica (mapa ficava encolhido no canto); display:table resolve. */
+/* UI-EMP: display:table pra width:100% esticar corretamente */
 .persona-all-data-overview{display:table; width:100%}
 .persona-overview{display:table; width:100%;}
-/* UI-EMP: min-height (nao height) deixa os quadrantes mais quadrados sem quebrar quando ha muitos cards. */
+/* UI-EMP: min-height deixa os quadrantes mais quadrados */
 .persona-overview .section{border:1px solid #212121; position:relative; min-height:160px;}
 .persona-overview .card:hover{cursor:pointer;}
 .persona-overview .card .card-content{padding:5px;}
@@ -217,13 +215,11 @@ a.empathy-overview:hover{
 .modal-card-info{width:25%;}
 .modal-card-info .modal-content{padding:0;}
 .modal-card-info .card{margin:0;}
-/*-- END - Empathy Map --*/
 
 #pov table td{
 	vertical-align:top;
 }
 
-/*-- BEGIN - POST-IT --*/
 .lbl-post-it{position:relative; left:.75rem; font-size:1rem}
 
 .post-it .blue.active{border-bottom:7px solid #2196F3; background-color:#e5e5e5 !important}
@@ -231,7 +227,6 @@ a.empathy-overview:hover{
 .post-it .yellow.active{border-bottom:7px solid #ffeb3b; background-color:#e5e5e5 !important}
 .post-it .orange.active{border-bottom:7px solid #ff9800; background-color:#e5e5e5 !important}
 .post-it .pink.active{border-bottom:7px solid #e91e63; background-color:#e5e5e5 !important}
-/*-- END - POST-IT --*/
 
 @media screen and (min-width: 601px){
 	.persona-select-item-view .centered-icon, 
@@ -249,12 +244,11 @@ a.empathy-overview:hover{
 	}
 }
 
-/*-- BEGIN - Point of View --*/
 .pov-list .ellipsed-data a{
 	display: inline-block;
 	width: 9rem;
 }
-/* UI-POV: width:100% + border-collapse fecha a borda direita (antes a tabela parecia "aberta"). */
+/* UI-POV: width:100% + border-collapse fecha a borda direita da tabela */
 .pov-all-data-overview table{border-collapse:collapse; width:100%;}
 .pov-all-data-overview thead, .pov-all-data-overview tbody,
 .pov-all-data-overview th, .pov-all-data-overview td{border:1px solid #757575;}
@@ -292,8 +286,7 @@ a.empathy-overview:hover{
 	border-bottom: 0;
 	margin:0 !important;
 }
-/*-- END - Point of View --*/
 
-#success{
-	margin-top:10%;
-}
+/* UX-SUCESSO-CONSISTENCIA: removido margin-top:10% (empurrava o card pra mais longe do
+   cabecalho do que canvas-finalizado.jsp/storytelling-finalizado.jsp no LIC, que usam so'
+   o margin-top:40px do proprio .card-panel -- unico uso de #success no Toolkit e' finalize.jsp). */

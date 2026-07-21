@@ -135,6 +135,25 @@ public class DeleteCanvaServletTest {
 	}
 
 	@Test
+	public void ideiaFinalizada_naoExclui() throws Exception { // UX-CANVA-ETAPA-TRAVADA
+		Usuario autor = novoUsuario("AutorFinalizada");
+		Ideia ideia = new Ideia(autor, "Ideia Finalizada", "desc", StatusIdeia.FINALIZADO, StatusIdeia.GRUPO_ABERTO);
+		ideia.setDtCriacao();
+		ideiaDAO.salvar(ideia);
+		Canva canva = new Canva(ideia, "Post-it", "ffeb3b", "receita");
+		canvaDAO.salvar(canva);
+
+		HttpServletRequest request = mockRequest(autor.getCodigo(), ideia.getCodigo(), canva.getCodigo().toString(), null);
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new DeleteCanvaServlet().doPost(request, response);
+
+		assertNotNull("post-it de ideia finalizada nao deve ser excluido", canvaDAO.buscar(canva.getCodigo()));
+		// UX-PADRAO-ETAPA-FINALIZADA: volta pra minhas ideias, nao pro quadro.
+		verify(response).sendRedirect("minha-ideia.jsp");
+	}
+
+	@Test
 	public void canvaValido_excluiERedirecionaParaContextoValido() throws Exception {
 		Usuario autor = novoUsuario("Autor3");
 		Ideia ideia = novaIdeia(autor);

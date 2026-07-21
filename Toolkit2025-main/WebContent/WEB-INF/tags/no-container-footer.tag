@@ -1,4 +1,7 @@
 <%@ tag pageEncoding="UTF-8" %>
+<%-- CACHE-BUST-ESTATICO: timestamp calculado 1x na carga da classe, nao a cada request
+     (senão o "cache-busting" na verdade desativava o cache do navegador por completo). --%>
+<%! private static final long BUILD_TS = System.currentTimeMillis(); %>
 				</div>
 			</div>
 		</main>
@@ -9,7 +12,7 @@
 		        <i class="small material-icons">account_circle</i><h6 class="white-text usuario"></h6>
 		      </div>
 		    </div>
-		    <%-- UX-FOOTER-2TONS-V4: meio-termo entre "sem contraste" e "contraste forte demais" das tentativas anteriores. --%>
+		    <%-- UX-FOOTER-2TONS-V4: meio-termo de contraste no footer --%>
 		    <div class="footer-copyright" style="background-color:#a52724;">
 		      <div class="container">
 		        © 2026 IdeiaWare UNISC
@@ -20,13 +23,13 @@
 		<script src="${pageContext.request.contextPath}/resources/js/corejs-typeahead.bundle.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/materialize-tags/js/materialize-tags.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/masonry.pkgd.min.js"></script>
-		<%-- TK-44: cache-busting (?v=timestamp) -- este tag nao tinha, reabria o bug do footer.tag. --%>
-		<script src="${pageContext.request.contextPath}/resources/js/html2canvas.min.js?v=<%= System.currentTimeMillis() %>"></script>
+		<%-- TK-44: cache-busting no html2canvas --%>
+		<script src="${pageContext.request.contextPath}/resources/js/html2canvas.min.js?v=<%= BUILD_TS %>"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/jspdf.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/base64.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/sprintf.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/enjoyhint.min.js"></script>
 		<script src="${pageContext.request.contextPath}/resources/js/custom.tour.js"></script>
-		<script src="${pageContext.request.contextPath}/resources/js/custom.js?v=<%= System.currentTimeMillis() %>"></script>
+		<script src="${pageContext.request.contextPath}/resources/js/custom.js?v=<%= BUILD_TS %>"></script>
 	</body>
 </html>

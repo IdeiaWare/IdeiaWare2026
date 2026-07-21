@@ -24,7 +24,7 @@ public class GerenciarIdeiaServlet extends HttpServlet {
 
         HttpSession session = request.getSession(true);
 
-        // RETENCAO-ACESSO: exige login (antes, so a JSP de destino checava permissao).
+        // RETENCAO-ACESSO: exige login
         Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
             response.sendRedirect(request.getContextPath() + File.separator + "login.jsp");
@@ -36,7 +36,7 @@ public class GerenciarIdeiaServlet extends HttpServlet {
             return;
         }
 
-        // RET-14: valida parametro/ideia antes de usar (evita 500/NPE).
+        // RET-14: valida parametro/ideia antes de usar
         String ideiaIdParam = request.getParameter("ideiaId");
         Ideia ideia = null;
         if (ideiaIdParam != null) {
@@ -51,7 +51,7 @@ public class GerenciarIdeiaServlet extends HttpServlet {
             return;
         }
 
-        // RETENCAO-ACESSO: admin ve qualquer ideia, colaborador so as que participa.
+        // RETENCAO-ACESSO: admin ve tudo, colaborador so as que participa
         if (!"adm".equals(usuario.getPermissao())) {
             List<IdeiaUsuario> vinculo = new IdeiaUsuarioDAO()
                     .listarParametro(new IdeiaUsuario(usuario, ideia, null));

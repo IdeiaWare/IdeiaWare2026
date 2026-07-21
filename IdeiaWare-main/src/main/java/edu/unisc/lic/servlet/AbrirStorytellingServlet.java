@@ -22,7 +22,7 @@ public class AbrirStorytellingServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("application/pdf");
 
-        // SEC-17: exige login.
+        // SEC-17: exige login
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("codigoUsuario") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -40,7 +40,7 @@ public class AbrirStorytellingServlet extends HttpServlet {
             return;
         }
 
-        // SRV-IDOR-07: exige participacao na ideia dona do export, ou admin.
+        // SRV-IDOR-07: exige participacao na ideia dona do export, ou admin
         Usuario sessionUser = new UsuarioDAO().buscar((Long) session.getAttribute("codigoUsuario"));
         if (sessionUser == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

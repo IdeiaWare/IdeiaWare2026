@@ -7,7 +7,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -125,5 +127,30 @@ public class SalvarAudioServletTest {
 		assertEquals(1, lista.size());
 		assertEquals("audio-novo-base64", lista.get(0).getCaminho());
 		verify(response, never()).setStatus(org.mockito.ArgumentMatchers.anyInt());
+	}
+
+	@Test
+	public void storytellingJaFinalizado_bloqueiaSubstituicaoDeAudio() throws Exception { // UX-STORY-ETAPA-TRAVADA
+		Usuario autor = novoUsuario("AutorFinalizado");
+		Ideia ideia = novaIdeia(autor);
+		Storytelling st = novoStorytelling(autor, ideia);
+		st.setStatus(StatusIdeia.FINALIZADO);
+		storytellingDAO.editar(st);
+
+		ElementosStorytelling audioAntigo = new ElementosStorytelling(st, "AUD", "audio-antigo", 0, 0, 0, 0);
+		elementosStorytellingDAO.salvar(audioAntigo);
+
+		HttpServletRequest request = mockRequest(st.getCodigo().toString(), "audio-novo-base64");
+		HttpServletResponse response = mock(HttpServletResponse.class);
+		when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
+
+		new SalvarAudioServlet().doPost(request, response);
+
+		verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+		ElementosStorytelling filtro = new ElementosStorytelling();
+		filtro.setStorytelling(st);
+		filtro.setTipo("AUD");
+		List<ElementosStorytelling> lista = elementosStorytellingDAO.listarParametro(filtro);
+		assertEquals("audio antigo nao deve ter sido substituido", "audio-antigo", lista.get(0).getCaminho());
 	}
 }

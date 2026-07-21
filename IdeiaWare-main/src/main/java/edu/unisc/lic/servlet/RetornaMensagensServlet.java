@@ -18,7 +18,7 @@ public class RetornaMensagensServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setCharacterEncoding("UTF-8");
 
-        // COLM-05: sem ideiaId na sessão não há o que retornar.
+        // COLM-05: sem ideiaId na sessao nao ha o que retornar
         Object ideiaIdObj = request.getSession().getAttribute("ideiaId");
         if (ideiaIdObj == null) {
             response.setContentType("text/plain");
@@ -29,14 +29,13 @@ public class RetornaMensagensServlet extends HttpServlet {
         IdeiaDAO ideiaDAO = new IdeiaDAO();
         Ideia ideia = ideiaDAO.buscar((Long) ideiaIdObj);
 
-        // SRV-NPE-01: ideiaId na sessao pode apontar pra ideia que nao existe mais.
+        // SRV-NPE-01: ideiaId na sessao pode apontar pra ideia inexistente
         if (ideia == null) {
             response.setContentType("text/plain");
             response.getWriter().write("não");
             return;
         }
 
-        // M.6: protocolo por ULTIMO CODIGO visto (nao mais por contagem) -- nunca perde colaboracao do meio.
         long ultimoCodigo;
         try {
             ultimoCodigo = Long.parseLong(request.getParameter("ultimoCodigo"));
@@ -53,7 +52,7 @@ public class RetornaMensagensServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        // GT-01: GSON_SEM_SENHA -- senao vaza o hash bcrypt de cada autor a cada poll de 2s.
+        // GT-01: GSON_SEM_SENHA evita vazar hash bcrypt
         response.getWriter().write(JsonUtil.GSON_SEM_SENHA.toJson(novas));
     }
 

@@ -22,7 +22,7 @@ public class EntrarCaixaServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // SEC-23: exige login + participacao, e ASSINA o ideiaId (HMAC) -- antes, cookie forjavel.
+        // SEC-23: exige login + participacao, assina o ideiaId (HMAC)
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("codigoUsuario") == null) {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -40,7 +40,6 @@ public class EntrarCaixaServlet extends HttpServlet {
             return;
         }
 
-        // O usuario logado participa desta ideia?
         Usuario u = new Usuario();
         u.setCodigo((Long) session.getAttribute("codigoUsuario"));
         Ideia i = new Ideia();
@@ -52,17 +51,14 @@ public class EntrarCaixaServlet extends HttpServlet {
             return;
         }
 
-        // Host atual da requisição (localhost em dev, spi.unisc.br em prod).
         String host = request.getServerName();
         int port = request.getServerPort();
 
-        // setPath("/") cobre /LIC e /toolkit (mesmo host le os 2).
         Cookie ck = new Cookie("ideiaId", String.valueOf(ideiaId));
         ck.setMaxAge(-1);
         ck.setPath("/");
         response.addCookie(ck);
 
-        // Assinatura HMAC do ideiaId, validada pelo Toolkit (AdminCookies).
         Cookie ckSig = new Cookie("ideiaSig", AssinaturaCaixa.assinar(String.valueOf(ideiaId)));
         ckSig.setMaxAge(-1);
         ckSig.setPath("/");
@@ -74,7 +70,7 @@ public class EntrarCaixaServlet extends HttpServlet {
         ck2.setPath("/");
         response.addCookie(ck2);
 
-        // INFRA-11/ROUTE-404-01: scheme da requisicao + rota real direto (nao mais "/toolkit" nu).
+        // INFRA-11/ROUTE-404-01: scheme da requisicao + rota real direto
         response.sendRedirect(request.getScheme() + "://" + host + ":" + port + "/toolkit/persona/lista");
     }
 

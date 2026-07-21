@@ -12,7 +12,7 @@ import org.hibernate.Session;
 
 public class CanvaDAO extends GenericDAO<Canva> {
 
-    // DAO-FAIL-CLOSED: sem ideia definida nao ha o que listar (antes voltava a tabela inteira).
+    // DAO-FAIL-CLOSED: sem ideia definida, nao lista tudo
     public List<Canva> listarParametro(Canva canva) {
         if (canva.getIdeia().getCodigo() == null) {
             return Collections.emptyList();

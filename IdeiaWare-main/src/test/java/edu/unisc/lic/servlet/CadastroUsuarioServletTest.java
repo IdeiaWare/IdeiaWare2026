@@ -4,7 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -80,5 +83,109 @@ public class CadastroUsuarioServletTest {
 				fim.countDown();
 			}
 		};
+	}
+
+	@Test
+	public void campoObrigatorioNulo_mostraErroSemCadastrar() throws Exception { // INFRA-07
+		String login = "camponulo_" + System.nanoTime();
+		HttpServletRequest request = mockRequest(login, "x_" + System.nanoTime() + "@x.com");
+		when(request.getParameter("nome")).thenReturn(null);
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new CadastroUsuarioServlet().doPost(request, response);
+
+		verify(request).setAttribute(eq("respostaCadastro3"), eq(true));
+		Usuario filtro = new Usuario();
+		filtro.setUsuario(login);
+		assertEquals(0, new UsuarioDAO().listarParametro(filtro, false).size());
+	}
+
+	@Test
+	public void campoObrigatorioVazio_mostraErroSemCadastrar() throws Exception { // INFRA-07
+		String login = "campovazio_" + System.nanoTime();
+		HttpServletRequest request = mockRequest(login, "x_" + System.nanoTime() + "@x.com");
+		when(request.getParameter("email")).thenReturn("");
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new CadastroUsuarioServlet().doPost(request, response);
+
+		verify(request).setAttribute(eq("respostaCadastro3"), eq(true));
+	}
+
+	@Test
+	public void senhasDiferentes_mostraErroSemCadastrar() throws Exception {
+		String login = "senhadif_" + System.nanoTime();
+		HttpServletRequest request = mockRequest(login, "x_" + System.nanoTime() + "@x.com");
+		when(request.getParameter("senha2")).thenReturn("outraSenha");
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new CadastroUsuarioServlet().doPost(request, response);
+
+		verify(request).setAttribute(eq("respostaCadastro2"), eq(true));
+		Usuario filtro = new Usuario();
+		filtro.setUsuario(login);
+		assertEquals(0, new UsuarioDAO().listarParametro(filtro, false).size());
+	}
+
+	@Test
+	public void emailJaCadastrado_mostraErroSemCadastrar() throws Exception {
+		String emailExistente = "jaexiste_" + System.nanoTime() + "@x.com";
+		Usuario existente = new Usuario("Ja Existe", "jaexiste_" + System.nanoTime(), "s", "usr", emailExistente);
+		new UsuarioDAO().salvar(existente);
+
+		String loginNovo = "novologin_" + System.nanoTime();
+		HttpServletRequest request = mockRequest(loginNovo, emailExistente);
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new CadastroUsuarioServlet().doPost(request, response);
+
+		verify(request).setAttribute(eq("respostaCadastro4"), eq(true));
+		Usuario filtro = new Usuario();
+		filtro.setUsuario(loginNovo);
+		assertEquals(0, new UsuarioDAO().listarParametro(filtro, false).size());
+	}
+
+	@Test
+	public void usuarioJaCadastrado_mostraErroSemCadastrar() throws Exception {
+		String loginExistente = "loginexiste_" + System.nanoTime();
+		Usuario existente = new Usuario("Ja Existe", loginExistente, "s", "usr", "jaexiste2_" + System.nanoTime() + "@x.com");
+		new UsuarioDAO().salvar(existente);
+
+		HttpServletRequest request = mockRequest(loginExistente, "emailnovo_" + System.nanoTime() + "@x.com");
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new CadastroUsuarioServlet().doPost(request, response);
+
+		verify(request).setAttribute(eq("respostaCadastro"), eq(true));
+	}
+
+	@Test
+	public void cadastroValido_criaUsuarioEForwardParaLogin() throws Exception {
+		String login = "valido_" + System.nanoTime();
+		String email = "valido_" + System.nanoTime() + "@x.com";
+		HttpServletRequest request = mockRequest(login, email);
+		HttpServletResponse response = mock(HttpServletResponse.class);
+
+		new CadastroUsuarioServlet().doPost(request, response);
+
+		verify(request).getRequestDispatcher("LogInServlet");
+		Usuario filtro = new Usuario();
+		filtro.setUsuario(login);
+		List<Usuario> criados = new UsuarioDAO().listarParametro(filtro, false);
+		assertEquals(1, criados.size());
+		assertEquals("col", criados.get(0).getPermissao());
+		assertEquals("N", criados.get(0).getAnonimizado());
+	}
+
+	@Test
+	public void doGet_naoCadastraRedirecionaParaLogin() throws Exception { // SEC-18
+		HttpServletRequest request = mock(HttpServletRequest.class);
+		HttpServletResponse response = mock(HttpServletResponse.class);
+		when(request.getContextPath()).thenReturn("");
+
+		new CadastroUsuarioServlet().doGet(request, response);
+
+		verify(response).sendRedirect("/login.jsp");
+		verify(request, never()).getRequestDispatcher(anyString());
 	}
 }

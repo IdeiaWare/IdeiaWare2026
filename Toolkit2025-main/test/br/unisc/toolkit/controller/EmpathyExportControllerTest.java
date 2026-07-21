@@ -11,6 +11,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -27,9 +29,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import br.unisc.toolkit.classes.AssinaturaCaixa;
 import br.unisc.toolkit.entity.ExportFile;
+import br.unisc.toolkit.entity.Ideia;
 import br.unisc.toolkit.entity.Persona;
 import br.unisc.toolkit.service.EmpathyService;
 import br.unisc.toolkit.service.ExportFileService;
+import br.unisc.toolkit.service.IdeiaService;
 import br.unisc.toolkit.service.PersonaService;
 
 // TEST-0X: EmpathyExportController -- trava o TK-EMP-GUARD (guard de cookie explicito nas 2
@@ -41,6 +45,7 @@ public class EmpathyExportControllerTest {
 	private EmpathyService empathyService;
 	private PersonaService personaService;
 	private ExportFileService exportFileService;
+	private IdeiaService ideiaService;
 
 	@Before
 	public void setup() {
@@ -52,6 +57,12 @@ public class EmpathyExportControllerTest {
 		ReflectionTestUtils.setField(controller, "empathyService", empathyService);
 		ReflectionTestUtils.setField(controller, "personaService", personaService);
 		ReflectionTestUtils.setField(controller, "exportFileService", exportFileService);
+		// UX-TOOLKIT-EXPORT-TRAVADO: ideia mockada com status CF libera o guard novo.
+		ideiaService = mock(IdeiaService.class);
+		Ideia ideiaCF = new Ideia();
+		ideiaCF.setStatus("CF");
+		when(ideiaService.getIdeia(any())).thenReturn(ideiaCF);
+		ReflectionTestUtils.setField(controller, "ideiaService", ideiaService);
 		mvc = MockMvcBuilders.standaloneSetup(controller).build();
 	}
 
@@ -106,5 +117,39 @@ public class EmpathyExportControllerTest {
 				.param("fileLocation", "data:application/pdf;base64," + base64))
 				.andExpect(status().is3xxRedirection());
 		verify(exportFileService).saveFile(any(ExportFile.class));
+	}
+
+	@Test
+	public void exportarGeral_ideiaForaDaEtapaCF_naoSalva() throws Exception { // UX-TOOLKIT-EXPORT-TRAVADO
+		Ideia ideiaCanvas = new Ideia();
+		ideiaCanvas.setStatus("CV");
+		when(ideiaService.getIdeia(any())).thenReturn(ideiaCanvas);
+
+		String base64 = Base64.getEncoder().encodeToString("conteudo-pdf-fake".getBytes(StandardCharsets.UTF_8));
+		mvc.perform(post("/persona/empatia/exportar-geral")
+				.cookie(new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("5")))
+				.param("fileLocation", "data:application/pdf;base64," + base64))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/aviso-etapa-encerrada")) // UX-PADRAO-ETAPA-FINALIZADA
+				.andExpect(flash().attribute("etapaEncerradaErro", "Esta etapa já foi encerrada."))
+				.andExpect(flash().attribute("redirecionarPara", "/LIC/minha-ideia.jsp"));
+		verify(exportFileService, never()).saveFile(any(ExportFile.class));
+	}
+
+	@Test
+	public void exportarDetalhada_ideiaForaDaEtapaCF_naoSalva() throws Exception { // UX-TOOLKIT-EXPORT-TRAVADO
+		Ideia ideiaCanvas = new Ideia();
+		ideiaCanvas.setStatus("CV");
+		when(ideiaService.getIdeia(any())).thenReturn(ideiaCanvas);
+
+		String base64 = Base64.getEncoder().encodeToString("conteudo-pdf-fake".getBytes(StandardCharsets.UTF_8));
+		mvc.perform(post("/persona/empatia/exportar-detalhada")
+				.cookie(new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("5")))
+				.param("fileLocation", "data:application/pdf;base64," + base64))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/aviso-etapa-encerrada")) // UX-PADRAO-ETAPA-FINALIZADA
+				.andExpect(flash().attribute("etapaEncerradaErro", "Esta etapa já foi encerrada."))
+				.andExpect(flash().attribute("redirecionarPara", "/LIC/minha-ideia.jsp"));
+		verify(exportFileService, never()).saveFile(any(ExportFile.class));
 	}
 }

@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-// CSRF-01: double-submit cookie -- compara cookie HttpOnly XSRF-TOKEN com param/header em todo POST.
+// CSRF-01: double-submit cookie contra XSRF-TOKEN em todo POST.
 public class CsrfInterceptor extends HandlerInterceptorAdapter {
 
 	private static final String COOKIE = "XSRF-TOKEN";
@@ -28,9 +28,8 @@ public class CsrfInterceptor extends HandlerInterceptorAdapter {
 		}
 		req.setAttribute("csrfToken", token);
 
-		// Valida POST e tambem os GET/HEAD que MUDAM estado (deletes via link).
-		// TK-25: HEAD entra aqui tambem -- Spring despacha HEAD pro mesmo @GetMapping (metodo roda inteiro).
-		// TK-24: barra final removida ANTES de comparar (Spring trailing-slash-match bypassava o endsWith).
+		// TK-25: valida GET/HEAD tambem, pois Spring despacha HEAD pro @GetMapping.
+		// TK-24: barra final removida antes de comparar (bypassava o endsWith).
 		String uri = req.getRequestURI();
 		if (uri.endsWith("/")) {
 			uri = uri.substring(0, uri.length() - 1);
@@ -39,7 +38,7 @@ public class CsrfInterceptor extends HandlerInterceptorAdapter {
 		boolean stateChanging = "POST".equalsIgnoreCase(method)
 				|| (("GET".equalsIgnoreCase(method) || "HEAD".equalsIgnoreCase(method))
 						&& (uri.contains("/deletar") || uri.endsWith("/delete")
-								|| uri.endsWith("/finalize")));   // /finalize muda o status da ideia
+								|| uri.endsWith("/finalize")));
 		if (stateChanging) {
 			String sent = req.getParameter(PARAM);
 			if (sent == null) {

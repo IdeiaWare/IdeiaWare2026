@@ -1,6 +1,11 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page import="edu.unisc.lic.dao.UsuarioDAO"%>
 <%@page import="edu.unisc.lic.domain.Usuario"%>
+<%-- CACHE-BUST-CONTROLE-JS: timestamp calculado 1x na carga da classe (nao a cada request,
+     senao desativaria o cache do navegador por completo -- mesmo padrao do footer.tag do
+     Toolkit). Sem isso, um deploy que corrige controle.js podia ficar invisivel pra quem
+     ja tinha a pagina aberta/visitada antes, ate' um hard refresh manual. --%>
+<%! private static final long BUILD_TS = System.currentTimeMillis(); %>
 <%
     UsuarioDAO usuarioDAO = new UsuarioDAO();
     Usuario usuario = null;
@@ -36,9 +41,10 @@
 <script type="text/javascript" src="js/Bibliotecas/jquery-3.2.1.js"></script>
 
 <script type="text/javascript" src="js/Bibliotecas/recorder.js"></script>
-<script type="text/javascript" src="js/controle.js"></script>
+<script type="text/javascript" src="js/controle.js?v=<%= BUILD_TS %>"></script>
 <script type="text/javascript" src="js/controleAdd.js"></script>
-<script type="text/javascript" src="js/MenuSuperior/geraPDF.js"></script>
+<%-- CACHE-BUST-GERAPDF-JS: geraPDF.js chama tratarErroEtapaFinalizada(), precisa do mesmo cache-busting do controle.js. --%>
+<script type="text/javascript" src="js/MenuSuperior/geraPDF.js?v=<%= BUILD_TS %>"></script>
 
 <script type="text/javascript" src="js/materialize.min.js"></script>
 <script type="text/javascript" src="js/materialize.js"></script>
@@ -100,10 +106,11 @@
         </ul>
       </a>
 
+      <%-- UX-STORYTELLING-HEADER-ICONE: icone+texto (era texto+icone); "Exportar" virou "Finalizar Storytelling". --%>
       <ul id="nav-mobile" class="right hide-on-med-and-down">
-        <li><a id="salvarBotao">Salvar <i class="material-icons right">save</i></a></li>
-        <li><a href="#modalDescricao" class="modal-trigger"  data-target="modalDescricao"> Descrição Ideia <i class="material-icons right">description</i></a></li>
-        <li><a href="#" id="exporta" data-constrainWidth="false">Exportar Storytelling<i class="material-icons right">share</i></a></li>
+        <li><a id="salvarBotao"><i class="material-icons left">save</i>Salvar</a></li>
+        <li><a href="#modalDescricao" class="modal-trigger" data-target="modalDescricao"><i class="material-icons left">description</i>Descrição Ideia</a></li>
+        <li><a href="#" id="exporta" data-constrainWidth="false"><i class="material-icons left">flag</i>Finalizar Storytelling</a></li>
         <li><a href="LogOutServlet">Sair<i style="padding-left: 20px" class="fa fa-sign-out" aria-hidden="true"></i></a></li>
       </ul>
       <div style="text-align: justify">

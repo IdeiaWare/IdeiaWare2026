@@ -1,6 +1,7 @@
 package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.classes.Data;
+import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.ColaboracaoIdeiaDAO;
 import edu.unisc.lic.dao.IdeiaUsuarioDAO;
 import edu.unisc.lic.dao.LogColaboracaoDAO;
@@ -22,8 +23,9 @@ public class AddDescricaoServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        // ENCODING-01: sem isso os writes de erro saem com acentuacao quebrada (charset default do container).
+        response.setCharacterEncoding("UTF-8");
 
-        // AUTORIZACAO: exige login. Antes o servlet nao checava sessao nenhuma.
         HttpSession session = request.getSession(false);
         Object codigoUsuarioObj = session == null ? null : session.getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
@@ -32,7 +34,7 @@ public class AddDescricaoServlet extends HttpServlet {
         }
 
         ColaboracaoIdeiaDAO colaboracaoIdeiaDAO = new ColaboracaoIdeiaDAO();
-        // RET-14: protege o parse do parametro (evita 500 com valor invalido/nulo).
+        // RET-14: protege o parse do parametro, evita 500
         ColaboracaoIdeia colaboracaoIdeia = null;
         try {
             colaboracaoIdeia = colaboracaoIdeiaDAO.buscar(
@@ -49,7 +51,15 @@ public class AddDescricaoServlet extends HttpServlet {
 
         Ideia ideiaDaColab = colaboracaoIdeia.getIdeia();
 
-        // SRV-IDOR-04: so o LIDER pode "adicionar a descricao" (antes so era restrito na UI).
+        // UX-COLAB-ETAPA-TRAVADA: mesmo guard de EnviarColaboracaoServlet -- bloqueia
+        // adicionar-a-descricao se a Colaboração ja foi finalizada.
+        if (ideiaDaColab == null || !StatusIdeia.EM_DESENVOLVIMENTO.equals(ideiaDaColab.getStatus())) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("A colaboração desta ideia já foi encerrada.");
+            return;
+        }
+
+        // SRV-IDOR-04: so o lider pode adicionar a descricao
         Usuario sessionUser = new Usuario();
         sessionUser.setCodigo((Long) codigoUsuarioObj);
         List<IdeiaUsuario> souLider = new IdeiaUsuarioDAO()
@@ -63,7 +73,7 @@ public class AddDescricaoServlet extends HttpServlet {
         Ideia ideia = colaboracaoIdeia.getIdeia();
         LogColaboracaoDAO logColaboracaoDAO = new LogColaboracaoDAO();
 
-        // K.8 #8: flag "ad" evita duplo-POST reaplicar o texto 2x na descricao oficial.
+        // K.8 #8: flag "ad" evita duplo-POST reaplicar o texto 2x
         if ("ad".equals(colaboracaoIdeia.getFlSalvado())) {
             LogColaboracao jaProcessada = logColaboracaoDAO
                     .buscarDescricaoFinal(new LogColaboracao(ideia, new Usuario(), null, null));
@@ -101,7 +111,7 @@ public class AddDescricaoServlet extends HttpServlet {
                 + (descricaoBase.isEmpty() ? "" : " ")
                 + colaboracaoIdeia.getDescricaoIdeiaAtual().trim();
 
-        // SEC-20: limita em 1500 (= tamanho da coluna) pra nunca estourar em colaboracao longa.
+        // SEC-20: limita em 1500, tamanho da coluna
         if (novaDescricao.length() > 1500) {
             novaDescricao = novaDescricao.substring(0, 1500);
         }

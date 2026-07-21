@@ -17,18 +17,18 @@
 		<link type="text/css" rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/style.css" />
 		
 		<script src="${pageContext.request.contextPath}/resources/js/jquery-3.2.1.min.js"></script>
-		<%-- DRY-LIC: mesmo fix do header.tag. --%>
+		<%-- DRY-LIC: licBasePath exposto pro custom.js --%>
 		<script>
 			var contextPath = "${pageContext.request.contextPath}"
 			var licBasePath = "${initParam.licBasePath}"
 		</script>
 	</head>
-	<%-- FUNDO-CINZA-TOOLKIT: fundo cinza, mesmo padrao do LIC. --%>
+	<%-- FUNDO-CINZA-TOOLKIT: fundo cinza igual ao LIC --%>
 	<body class="blue-grey lighten-5">
 		<div id="overlay">
 			<div class="loader"></div>
 		</div>
-		<%-- TK-39: mesmo fix do header.tag (menu mobile). --%>
+		<%-- TK-39: fix do menu mobile --%>
 		<nav>
 		    <div class="nav-wrapper red darken-3">
 	      		<a href="${initParam.licBasePath}/index.jsp" class="brand-logo" style="left: 50px">
@@ -45,7 +45,7 @@
 		      <a href="#" data-activates="nav-mobile-drawer" class="button-collapse">
 		      	<i class="fa fa-bars" aria-hidden="true"></i>
 		      </a>
-		      <%-- TK-26: mesmo fix do header.tag. --%>
+		      <%-- TK-26: finalizar virou form POST --%>
 		      <form id="finalizeIdeiaFormDesktop" action="${pageContext.request.contextPath}/ideia/finalize" method="POST" style="display:none;">
 		      	<input type="hidden" name="csrfToken" value="${csrfToken}"/>
 		      </form>

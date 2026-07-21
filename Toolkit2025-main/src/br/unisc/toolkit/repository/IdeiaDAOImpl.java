@@ -17,12 +17,10 @@ public class IdeiaDAOImpl implements IdeiaDAO {
 	
 	@Override
 	public void finalize(Ideia theIdeia) {
-		// get current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
-		
+
 		theIdeia.setStatus("CV");
-				
-		// save/update the ideia
+
 		currentSession.saveOrUpdate(theIdeia);
 	}
 	
@@ -33,7 +31,7 @@ public class IdeiaDAOImpl implements IdeiaDAO {
 		Query<Ideia> theQuery = currentSession.createQuery("from Ideia where codigo=:IdeiaId", Ideia.class);
 		theQuery.setParameter("IdeiaId", ideiaCodigo);
 
-		// TK-02: uniqueResult retorna null se nao existir (getSingleResult() lancaria excecao).
+		// TK-02: uniqueResult retorna null se nao existir.
 		Ideia theIdeia = theQuery.uniqueResult();
 
 		return theIdeia;

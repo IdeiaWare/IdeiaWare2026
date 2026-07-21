@@ -27,7 +27,6 @@ public class EditarTextoServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        // AUTORIZACAO: exige login. Antes o servlet nao checava sessao nenhuma.
         HttpSession session = request.getSession(true);
         Object codigoUsuarioObj = session.getAttribute("codigoUsuario");
         if (codigoUsuarioObj == null) {
@@ -35,7 +34,7 @@ public class EditarTextoServlet extends HttpServlet {
             return;
         }
 
-        // RET-14: valida parametro/ideia antes de usar (evita 500/NPE).
+        // RET-14: valida parametro/ideia antes de usar
         String ideiaIdParam = request.getParameter("ideiaId");
         Ideia ideia = null;
         if (ideiaIdParam != null) {
@@ -50,7 +49,7 @@ public class EditarTextoServlet extends HttpServlet {
             return;
         }
 
-        // SRV-IDOR-06: so o LIDER edita o texto oficial (antes, so restrito na UI).
+        // SRV-IDOR-06: so o lider edita o texto oficial
         Usuario usuarioLogado = new UsuarioDAO().buscar((Long) codigoUsuarioObj);
         List<IdeiaUsuario> souLider = new IdeiaUsuarioDAO()
                 .listarParametro(new IdeiaUsuario(usuarioLogado, ideia, "S"));
@@ -65,7 +64,7 @@ public class EditarTextoServlet extends HttpServlet {
         LogColaboracao lc = new LogColaboracao();
         lc.setIdeia(ideia);
 
-        // STM-01: buscarDescricaoFinal pode voltar null -- usa a descricao da ideia como fallback.
+        // STM-01: fallback pra descricao da ideia se buscarDescricaoFinal for null
         LogColaboracao descFinal = new LogColaboracaoDAO().buscarDescricaoFinal(lc);
         String descricao;
         if (descFinal != null && descFinal.getDescricao() != null) {

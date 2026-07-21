@@ -7,7 +7,7 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     <link rel='stylesheet prefetch' href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900'>
-    <%-- TITULO-MODULO-POPPINS: Montserrat nunca era usada em lugar nenhum -- trocada pela Poppins (mesma fonte dos titulos de modulo). --%>
+    <%-- TITULO-MODULO-POPPINS: Montserrat trocada por Poppins. --%>
     <link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -83,7 +83,7 @@
       <p style="max-width:420px; color:#607d8b;">Você fez várias tentativas em pouco tempo. Aguarde um minuto e tente novamente.</p>
       <a href="${pageContext.request.contextPath}/login.jsp" class="btn blue-grey darken-1">Voltar ao login</a>
     </div>
-    <%-- ERRO-FOOTER-CINZA: footer proprio (cinza), nao o compartilhado (teal). --%>
+    <%-- ERRO-FOOTER-COR: footer próprio cinza, não o compartilhado teal. --%>
     <footer class="center blue-grey lighten-1 page-footer">
       <div class="footer-copyright">
         <div class="container">© 2026 IdeiaWare UNISC</div>

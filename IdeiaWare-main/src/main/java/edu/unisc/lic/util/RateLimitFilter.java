@@ -17,15 +17,14 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-// RATE-LIMIT: limite de tentativas por IP+endpoint em login/reset de senha/cadastro
-// (sem isso, um script podia tentar senha ou disparar reset de senha sem limite nenhum).
+// RATE-LIMIT: limite de tentativas por IP+endpoint em login/reset/cadastro
 public class RateLimitFilter implements Filter {
 
     private static final Set<String> LIMITADO = new HashSet<>(Arrays.asList(
             "/LogInServlet", "/ResetPasswordServlet", "/CadastroUsuarioServlet"
     ));
 
-    // RATE-LIMIT-TUNE: limite ajustado pra 10 tentativas / 2min.
+    // RATE-LIMIT-TUNE: 10 tentativas / 2min
     private static final int LIMITE_TENTATIVAS = 10;
     private static final long JANELA_MS = 120_000;
 
@@ -67,11 +66,9 @@ public class RateLimitFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        // no-op
     }
 
     @Override
     public void destroy() {
-        // no-op
     }
 }

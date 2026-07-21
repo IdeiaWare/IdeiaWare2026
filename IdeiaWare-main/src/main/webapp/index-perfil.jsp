@@ -47,7 +47,7 @@
         <script src="js/materialize.min.js"></script>
     </head>
     <style>
-        /* TEST-04: footer flutuava no meio da tela com form curto -- layout flex column escopado so nesta pagina (nao mexe em css/style.css). */
+        /* TEST-04: footer flutuava com form curto -- flex column so nesta pagina. */
         body {
             display: flex;
             flex-direction: column;
@@ -104,6 +104,26 @@
         }
         .form button{
             margin-top: 10px;
+        }
+        /* UX-PERFIL-BOTAO-HOVER: mesmo bug/fix do login.jsp. .userForm cobre os 3 forms da
+           pagina (userForm/passwordForm/AnonimizaForm). */
+        .userForm button.blue.accent-1 {
+            background-color: #448aff !important;
+        }
+        .userForm button.blue.accent-1:hover {
+            background-color: #82b1ff !important;
+        }
+        .userForm button.red.lighten-1 {
+            background-color: #e53935 !important;
+        }
+        .userForm button.red.lighten-1:hover {
+            background-color: #ef5350 !important;
+        }
+        .userForm button.red.accent-1 {
+            background-color: #ff5252 !important;
+        }
+        .userForm button.red.accent-1:hover {
+            background-color: #ff8a80 !important;
         }
         .perfil-titulo {
             color: #455a64;
@@ -212,13 +232,13 @@
             
             <form id="userForm" class="userForm" method="POST">
                 <label for="perfilUsuario" class="perfil-label">Usuário</label>
-                <input id="perfilUsuario" name="usuario" type="text" placeholder="usuário" aria-label="usuário" value="${usuario}" pattern=".{4.32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres" disabled />
+                <input id="perfilUsuario" name="usuario" type="text" placeholder="usuário" aria-label="usuário" value="<c:out value='${usuario}'/>" pattern=".{4.32}" required title="O campo nome de usuario deve conter entre 4 e 32 caracteres" disabled />
 
                 <label for="perfilNome" class="perfil-label">Nome</label>
-                <input id="perfilNome" name="nome" type="text" placeholder="nome" aria-label="nome" value="${nome}" pattern=".{4,64}" required title="O campo nome deve conter entre 6 e 64 caracteres" />
+                <input id="perfilNome" name="nome" type="text" placeholder="nome" aria-label="nome" value="<c:out value='${nome}'/>" pattern=".{4,64}" required title="O campo nome deve conter entre 6 e 64 caracteres" />
 
                 <label for="perfilEmail" class="perfil-label">E-mail</label>
-                <input id="perfilEmail" name="email" type="text" placeholder="email" aria-label="email" value="${email}" pattern="\w+(\+?\w+)@\w+(\.\w+)+" required title="email@exemplo.com" maxlength="100"/>
+                <input id="perfilEmail" name="email" type="text" placeholder="email" aria-label="email" value="<c:out value='${email}'/>" pattern="\w+(\+?\w+)@\w+(\.\w+)+" required title="email@exemplo.com" maxlength="100"/>
                 
                 <button class="blue accent-1" type="submit" onclick="submitForm('AlteraUsuarioServlet','userForm')">Salvar</button>
                 <button class="blue accent-1" type="button" id="show-password-form">Alterar senha</button>
@@ -317,21 +337,18 @@
                 const strengthText = document.getElementById('strength-text');
                 let strength = 0;
 
-                // Definindo critérios
                 const lengthcriterio = document.getElementById('length-criterio');
                 const uppercasecriterio = document.getElementById('uppercase-criterio');
                 const lowercasecriterio = document.getElementById('lowercase-criterio');
                 const numbercriterio = document.getElementById('number-criterio');
                 const specialcriterio = document.getElementById('special-criterio');
 
-                // Resetando classes
                 lengthcriterio.classList.remove('valid');
                 uppercasecriterio.classList.remove('valid');
                 lowercasecriterio.classList.remove('valid');
                 numbercriterio.classList.remove('valid');
                 specialcriterio.classList.remove('valid');
 
-                // Verificando critérios
                 if (password.length >= 8) {
                     strength += 1;
                     lengthcriterio.classList.add('valid');
@@ -389,7 +406,7 @@
     <script src="js/csrf.js"></script>
   </main>
     </body>
-  <%-- UX: footer padronizado com a cor do header (blue-grey, igual home) -- antes nao tinha footer nenhum. --%>
+  <%-- UX-FOOTER-PADRAO: footer com cor do header, antes nao tinha. --%>
   <footer class="center blue-grey lighten-1 page-footer">
     <div class="container">
       <div class="row">

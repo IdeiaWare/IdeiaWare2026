@@ -1,5 +1,6 @@
 package edu.unisc.lic.servlet;
 
+import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.CanvaDAO;
 import edu.unisc.lic.dao.IdeiaDAO;
 import edu.unisc.lic.domain.Canva;
@@ -38,6 +39,23 @@ public class EnviarCanvaServlet extends HttpServlet {
         IdeiaDAO ideiaDAO = new IdeiaDAO();
         Ideia ideia = ideiaDAO.buscar((Long) session.getAttribute("ideiaId"));
 
+        // UX-CANVA-ETAPA-TRAVADA: bloqueia escrita se o Canvas ja foi finalizado (o export
+        // gerado ficaria desatualizado em relacao aos post-its, ninguem checava isso antes).
+        // UX-PADRAO-ETAPA-FINALIZADA: mensagem via flash de sessao, lida por headerCookies.jsp.
+        if (ideia == null || StatusIdeia.FINALIZADO.equals(ideia.getStatus())) {
+            session.setAttribute("mensagemErroEtapa", "Este Canva já foi finalizado. Suas alterações não foram salvas.");
+            response.sendRedirect("minha-ideia.jsp");
+            return;
+        }
+
+        // UX-CANVA-VALIDACAO-SERVIDOR: texto vazio/curto ja era barrado no client
+        // (minlength=5), mas nao no servidor -- um POST direto passava sem checagem nenhuma.
+        String text = request.getParameter("text");
+        if (text == null || text.trim().length() < 5) {
+            response.sendRedirect("EntrarCanvaServlet");
+            return;
+        }
+
         CanvaDAO canvaDAO = new CanvaDAO();
 
         Canva canva;
@@ -53,18 +71,18 @@ public class EnviarCanvaServlet extends HttpServlet {
                 return;
             }
             canva = canvaDAO.buscar(canvaId);
-            // CANM-02: só edita se o post-it ainda existe e pertence à ideia da sessão (IDOR)
+            // CANM-02: so edita post-it que existe e pertence a ideia
             if (canva == null || canva.getIdeia() == null
                     || !canva.getIdeia().getCodigo().equals((Long) session.getAttribute("ideiaId"))) {
                 response.sendRedirect("EntrarCanvaServlet");
                 return;
             }
-            canva.setText(request.getParameter("text"));
+            canva.setText(text);
             canva.setColor(request.getParameter("color"));
             canva.setAttribute(attribute);
             canvaDAO.editar(canva);
         } else {
-            canva = new Canva(ideia, request.getParameter("text"), request.getParameter("color"), attribute);
+            canva = new Canva(ideia, text, request.getParameter("color"), attribute);
             canvaDAO.salvar(canva);
         }
 

@@ -26,7 +26,8 @@
           <%-- UX-VOLTAR-V2: icone flutuante (headerCookies_2.jsp proprio desta tela nao linka pra lista-storytelling.jsp). --%>
           <a href="lista-storytelling.jsp" class="btn-floating btn-large indigo lighten-1 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
 
-          <h5 class="center grey-text text-darken-3 titulo-painel" style="padding-top: 10px; padding-bottom: 5px">Ferramentas</h5>
+          <%-- UX-STORYTELLING-BORRACHA-ESPACAMENTO: mais respiro entre o titulo e o botao de baixo. --%>
+          <h5 class="center grey-text text-darken-3 titulo-painel" style="padding-top: 10px; padding-bottom: 20px">Ferramentas</h5>
 
           <div class="story-tools">
             <button class="btn indigo accent-2" style="display: " id="deletarAlgo">Ativar borracha</button>
@@ -130,8 +131,8 @@
               <div class="collapsible-body">
                 <%-- UX-STORYTELLING-AUDIO-ESPACO: wrapper flex com gap (botoes ficavam colados sem espacamento). --%>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-                  <input id="start-btn" class="center btn indigo accent-2" type="button" name="UploadImg" value="Gravar"  />
-                  <input id="stop-btn" class="center btn indigo accent-2" type="button" name="UploadImg" value="Parar gravação" />
+                  <%-- AUDIO-BTN-LAYOUT: min-width fixo pra "Gravar"/"Parar" nao empurrar o "Salvar audio" pra outra linha. --%>
+                  <input id="gravar-btn" class="center btn indigo accent-2" style="min-width:110px;" type="button" name="UploadImg" value="Gravar" />
                   <input id="save-btn" class="center btn indigo accent-2" type="button" name="UploadImg" value="Salvar áudio" />
                 </div>
                 <ul id="recordingslist"></ul>
@@ -164,27 +165,7 @@
       </div>
     </div>
 
-    <div id="modalResize" class="modal">
-      <div class="modal-content">
-        <div class="row">
-          <div class="input-field col s6">
-            <%-- TK-33: type="number" min="10" e so a 1a barreira -- o guard real e no JS (controle.js). --%>
-            <input value="" id="AlturaId" placeholder="Altura" aria-label="Altura" type="number" min="10" class="validate">
-            <label class="active" for="Altura">Altura</label>
-          </div>
-        </div>
-        <div class="row">
-          <div class="input-field col s6">
-            <input value="" id="LarguraId" placeholder="Largura" aria-label="Largura" type="number" min="10" class="validate">
-            <label class="active" for="Largura">Largura</label>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <input hidden="true" id="imgaemIdResize" value="">
-        <button class="btn" id="btnModificar">Modificar</button>
-      </div>
-    </div>
+    <%-- KONVA-UPGRADE-FASE2: modal de resize removido, substituido pelo Konva.Transformer. --%>
   <script src="js/csrf.js"></script>
   </main>
     </body>

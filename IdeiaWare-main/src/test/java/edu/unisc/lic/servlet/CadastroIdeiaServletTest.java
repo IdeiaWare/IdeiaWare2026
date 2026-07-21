@@ -69,6 +69,19 @@ public class CadastroIdeiaServletTest {
 	}
 
 	@Test
+	public void tituloMenorQue4_redirecionaComErroENaoSalva() throws Exception { // UX-CADASTRO-TITULO-CURTO
+		Usuario u = novoUsuario("AutorTituloCurto");
+		HttpServletRequest request = mockRequest(u.getCodigo(), "abc", "Descricao valida");
+		HttpServletResponse response = mock(HttpServletResponse.class);
+		int antes = ideiaDAO.listar().size();
+
+		new CadastroIdeiaServlet().doPost(request, response);
+
+		verify(response).sendRedirect(contains("erro=titulo_curto"));
+		assertEquals(antes, ideiaDAO.listar().size());
+	}
+
+	@Test
 	public void tituloMaiorQue50_redirecionaComErro() throws Exception {
 		Usuario u = novoUsuario("Autor2");
 		String tituloGigante = "T".repeat(51);

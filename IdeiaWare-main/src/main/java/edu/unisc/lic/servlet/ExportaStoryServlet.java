@@ -21,9 +21,10 @@ public class ExportaStoryServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        // ENCODING-01: sem isso o write de erro sai com acentuacao quebrada (charset default do container).
+        response.setCharacterEncoding("UTF-8");
         HttpSession session = request.getSession(true);
 
-        // Le o body completo (base64 do PDF e uma string grande, nao so 1 linha).
         BufferedReader reader = request.getReader();
         StringBuilder sb = new StringBuilder();
         String line;
@@ -37,7 +38,7 @@ public class ExportaStoryServlet extends HttpServlet {
             return;
         }
 
-        // BLINDA-01: sessao sem storytellingId ou id invalido dava NPE/500 cru antes.
+        // BLINDA-01: sessao sem storytellingId ou id invalido
         Object storyIdAttr = session.getAttribute("storytellingId");
         if (storyIdAttr == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -57,6 +58,16 @@ public class ExportaStoryServlet extends HttpServlet {
             return;
         }
 
+        // UX-STORY-EXPORT-DUPLO: bloqueia re-finalizacao -- sem isso, uma 2a aba (outro
+        // participante) conseguia exportar de novo e SOBRESCREVIA o PDF da 1a exportacao no
+        // mesmo caminho deterministico (Constantes.CAMINHO_EXPORT_STORYTELLING + ideiaCodigo),
+        // perdendo silenciosamente a versao original na Retenção do Conhecimento.
+        if (StatusIdeia.FINALIZADO.equals(storytelling.getStatus())) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("Este Storytelling já foi finalizado.");
+            return;
+        }
+
         try {
             // PDF-DISCO
             String caminhoRelativo = Constantes.CAMINHO_EXPORT_STORYTELLING + storytelling.getIdeia().getCodigo() + ".pdf";
@@ -71,7 +82,7 @@ public class ExportaStoryServlet extends HttpServlet {
             ideia.setStatus(StatusIdeia.CAIXA_FERRAMENTAS);
             new IdeiaDAO().editar(ideia);
         } catch (RuntimeException | IOException e) {
-            // CAN-10: falha ao salvar (ex.: base64 invalido, disco cheio) retorna 500 explicito.
+            // CAN-10: falha ao salvar retorna 500 explicito
             System.out.println("Erro ao exportar storytelling: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }

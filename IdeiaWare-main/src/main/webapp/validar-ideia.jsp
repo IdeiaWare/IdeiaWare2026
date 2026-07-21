@@ -110,16 +110,7 @@
 
       </div>
     </nav>
-    <div class="fixed-action-btn">
-      <a class="btn-floating btn-large orange darken-1">
-        <i class="large material-icons">menu</i>
-      </a>
-      <ul>
-        <li><a class="btn-floating tooltipped teal lighten-1" href="cadastro-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Cadastrar nova ideia" aria-label="Cadastrar nova ideia"><i class="material-icons">add</i></a></li>
-        <li><a class="btn-floating tooltipped teal lighten-1" href="minha-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Minhas ideias" aria-label="Minhas ideias"><i class="material-icons">account_box</i></a></li>
-        <li><a class="btn-floating tooltipped  teal lighten-1" href="lista-ideia.jsp" data-position="left" data-delay="50" data-tooltip="Outras ideias" aria-label="Outras ideias"><i class="material-icons">web_asset</i></a></li>
-      </ul>
-    </div>
+    <%-- UX-VALIDAR-IDEIA-FAB: FAB removido a pedido do usuario (era pre-existente). --%>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="js/materialize.min.js"></script>
     <script type="text/javascript" src="js/materialize.js"></script>

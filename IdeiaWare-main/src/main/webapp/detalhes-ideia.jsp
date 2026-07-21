@@ -138,7 +138,7 @@
         </div>
 
         <!--modal para fechar ideia e começar o desenvolvimento -->
-        <div id="modalFecharGrupo" class="modal">                     <%-- Precisa fazer com que os dados no form do fechar funcionem --%>
+        <div id="modalFecharGrupo" class="modal">
             <div class="modal-content">
                 <form name="fechar" action="FecharGrupoServlet" method="POST">
                     <div class="row">

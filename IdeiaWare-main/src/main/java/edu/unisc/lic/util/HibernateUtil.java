@@ -19,7 +19,7 @@ public class HibernateUtil {
         try {
             Configuration configuracao = new Configuration().configure();
 
-            // CFGBANCO-REMOVIDO: mecanismo de override via cfgbanco.txt (AES ECB) era codigo morto, removido.
+            // CFGBANCO-REMOVIDO: override via cfgbanco.txt era codigo morto
             SessionFactory fabrica = configuracao.buildSessionFactory();
             return fabrica;
 

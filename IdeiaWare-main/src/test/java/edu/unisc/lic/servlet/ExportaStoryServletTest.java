@@ -7,7 +7,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Base64;
@@ -126,5 +128,30 @@ public class ExportaStoryServletTest {
 
 		Ideia ideiaAtualizada = ideiaDAO.buscar(st.getIdeia().getCodigo());
 		assertEquals(StatusIdeia.CAIXA_FERRAMENTAS, ideiaAtualizada.getStatus());
+	}
+
+	@Test
+	public void storytellingJaFinalizado_bloqueiaReExportacao() throws Exception { // UX-STORY-EXPORT-DUPLO
+		// simula o cenario real: 1o usuario exporta com sucesso...
+		Storytelling st = novoStorytelling();
+		HttpServletRequest request1 = mockRequest(st.getCodigo(), PDF_BASE64);
+		new ExportaStoryServlet().doPost(request1, mock(HttpServletResponse.class));
+		String caminhoOriginal = storytellingDAO.buscar(st.getCodigo()).getCaminhoFinalizado();
+
+		// ...uma 2a aba (outro participante), com o storytellingId ainda na sessao, tenta
+		// exportar de novo com um PDF DIFERENTE -- antes do fix, isso sobrescrevia o arquivo.
+		String pdfSegundaVersao = Base64.getEncoder().encodeToString("outro-conteudo".getBytes(StandardCharsets.UTF_8));
+		HttpServletRequest request2 = mockRequest(st.getCodigo(), pdfSegundaVersao);
+		HttpServletResponse response2 = mock(HttpServletResponse.class);
+		when(response2.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
+
+		new ExportaStoryServlet().doPost(request2, response2);
+
+		verify(response2).setStatus(HttpServletResponse.SC_FORBIDDEN);
+		Storytelling aposSegundaTentativa = storytellingDAO.buscar(st.getCodigo());
+		assertEquals("caminho do 1o export nao deve ter sido sobrescrito", caminhoOriginal, aposSegundaTentativa.getCaminhoFinalizado());
+		byte[] gravado = Files.readAllBytes(new File(Constantes.caminhoExports() + caminhoOriginal).toPath());
+		assertEquals("conteudo do PDF deve continuar sendo o da 1a exportacao",
+				"conteudo-pdf-fake", new String(gravado, StandardCharsets.UTF_8));
 	}
 }

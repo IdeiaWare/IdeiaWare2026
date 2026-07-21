@@ -1,6 +1,5 @@
 ﻿<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"  session="true"%>
-<!-- HEADER -->
 <%@include file="header/headerCookiesCV.jsp" %>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -12,16 +11,14 @@
     </head>
     <body class="blue-grey lighten-5">
     <main>
-	    <%-- UX-VOLTAR-V2: mesmo padrao do Colaborativo/Storytelling/canva-mapa.jsp. --%>
+	    <%-- UX-VOLTAR-V2: padrão do Colaborativo/Storytelling/canva-mapa.jsp. --%>
 	    <a href="EntrarCanvaServlet" class="btn-floating btn-large blue darken-4 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar" aria-label="Voltar"><i class="material-icons">arrow_back</i></a>
 	    <div style="min-height: 80vh">
-	    
-	    	<!-- VARIAVEIS -->
+
 	    	<jsp:useBean id="ideiaDAO" class="edu.unisc.lic.dao.IdeiaDAO" />
 		    <jsp:useBean id="canva" class="edu.unisc.lic.domain.Canva" />
 		    <c:set var="isRetencao" value="${sessionScope.isRetencao}" />
 		    
-		    <!-- MENU DE NAVEGAÇÃO-->
 	    	<div class="row center-align navCanva">
 	    		<div class="col s6">
 		    		<nav class="crumb blue darken-4">
@@ -37,7 +34,7 @@
 				    	<form name="enviarCanva" action="EnviarCanvaServlet" method="post" id="enviarCanva">
 				    		<input hidden="true" value="atividade" id="attribute" name="attribute">
 				    		<input hidden="true" value="" id="idCanva" name="idCanva">
-				    		<%-- CAN-08: ${sessionScope.ideiaId} (antes ${ideiaId} não resolvia e ia vazio) --%>
+				    		<%-- CAN-08: usa sessionScope.ideiaId, ${ideiaId} não resolvia. --%>
 				    		<input hidden="true" value="${sessionScope.ideiaId}" name="ideiaId" />
 				        	<div class="row">
 				            	<div class="input-field">

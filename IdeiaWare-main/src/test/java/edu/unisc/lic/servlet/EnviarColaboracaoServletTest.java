@@ -102,4 +102,22 @@ public class EnviarColaboracaoServletTest {
 
 		verify(response).setContentType("application/json");
 	}
+
+	@Test
+	public void colaboracaoJaFinalizada_bloqueiaEnvio() throws Exception { // UX-COLAB-ETAPA-TRAVADA
+		Usuario autor = novoUsuario("AutorFinalizada");
+		Ideia ideia = new Ideia(autor, "Ideia Ja Finalizada", "desc", StatusIdeia.STORYTELLING, StatusIdeia.GRUPO_FECHADO);
+		ideia.setDtCriacao();
+		ideiaDAO.salvar(ideia);
+
+		HttpServletRequest request = mockRequest(autor.getCodigo(), ideia.getCodigo(), true, "Colaboracao tardia");
+		HttpServletResponse response = mockResponse();
+
+		new EnviarColaboracaoServlet().doPost(request, response);
+
+		verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+		ColaboracaoIdeia filtro = new ColaboracaoIdeia();
+		filtro.setIdeia(ideia);
+		assertEquals(0, colaboracaoIdeiaDAO.listarParametro(filtro).size());
+	}
 }

@@ -14,7 +14,7 @@ import org.hibernate.Session;
 
 public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
 
-    // DAO-FAIL-CLOSED: sem ideia definida nao ha o que listar (antes voltava a tabela inteira).
+    // DAO-FAIL-CLOSED: sem ideia definida, nao lista tudo
     public List<ColaboracaoIdeia> listarParametro(ColaboracaoIdeia ci) {
         if (ci.getIdeia().getCodigo() == null) {
             return Collections.emptyList();
@@ -37,7 +37,6 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
         }
     }
 
-    // M.6: colaboracoes com codigo > ultimoCodigo (antes, protocolo por contagem perdia/duplicava).
     public List<ColaboracaoIdeia> listarAposCodigo(ColaboracaoIdeia ci, Long ultimoCodigo) {
         if (ci.getIdeia().getCodigo() == null) {
             return Collections.emptyList();
@@ -80,7 +79,7 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
                     .where(builder.equal(raiz.get("ideia"), ci.getIdeia()))
                     .orderBy(builder.desc(raiz.get("dtModificacao")));
 
-            // RET-14: retorna null em vez de estourar se nao houver colaboracoes.
+            // RET-14: retorna null se nao houver colaboracoes
             List<ColaboracaoIdeia> resultado = sessao.createQuery(consulta).setMaxResults(1).getResultList();
             return resultado.isEmpty() ? null : resultado.get(0);
 
@@ -89,7 +88,7 @@ public class ColaboracaoIdeiaDAO extends GenericDAO<ColaboracaoIdeia> {
         }
     }
 
-    // GT-12: renomeado de quantidadeMes (nunca filtrou por mes) + COUNT no banco em vez de carregar tudo.
+    // GT-12: COUNT no banco em vez de carregar tudo
     public int quantidadeTotal(ColaboracaoIdeia ci) {
         if (ci.getIdeia().getCodigo() == null) {
             return 0;

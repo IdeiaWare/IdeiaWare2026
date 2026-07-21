@@ -14,7 +14,7 @@ import org.hibernate.Transaction;
 
 public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> {
 
-    // DAO-FAIL-CLOSED: sem storytelling definido nao ha o que listar (antes voltava a tabela inteira).
+    // DAO-FAIL-CLOSED: sem storytelling definido, nao lista tudo
     public List<ElementosStorytelling> listarParametro(ElementosStorytelling est) {
         if (est.getStorytelling().getCodigo() == null) {
             return Collections.emptyList();
@@ -62,7 +62,7 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
                     .where(predicados.toArray(new Predicate[0]))
                     .orderBy(builder.desc(raiz.get("codigo")));
 
-            // STM-03: evita IndexOutOfBounds quando não há elementos.
+            // STM-03: evita IndexOutOfBounds sem elementos
             List<ElementosStorytelling> resultado = sessao.createQuery(consulta).setMaxResults(1).getResultList();
             return resultado.isEmpty() ? null : resultado.get(0);
 
@@ -71,7 +71,7 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
         }
     }
 
-    // PERF-02: busca varios por codigo NUMA SO query (elimina o N+1 do autosave).
+    // PERF-02: busca varios por codigo numa so query
     public List<ElementosStorytelling> buscarPorCodigos(List<Long> codigos) {
         if (codigos == null || codigos.isEmpty()) {
             return Collections.emptyList();
@@ -92,7 +92,7 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
         }
     }
 
-    // PERF-02: salva a lista inteira numa UNICA transacao (1 commit, nao 1 por elemento).
+    // PERF-02: salva a lista inteira numa unica transacao
     public void salvarLote(List<ElementosStorytelling> elementos) {
         if (elementos == null || elementos.isEmpty()) {
             return;
@@ -117,7 +117,7 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
         }
     }
 
-    // PERF-02: exclui a lista inteira numa UNICA transacao (nao 1 por elemento).
+    // PERF-02: exclui a lista inteira numa unica transacao
     public void excluirTodos(List<ElementosStorytelling> elementos) {
         if (elementos == null || elementos.isEmpty()) {
             return;
@@ -142,7 +142,7 @@ public class ElementosStorytellingDAO extends GenericDAO<ElementosStorytelling> 
         }
     }
 
-    // K.8 #7: apaga o(s) audio(s) antigo(s) + salva o novo NUMA UNICA transacao (antes, perda total em falha no meio).
+    // K.8 #7: apaga audios antigos + salva o novo numa unica transacao
     public void substituirAudio(List<ElementosStorytelling> antigos, ElementosStorytelling novo) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
         Transaction transacao = null;

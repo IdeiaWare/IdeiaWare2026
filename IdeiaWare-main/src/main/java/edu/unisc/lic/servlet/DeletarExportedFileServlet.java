@@ -18,7 +18,7 @@ public class DeletarExportedFileServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        // RKM-02: so admin deleta (antes, qualquer logado apagava qualquer arquivo por id).
+        // RKM-02: so admin deleta
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("codigoUsuario") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -47,7 +47,7 @@ public class DeletarExportedFileServlet extends HttpServlet {
         ExportFileDAO exportFileDAO = new ExportFileDAO();
         ExportFile exportFile = exportFileDAO.buscar(id);
 
-        // RKM-02: evita excluir(null) quando o id não existe
+        // RKM-02: evita excluir(null)
         if (exportFile != null) {
             String caminho = exportFile.getFileLocation();
             exportFileDAO.excluir(exportFile);

@@ -1,6 +1,7 @@
 package edu.unisc.lic.servlet;
 
 import edu.unisc.lic.classes.Data;
+import edu.unisc.lic.classes.StatusIdeia;
 import edu.unisc.lic.dao.ColaboracaoIdeiaDAO;
 import edu.unisc.lic.dao.IdeiaDAO;
 import edu.unisc.lic.dao.UsuarioDAO;
@@ -21,8 +22,10 @@ public class EnviarColaboracaoServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        // ENCODING-01: sem isso os writes de erro saem com acentuacao quebrada (charset default do container).
+        response.setCharacterEncoding("UTF-8");
 
-        // COLM-03: exige sessão válida com ideiaId e usuário logado.
+        // COLM-03: exige sessao valida com ideiaId e usuario
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("ideiaId") == null
                 || session.getAttribute("codigoUsuario") == null) {
@@ -33,6 +36,15 @@ public class EnviarColaboracaoServlet extends HttpServlet {
         IdeiaDAO ideiaDAO = new IdeiaDAO();
         Ideia ideia = ideiaDAO.buscar((Long) session.getAttribute("ideiaId"));
 
+        // UX-COLAB-ETAPA-TRAVADA: bloqueia escrita se a Colaboração ja foi finalizada (o
+        // dono avancou a ideia pra Storytelling, mas uma aba antiga de outro participante
+        // continuava conseguindo enviar colaboracoes -- nenhum guard de status existia aqui).
+        if (ideia == null || !StatusIdeia.EM_DESENVOLVIMENTO.equals(ideia.getStatus())) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("A colaboração desta ideia já foi encerrada.");
+            return;
+        }
+
         UsuarioDAO usuarioDAO = new UsuarioDAO();
         Usuario usuario = usuarioDAO.buscar((Long) session.getAttribute("codigoUsuario"));
 
@@ -42,10 +54,9 @@ public class EnviarColaboracaoServlet extends HttpServlet {
 
         colaboracaoIdeiaDAO.salvar(colaboracaoIdeia);
 
-        // COLM-02: objeto ja tem o codigo gerado pelo Hibernate (elimina query extra + race).
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        // GT-01: GSON_SEM_SENHA (nao new Gson()) -- senao vaza o hash bcrypt de .usuario.
+        // GT-01: GSON_SEM_SENHA evita vazar o hash bcrypt
         response.getWriter().write(JsonUtil.GSON_SEM_SENHA.toJson(colaboracaoIdeia));
     }
 

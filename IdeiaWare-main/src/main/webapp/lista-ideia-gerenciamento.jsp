@@ -50,7 +50,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <%-- TITULO-MODULO-POPPINS: fonte dos titulos de modulo (ver K.4). --%>
-<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@700' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@600' rel='stylesheet'>
 <style>
   .title-app {color:#fff; font-family: 'Condiment'; font-size: 42px; line-height: 25px}
   .titulo-modulo { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 28px; }

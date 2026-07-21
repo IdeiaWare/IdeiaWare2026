@@ -21,11 +21,11 @@ public class AdminCookies {
 		}
 
 		if (valor != null && !valor.trim().isEmpty()) {
-		    // SEC-23: so aceita o ideiaId se a ASSINATURA (HMAC do LIC) bater (senao, cookie forjavel).
+		    // SEC-23: so aceita o ideiaId se a assinatura HMAC bater.
 		    if (!AssinaturaCaixa.valida(valor.trim(), sig)) {
 		        return null;
 		    }
-		    // TK-01: trata vazio/nao-numerico sem quebrar (NumberFormatException).
+		    // TK-01: trata vazio/nao-numerico sem quebrar.
 		    try {
 		        id = Long.valueOf(valor.trim());
 		    } catch (NumberFormatException e) {

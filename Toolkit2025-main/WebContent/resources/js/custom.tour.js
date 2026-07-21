@@ -149,7 +149,6 @@
 	  		{	"click .criar-pov" : 'Clique aqui para dar in&iacute;cio &agrave; cria&ccedil;&atilde;o do Point of View',
 				'showSkip': false,
 				onBeforeStart:function(){
-	  				$('.fixed-action-btn').openFAB();
 	  				Toolkit.createCookie("tourStep", 6, 1)
 	  			}
 	  		}

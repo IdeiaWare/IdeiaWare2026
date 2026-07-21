@@ -14,26 +14,21 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-// SEC-25: endpoints de escrita que so aceitam POST (GET nesses paths driblaria o CSRF). K.2: allowlist mantida a mao -- todo servlet de escrita novo precisa entrar na lista.
+// SEC-25: endpoints de escrita que so aceitam POST, allowlist mantida a mao
 public class PostOnlyFilter implements Filter {
 
     private static final Set<String> POST_ONLY = new HashSet<String>(Arrays.asList(
-            // Canvas
             "/InserirForma", "/InserirTexto", "/DeletarObjServlet", "/EditarTextoServlet",
             "/DeleteCanvaServlet", "/EnviarCanvaServlet", "/ExportCanvaServlet",
-            // Colaboracao
             "/SalvarTextoServlet", "/AddDescricaoServlet", "/FecharGrupoServlet",
             "/FinalizarColaboracaoServlet", "/EnviarColaboracaoServlet",
-            // Storytelling
             "/AutoSalvarStoryServlet", "/ExportaStoryServlet", "/SalvarAudioServlet",
-            // GT-05: doGet chamava processRequest direto (boilerplate), sem guard.
             "/EditarColaboracaoServlet", "/CadastroIdeiaServlet", "/EntrarIdeiaServlet",
             "/AprovarMembroServlet", "/RejeitarMembroServlet",
-            // GT-06: risco baixo (multipart/admin-only), adicionados por consistencia.
             "/UploadArquivoServlet", "/DeletarExportedFileServlet", "/DeletarCanvaexportServlet",
-            // FUT-02: feedback/sugestao.
             "/EnviarFeedbackServlet"
     ));
+    // GT-05/GT-06/FUT-02: allowlist inclui doGet sem guard e feedback
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -56,11 +51,9 @@ public class PostOnlyFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        // no-op
     }
 
     @Override
     public void destroy() {
-        // no-op
     }
 }

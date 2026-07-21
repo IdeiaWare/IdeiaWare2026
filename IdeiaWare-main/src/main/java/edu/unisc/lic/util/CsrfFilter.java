@@ -14,7 +14,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-// CSRF-02: double-submit cookie -- compara cookie XSRF-TOKEN (nao HttpOnly) com param/header em todo POST.
+// CSRF-02: double-submit cookie, compara XSRF-TOKEN com param/header
 public class CsrfFilter implements Filter {
 
 	private static final String COOKIE = "XSRF-TOKEN";

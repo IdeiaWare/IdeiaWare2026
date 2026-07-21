@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-// M.2: o LIDER aprova a entrada de alguem no grupo (vinculo P -> A), checado no servidor.
 @WebServlet(name = "AprovarMembroServlet", urlPatterns = {"/AprovarMembroServlet"})
 public class AprovarMembroServlet extends HttpServlet {
 
@@ -23,7 +22,6 @@ public class AprovarMembroServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        // AUTORIZACAO: exige login.
         HttpSession session = request.getSession(false);
         Object codigoUsuario = session == null ? null : session.getAttribute("codigoUsuario");
         if (codigoUsuario == null) {
@@ -33,7 +31,6 @@ public class AprovarMembroServlet extends HttpServlet {
 
         IdeiaUsuarioDAO ideiaUsuarioDAO = new IdeiaUsuarioDAO();
 
-        // Vinculo alvo (PK do IdeiaUsuario). BLINDAGEM: valor invalido/inexistente volta pra tela.
         IdeiaUsuario vinculo = null;
         try {
             vinculo = ideiaUsuarioDAO.buscar(Long.parseLong(request.getParameter("vinculo")));
@@ -47,7 +44,6 @@ public class AprovarMembroServlet extends HttpServlet {
 
         Ideia ideia = vinculo.getIdeia();
 
-        // AUTORIZACAO: so o LIDER da ideia aprova membros (senao, qualquer logado aprovaria).
         Usuario sessionUser = new Usuario();
         sessionUser.setCodigo((Long) codigoUsuario);
         List<IdeiaUsuario> souLider = ideiaUsuarioDAO
@@ -57,7 +53,6 @@ public class AprovarMembroServlet extends HttpServlet {
             return;
         }
 
-        // So aprova quem esta PENDENTE (evita "reaprovar" um rejeitado por um POST forjado).
         if (StatusIdeia.VINCULO_PENDENTE.equals(vinculo.getFlStatusVinculo())) {
             vinculo.setFlStatusVinculo(StatusIdeia.VINCULO_APROVADO);
             vinculo.setMotivoRejeicaoMembro(null);
@@ -70,7 +65,6 @@ public class AprovarMembroServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // POST-only.
         response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 

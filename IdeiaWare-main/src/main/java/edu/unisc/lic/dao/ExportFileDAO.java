@@ -13,7 +13,7 @@ import org.hibernate.Session;
 
 public class ExportFileDAO extends GenericDAO<ExportFile> {
 
-    // DAO-FAIL-CLOSED: sem ideia definida nao ha o que listar (antes voltava a tabela inteira).
+    // DAO-FAIL-CLOSED: sem ideia definida, nao lista tudo
     public List<ExportFile> listarParametro(ExportFile ef) {
         if (ef.getIdeia().getCodigo() == null) {
             return Collections.emptyList();

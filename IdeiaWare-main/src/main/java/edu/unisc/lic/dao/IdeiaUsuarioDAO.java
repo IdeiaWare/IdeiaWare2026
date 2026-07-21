@@ -36,7 +36,6 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
                 predicados.add(builder.equal(raiz.get("flLider"), iu.getFlLider()));
             }
 
-            // Ordena "Minhas Ideias" do mais NOVO pro mais antigo.
             consulta.select(raiz)
                     .where(predicados.toArray(new Predicate[0]))
                     .orderBy(builder.desc(raiz.get("ideia")));
@@ -48,7 +47,7 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
         }
     }
 
-    // STR-09/PERF-01: lider+participantes, com filtro de status na propria query (nao em Java).
+    // STR-09/PERF-01: filtro de status na propria query, nao em Java
     public List<IdeiaUsuario> listarTodasIdeiasStorytelling(IdeiaUsuario iu) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
 
@@ -63,7 +62,7 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
 
             consulta.select(raiz)
                     .where(builder.and(porUsuario, porStatus))
-                    .orderBy(builder.desc(raiz.get("ideia"))); // listagem com as ideias mais novas em cima
+                    .orderBy(builder.desc(raiz.get("ideia")));
 
             return sessao.createQuery(consulta).getResultList();
 
@@ -82,12 +81,11 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
             Join<IdeiaUsuario, Ideia> i = raiz.join("ideia");
 
             Predicate porUsuario = builder.equal(raiz.get("usuario"), iu.getUsuario());
-            // TK-LIST: a Caixa aparece p/ TODOS os participantes, nao so o lider.
             Predicate porStatus = builder.equal(i.get("status"), StatusIdeia.CAIXA_FERRAMENTAS);
 
             consulta.select(raiz)
                     .where(builder.and(porUsuario, porStatus))
-                    .orderBy(builder.desc(raiz.get("ideia"))); // listagem com as ideias mais novas em cima
+                    .orderBy(builder.desc(raiz.get("ideia")));
 
             return sessao.createQuery(consulta).getResultList();
 
@@ -105,16 +103,14 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
             Root<IdeiaUsuario> raiz = consulta.from(IdeiaUsuario.class);
             Join<IdeiaUsuario, Ideia> i = raiz.join("ideia");
 
-            // CAN-ACESSO-V2: antes so o LIDER via a ideia na listagem do Canvas, agora todos.
+            // CAN-ACESSO-V2: agora todos os participantes veem a ideia, nao so o lider
             Predicate porUsuario = builder.equal(raiz.get("usuario"), iu.getUsuario());
-            // Status "CV" é definido pelo projeto Toolkit2025 (Caixa de Ferramentas) no
-            // método IdeiaDAOImpl.finalize() quando a ideia sai da caixa. É o status
-            // correto para listar no Canvas — NÃO alterar.
+            // Status "CV" definido pelo Toolkit2025 (IdeiaDAOImpl.finalize) -- NAO alterar.
             Predicate porStatus = builder.equal(i.get("status"), StatusIdeia.CANVAS);
 
             consulta.select(raiz)
                     .where(builder.and(porUsuario, porStatus))
-                    .orderBy(builder.desc(raiz.get("ideia"))); // listagem com as ideias mais novas em cima
+                    .orderBy(builder.desc(raiz.get("ideia")));
 
             return sessao.createQuery(consulta).getResultList();
 
@@ -123,7 +119,7 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
         }
     }
 
-    // K.8 #1: fecha grupo + lideranca + log NUMA UNICA transacao (antes, falha no meio deixava sem lider).
+    // K.8 #1: fecha grupo + lideranca + log numa unica transacao
     public void fecharGrupoAtomico(Ideia ideia, List<IdeiaUsuario> vinculosParaAtualizar,
             List<IdeiaUsuario> vinculosParaRemover, LogColaboracao logInicial) {
         Session sessao = HibernateUtil.getFabricaDeSessoes().openSession();
@@ -137,7 +133,7 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
                     sessao.update(iu);
                 }
             }
-            // M.2/GT-03: re-busca cada vinculo FRESCO na transacao e so apaga se ainda P/R (fecha a corrida com AprovarMembroServlet).
+            // GT-03: re-busca cada vinculo fresco na transacao antes de apagar
             if (vinculosParaRemover != null) {
                 for (IdeiaUsuario iuAntigo : vinculosParaRemover) {
                     IdeiaUsuario iuFresco = sessao.get(IdeiaUsuario.class, iuAntigo.getCodigo());

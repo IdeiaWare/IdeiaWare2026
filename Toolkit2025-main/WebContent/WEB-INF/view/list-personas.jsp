@@ -3,7 +3,7 @@
 <%@taglib tagdir="/WEB-INF/tags" prefix="t"%>
 
 <t:header></t:header>
-	<%-- UX-VOLTAR-V2: icone circular flutuante, aponta pro LIC (minha-ideia.jsp, cross-webapp). --%>
+	<%-- UX-VOLTAR-V2: icone circular flutuante aponta pro LIC --%>
 	<a href="${initParam.licBasePath}/minha-ideia.jsp" class="btn-floating btn-large red darken-3 tooltipped" style="position:fixed; top:75px; left:20px; z-index:998;" data-position="right" data-delay="50" data-tooltip="Voltar"><i class="material-icons">arrow_back</i></a>
 	<nav class="crumb">
 	    <div class="nav-wrapper">
@@ -16,7 +16,7 @@
 			<h2 class="title-page persona-home">Personas - Lista</h2>
 		</div>
 		<div class="col s12 m7 right-align">
-			<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/3: pill secundario, senao o link de texto puro perdia peso visual perto dos 2 botoes solidos abaixo. --%>
+			<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/3: pill secundario, nao compete com botoes solidos --%>
 			<a href="javascript:;" onclick="Toolkit.callTour()"
 				class="tooltipped tour tour-page-link"
 				data-position="bottom"
@@ -27,7 +27,7 @@
 		</div>
 	</div>
 
-	<%-- UX-FAB-VISIVEL: botoes de acao sempre visiveis, no lugar do FAB escondido. --%>
+	<%-- UX-FAB-VISIVEL: botoes de acao sempre visiveis, no lugar do FAB --%>
 	<div class="row" style="margin-bottom: 8px;">
 		<div class="col s12" style="display: flex; gap: 12px; flex-wrap: wrap;">
 			<a href="javascript:;" class="btn waves-effect waves-light teal lighten-1 criar-persona" onclick="Toolkit.Persona.buildPersonaModal()">
@@ -37,7 +37,7 @@
 				data-position="bottom" data-delay="50" data-tooltip="Crie uma persona primeiro">
 				<i class="fa fa-eye left" aria-hidden="true"></i> Novo Point of View
 			</a>
-			<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/4: contador visivel do que esta marcado, sem depender so do tooltip do botao acima. --%>
+			<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/4: contador visivel do que esta marcado --%>
 			<span id="pov-selection-count" class="grey-text" style="align-self:center; font-size:0.85rem;"></span>
 		</div>
 	</div>
@@ -54,7 +54,7 @@
 		          </tr>
 		        </thead>
 		        <tbody>
-					<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/1: copy desatualizada, sobrou do FAB antigo. --%>
+					<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/1: copy atualizada, sobrou do FAB antigo --%>
 					<c:if test="${empty personas}"><tr><td colspan="4" class="center-align grey-text" style="padding: 30px;">Nenhuma persona criada ainda. Clique em "Nova Persona" para criar a primeira.</td></tr></c:if>
 					<c:forEach var="tempPersona" items="${personas}">
 						
@@ -62,7 +62,7 @@
 							<c:param name="personaId" value="${tempPersona.id}" />
 						</c:url>
 						
-						<%-- TK-26: excluir persona virou form POST (era link GET com token na query). --%>
+						<%-- TK-26: excluir persona virou form POST --%>
 						<form id="deletePersonaForm${tempPersona.id}" action="${pageContext.request.contextPath}/persona/deletar" method="POST" style="display:none;">
 							<input type="hidden" name="csrfToken" value="${csrfToken}"/>
 							<input type="hidden" name="personaId" value="${tempPersona.id}"/>
@@ -70,8 +70,8 @@
 
 						<tr>
 							<td>
-								<%-- TK-41: aria-label no input (label fica vazio de proposito, Materialize desenha o checkbox via CSS). --%>
-								<%-- TK-45b: ID antes do nome no value (era Nome+Id) -- nome pode ter "+", ID nunca tem. --%>
+								<%-- TK-41: aria-label no input, label fica vazio de proposito --%>
+								<%-- TK-45b: ID antes do nome no value, nome pode ter "+" --%>
 								<input type="checkbox" value="${tempPersona.id}+<c:out value='${tempPersona.name}'/>" class="filled-in chkPersona" id="filled-in-box${tempPersona.id}" aria-label="Selecionar <c:out value='${tempPersona.name}'/>"/>
 								<label for="filled-in-box${tempPersona.id}"></label>
 							</td>
@@ -85,13 +85,13 @@
 							</td>
 							<td>${tempPersona.age}</td>
 							<td>
-								<%-- UX: acoes viraram btn-floating (mesmo padrao do Canvas do LIC); icone de Mapa de Empatia adicionado. --%>
-								<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/5: aria-label pra nao depender so do tooltip (hover) pra descrever a acao. --%>
+								<%-- TOOLKIT-PERSONA-LISTA-MODELAGEM/5: aria-label pra nao depender so do tooltip --%>
 								<a href="${viewLink}" class="btn-floating btn-small blue-grey darken-1 tooltipped" aria-label="Abrir Mapa de Empatia"
 									data-position="top"
 									data-delay="50"
 									data-tooltip="Abrir Mapa de Empatia">
-									<i class="fa fa-eye" aria-hidden="true"></i>
+									<%-- UX-TOOLKIT-EMPATIA-ICONE: fa-map (era fa-eye, igual ao "Novo Point of View" acima). --%>
+									<i class="fa fa-map" aria-hidden="true"></i>
 								</a>
 								<a href="javascript:;" class="btn-floating btn-small blue-grey darken-1 tooltipped" aria-label="Editar"
 									data-position="top"
@@ -104,7 +104,7 @@
 									data-position="top"
 									data-delay="50"
 									data-tooltip="Excluir"
-									onclick="if (confirm('Você tem certeza que deseja deletar esta persona?')) document.getElementById('deletePersonaForm${tempPersona.id}').submit();">
+									onclick="if (confirm('Excluir esta persona? Esta ação não pode ser desfeita.')) document.getElementById('deletePersonaForm${tempPersona.id}').submit();">
 									<i class="fa fa-trash" aria-hidden="true"></i>
 								</a>
 							</td>
@@ -115,7 +115,6 @@
 		</div>
 	</div>
 	
-	<!-- Modal - Form Persona -->
   	<div class="modal persona-modal">
   		<form:form action="salvar-persona" modelAttribute="persona" method="POST" class="col s12">
 	   	<div class="modal-content">
@@ -141,11 +140,4 @@
 	   	<input type="hidden" name="csrfToken" value="${csrfToken}"/></form:form>
   	</div>
 
-	<%-- UX: feedback (toast) na propria pagina apos salvar/exportar, sem tela intermediaria. --%>
-	<c:if test="${not empty toastOk}">
-		<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastOk}"/>', 4000, 'green'); });</script>
-	</c:if>
-	<c:if test="${not empty toastErro}">
-		<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastErro}"/>', 5000, 'red'); });</script>
-	</c:if>
 <t:footer></t:footer>

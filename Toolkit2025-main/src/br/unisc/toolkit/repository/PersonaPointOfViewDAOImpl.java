@@ -25,10 +25,9 @@ public class PersonaPointOfViewDAOImpl implements PersonaPointOfViewDAO {
 
 	@Override
 	public void removePOVIdFromAuxiliarTable(int povID, Long ideiaCodigo) {
-		// get the current hibernate session
 		Session currentSession = sessionFactory.getCurrentSession();
 
-		// TK-HQL: pointOfViewID (propriedade, nao coluna) + TK-23: filtro por ideiaCodigo (defesa em profundidade).
+		// TK-HQL/TK-23: nome de propriedade + filtro por ideiaCodigo.
 		Query theQuery = currentSession.createQuery("DELETE FROM PersonaPointOfView WHERE pointOfViewID=:povID AND ideiaCodigo=:ideiaCodigo");
 		theQuery.setParameter("povID", povID);
 		theQuery.setParameter("ideiaCodigo", ideiaCodigo);
