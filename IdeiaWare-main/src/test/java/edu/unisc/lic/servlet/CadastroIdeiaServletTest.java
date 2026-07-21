@@ -29,7 +29,13 @@ public class CadastroIdeiaServletTest {
 	private final IdeiaUsuarioDAO ideiaUsuarioDAO = new IdeiaUsuarioDAO();
 
 	private Usuario novoUsuario(String nome) {
-		Usuario u = new Usuario(nome, nome + "_" + System.nanoTime(), "s", "usr", nome + "_" + System.nanoTime() + "@x.com");
+		String usuarioGerado = nome + "_" + System.nanoTime();
+		
+		if (usuarioGerado.length() > 32) {
+			usuarioGerado = usuarioGerado.substring(0, 32);
+		}
+		
+		Usuario u = new Usuario(nome, usuarioGerado, "s", "usr", usuarioGerado + "@x.com");
 		usuarioDAO.salvar(u);
 		return u;
 	}
