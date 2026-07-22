@@ -94,8 +94,7 @@ public class AutoSalvarStoryServletTest {
 
 	@Test
 	public void corpoVazio_naoFazNadaNemErro() throws Exception {
-		// UX-STORY-ETAPA-TRAVADA: id real (nao mais magico) -- o guard novo de status
-		// precisa achar um Storytelling de verdade, senao bloqueia com FORBIDDEN.
+		// UX-STORY-ETAPA-TRAVADA: id real (nao mais magico), o guard precisa achar o Storytelling.
 		Usuario autor = novoUsuario("AutorCorpoVazio");
 		Ideia ideia = novaIdeia(autor);
 		Storytelling st = novoStorytelling(autor, ideia);
@@ -176,7 +175,6 @@ public class AutoSalvarStoryServletTest {
 		ElementosStorytelling est = new ElementosStorytelling(stA, "IMG", "", 1, 1, 10, 10);
 		elementosStorytellingDAO.salvar(est);
 
-		// sessao diz storytellingId = stB, mas o elemento pertence ao stA (IDOR)
 		String json = "[{\"codigo\":" + est.getCodigo()
 				+ ",\"tipo\":\"forma\",\"x\":999.0,\"y\":999.0,\"height\":999.0,\"width\":999.0}]";
 		HttpServletRequest request = mockRequest(stB.getCodigo(), json);

@@ -53,9 +53,8 @@ public class DeleteCanvaServlet extends HttpServlet {
 
         Canva canva = canvaDAO.buscar(canvaId);
 
-        // CANM-09: so exclui se o post-it pertence a ideia da sessao
-        // UX-CANVA-ETAPA-TRAVADA: nao exclui se o Canvas ja foi finalizado (export gerado
-        // ficaria desatualizado em relacao aos post-its que ainda podiam ser apagados).
+        // CANM-09: so exclui se o post-it pertence a ideia da sessao.
+        // UX-CANVA-ETAPA-TRAVADA: nao exclui se o Canvas ja foi finalizado.
         Long ideiaId = (Long) session.getAttribute("ideiaId");
         if (canva != null && canva.getIdeia() != null && ideiaId.equals(canva.getIdeia().getCodigo())) {
             if (StatusIdeia.FINALIZADO.equals(canva.getIdeia().getStatus())) {

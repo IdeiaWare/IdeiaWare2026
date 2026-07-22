@@ -18,8 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-// TEST-04: titulo=null era o caso real (ExportFile.fileName nunca preenchido) que fazia PDF baixar como "null.pdf".
-// PDF-DISCO
+// TEST-04: titulo=null era o caso real que fazia PDF baixar como "null.pdf".
 public class AbrirPDFTest {
 
 	@Before

@@ -181,14 +181,12 @@ public class ExportCanvaServletTest {
 		Usuario autor = novoUsuario("AutorFinalizada");
 		Ideia ideia = novaIdeia(autor);
 
-		// 1a exportacao, com sucesso
 		HttpServletRequest request1 = mockRequest(ideia.getCodigo(), PDF_BASE64);
 		new ExportCanvaServlet().doPost(request1, mock(HttpServletResponse.class));
 		Canvaexport filtro = new Canvaexport();
 		filtro.setIdeia(ideia);
 		String caminhoOriginal = canvaexportDAO.listarParametro(filtro).get(0).getFile();
 
-		// 2a tentativa (aba antiga de outro participante), com conteudo DIFERENTE
 		String pdfSegundaVersao = Base64.getEncoder().encodeToString("outro-conteudo".getBytes(StandardCharsets.UTF_8));
 		HttpServletRequest request2 = mockRequest(ideia.getCodigo(), pdfSegundaVersao);
 		HttpServletResponse response2 = mock(HttpServletResponse.class);

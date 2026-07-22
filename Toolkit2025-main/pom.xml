@@ -8,12 +8,6 @@
     <version>1.0</version>
     <packaging>war</packaging>
 
-    <!--
-      Projeto Eclipse/WTP: fontes em src/ e web em WebContent/ (nao o layout
-      padrao do Maven), por isso os <sourceDirectory>/<warSourceDirectory> abaixo.
-      Os jars de WebContent/WEB-INF/lib sao EXCLUIDOS do war (o Maven resolve as
-      dependencias). Stack: Spring 5.3.39, Hibernate 5.6.15, connector 8.0.33.
-    -->
     <properties>
         <!-- ENC-01: padronizado em UTF-8 (era Latin-1/ISO-8859-1) -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -27,8 +21,7 @@
         <sourceDirectory>src</sourceDirectory>
         <!-- TEST-01: testes ficam em test/ (fora de src/, que e o sourceDirectory) -->
         <testSourceDirectory>test</testSourceDirectory>
-        <!-- TEST-0X: recursos de teste (applicationContext-test.xml) ficam em test/resources,
-             acompanhando o testSourceDirectory nao-padrao acima. -->
+        <!-- TEST-0X: recursos de teste ficam em test/resources. -->
         <testResources>
             <testResource>
                 <directory>test/resources</directory>
@@ -53,11 +46,7 @@
                 <version>3.3.2</version>
                 <configuration>
                     <warSourceDirectory>WebContent</warSourceDirectory>
-                    <!-- jars antigos (WEB-INF/lib) e classes compiladas pelo Eclipse
-                         (WEB-INF/classes) ficam no disco mas NAO entram no war: quem
-                         popula lib E classes e o Maven (target/classes). Sem o exclude
-                         de WEB-INF/classes, as .class velhas do Eclipse sobrescreviam
-                         as recem-compiladas -> codigo Java novo nunca subia. -->
+                    <!-- [TK-WAR-STALE]: exclui WEB-INF/lib+classes velhos do Eclipse, senao sobrescrevem o build do Maven. -->
                     <warSourceExcludes>WEB-INF/lib/**,WEB-INF/classes/**</warSourceExcludes>
                 </configuration>
             </plugin>
@@ -85,7 +74,6 @@
     </build>
 
     <dependencies>
-        <!-- ================= Spring MVC 5.3.39 ================= -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
@@ -102,7 +90,6 @@
             <version>5.3.39</version>
         </dependency>
 
-        <!-- ================= Hibernate 5.6.15 + c3p0 + validator ================= -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
@@ -119,21 +106,16 @@
             <version>6.2.5.Final</version>
         </dependency>
 
-        <!-- ================= MySQL connector 8.0.33 ================= -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.33</version>
         </dependency>
 
-        <!-- ================= JSTL 1.2.1 ================= -->
         <dependency>
             <groupId>org.glassfish.web</groupId>
             <artifactId>javax.servlet.jsp.jstl</artifactId>
             <version>1.2.1</version>
-            <!-- esse impl arrasta servlet-api 2.5 / jsp-api 2.1 / jstl-api 1.2 como
-                 transitivos. Sao APIs que o Tomcat JA fornece — bundla-las no war
-                 causa LinkageError/conflito. Excluidas: ficam as 'provided' abaixo. -->
             <exclusions>
                 <exclusion>
                     <groupId>javax.servlet</groupId>
@@ -155,14 +137,12 @@
             <version>1.2.1</version>
         </dependency>
 
-        <!-- EL impl em runtime (o hibernate-validator precisa) -->
         <dependency>
             <groupId>org.glassfish</groupId>
             <artifactId>javax.el</artifactId>
             <version>3.0.1-b08</version>
         </dependency>
 
-        <!-- ================= Shims JAXB (removido do JDK 11+; voces rodam no 21) ==== -->
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
@@ -184,7 +164,6 @@
             <version>1.2.0</version>
         </dependency>
 
-        <!-- ================= APIs fornecidas pelo Tomcat (provided) ================= -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -198,7 +177,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- ================= Testes (TEST-01 / TEST-02) ================= -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

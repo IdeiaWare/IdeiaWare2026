@@ -37,8 +37,7 @@ public class CadastroIdeiaServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/cadastro-ideia.jsp?erro=titulo_obrigatorio");
             return;
         }
-        // UX-CADASTRO-TITULO-CURTO: minlength=4 so' era checado no client (cadastro-ideia.jsp);
-        // um POST direto passava titulo de 1 caractere sem checagem nenhuma no servidor.
+        // UX-CADASTRO-TITULO-CURTO: minlength=4 so' era checado no client, backstop no servidor.
         if (titulo.trim().length() < 4) {
             response.sendRedirect(request.getContextPath() + "/cadastro-ideia.jsp?erro=titulo_curto");
             return;

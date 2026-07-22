@@ -10,7 +10,6 @@ import javax.persistence.Entity;
 
 public class Data {
 
-	// INFRA-TZ
 	private static final TimeZone FUSO = TimeZone.getTimeZone("America/Sao_Paulo");
 
 	private static SimpleDateFormat formato(String padrao) {
@@ -28,7 +27,6 @@ public class Data {
 	        return formato("dd/MM/yyyy").format(new Date());
 	    }
 
-	    // INFRA-09
 	    public static String formatarData(Date dt) {
 	        if (dt == null) {
 	            return "";

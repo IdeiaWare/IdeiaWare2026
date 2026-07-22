@@ -1,6 +1,5 @@
 <%@ tag pageEncoding="UTF-8" %>
-<%-- CACHE-BUST-ESTATICO: timestamp calculado 1x na carga da classe, nao a cada request
-     (senão o "cache-busting" na verdade desativava o cache do navegador por completo). --%>
+<%-- CACHE-BUST-ESTATICO: timestamp calculado 1x na carga da classe, nao a cada request. --%>
 <%! private static final long BUILD_TS = System.currentTimeMillis(); %>
 				</div>
 			</div>

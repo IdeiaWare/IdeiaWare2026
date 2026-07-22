@@ -31,8 +31,7 @@
 	<bean id="myDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
           destroy-method="close">
         <property name="driverClass" value="com.mysql.cj.jdbc.Driver" />
-        <!-- useUnicode + characterEncoding=UTF-8: forca a conexao em UTF-8 (o connector 5.1
-             negocia errado contra a collation padrao do MySQL 8 -> acentos viram mojibake). -->
+        <!-- D-6: useUnicode+characterEncoding=UTF-8 forca a conexao em UTF-8, senao acentos viram mojibake. -->
         <property name="jdbcUrl" value="jdbc:mysql://127.0.0.1:3306/lic_bd?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;serverTimezone=UTC&amp;allowPublicKeyRetrieval=true" />
         <property name="user" value="root" />
         <property name="password" value="root" />
@@ -50,9 +49,7 @@
 		   <props>
 		      <prop key="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</prop>
 		      <prop key="hibernate.show_sql">true</prop>
-		      <!-- CASE-FIX (2026-06-23): nomes de tabela em minusculo p/ compatibilidade com
-		           MySQL do Linux (case-sensitive). Entidades Ideia/Usuario/Export_File tinham
-		           maiuscula e nao achariam as tabelas reais minusculas. -->
+		      <!-- CASE-FIX: nomes de tabela em minusculo p/ compatibilidade com MySQL do Linux. -->
 		      <prop key="hibernate.physical_naming_strategy">br.unisc.toolkit.classes.LowerCaseTableNamingStrategy</prop>
 		   </props>
 		</property>

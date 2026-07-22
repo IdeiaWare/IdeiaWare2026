@@ -8,7 +8,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Base64;
 import java.util.UUID;
 
-// PDF-DISCO
 public class ArquivoExport {
 
     // CONC-01: escreve em arquivo temp e move atomicamente pro destino

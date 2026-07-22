@@ -175,7 +175,6 @@ public class FecharGrupoServletTest {
 		HttpServletRequest request = mockRequest(lider.getCodigo(), ideia.getCodigo().toString(), pendente.getCodigo().toString());
 		new FecharGrupoServlet().doPost(request, mock(HttpServletResponse.class));
 
-		// o lider continua sendo o lider; o pendente foi removido (nao virou lider).
 		List<IdeiaUsuario> vinculoLider = ideiaUsuarioDAO.listarParametro(new IdeiaUsuario(lider, ideia, "S"));
 		assertEquals("o lider original deve continuar lider", 1, vinculoLider.size());
 		assertTrue("pendente removido, nunca virou lider",

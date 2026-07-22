@@ -74,7 +74,6 @@ public class EnviaDadosPessoaisServletTest {
 
 		new EnviaDadosPessoaisServlet().doPost(request, response);
 
-		// sem SENDGRID_API_KEY no teste, EnvioEmail.EnviaEmail retorna false sem tentar rede (exercita o caminho de erro amigavel).
 		verify(request).setAttribute("ErroEnvioEmail", true);
 		verify(request.getRequestDispatcher("index-perfil.jsp")).forward(request, response);
 	}

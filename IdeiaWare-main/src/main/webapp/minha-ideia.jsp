@@ -185,11 +185,7 @@
               });
             })();
 
-            <%-- UX-MINHA-IDEIA-BOTAO-LARGURA: Materialize .btn nao tem largura fixa -- cada
-                 rotulo (Entrar/Motivo/Detalhes/etc) ficava com um tamanho diferente. Usa o
-                 MAIOR botao natural (hoje "Detalhes") como referencia e AUMENTA os outros ate
-                 la -- nunca encolhe nenhum abaixo do proprio tamanho natural (encolher foi o
-                 que quebrava a centralizacao do texto antes). --%>
+            <%-- UX-MINHA-IDEIA-BOTAO-LARGURA: usa o maior botao natural como referencia, nunca encolhe. --%>
             (function(){
               var botoes = [].slice.call(document.querySelectorAll('#lista-minhas tbody td:last-child .btn'));
               if (!botoes.length) return;

@@ -36,9 +36,7 @@ public class EnviarColaboracaoServlet extends HttpServlet {
         IdeiaDAO ideiaDAO = new IdeiaDAO();
         Ideia ideia = ideiaDAO.buscar((Long) session.getAttribute("ideiaId"));
 
-        // UX-COLAB-ETAPA-TRAVADA: bloqueia escrita se a Colaboração ja foi finalizada (o
-        // dono avancou a ideia pra Storytelling, mas uma aba antiga de outro participante
-        // continuava conseguindo enviar colaboracoes -- nenhum guard de status existia aqui).
+        // UX-COLAB-ETAPA-TRAVADA: bloqueia escrita se a Colaboração ja foi finalizada.
         if (ideia == null || !StatusIdeia.EM_DESENVOLVIMENTO.equals(ideia.getStatus())) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("A colaboração desta ideia já foi encerrada.");

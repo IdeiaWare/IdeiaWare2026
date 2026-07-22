@@ -1,10 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page import="edu.unisc.lic.dao.UsuarioDAO"%>
 <%@page import="edu.unisc.lic.domain.Usuario"%>
-<%-- CACHE-BUST-CONTROLE-JS: timestamp calculado 1x na carga da classe (nao a cada request,
-     senao desativaria o cache do navegador por completo -- mesmo padrao do footer.tag do
-     Toolkit). Sem isso, um deploy que corrige controle.js podia ficar invisivel pra quem
-     ja tinha a pagina aberta/visitada antes, ate' um hard refresh manual. --%>
+<%-- CACHE-BUST-CONTROLE-JS: timestamp calculado 1x na carga da classe, nao a cada request. --%>
 <%! private static final long BUILD_TS = System.currentTimeMillis(); %>
 <%
     UsuarioDAO usuarioDAO = new UsuarioDAO();

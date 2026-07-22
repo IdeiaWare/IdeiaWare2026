@@ -18,8 +18,7 @@ import br.unisc.toolkit.entity.Persona;
 import br.unisc.toolkit.entity.PersonaPointOfView;
 import br.unisc.toolkit.entity.PointOfView;
 
-// TEST-03/04: PointOfViewDAOImpl contra H2 -- trava o JOIN nativo (persona_pov/persona/pov), a
-// ordenacao TK-ORD e o escopo por ideiaCodigo (SEC-23/SEC-24/TK-03/TK-23/TK-HQL).
+// TEST-03/04: PointOfViewDAOImpl contra H2 -- trava o JOIN nativo, o TK-ORD e o escopo por ideiaCodigo.
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:applicationContext-test.xml")
 @Transactional
@@ -82,8 +81,7 @@ public class PointOfViewDAOImplTest {
 	public void getPointOfViews_naoRetornaVinculoDePersonaDeOutraIdeia() { // TK-23, defesa em profundidade
 		Persona personaOutraIdeia = novaPersona("Intruso", 2L);
 		PointOfView pov = novoPOV(1L);
-		// vincula uma persona de OUTRA ideia a um POV desta ideia (nao deveria ser possivel
-		// pela app normal, mas o SQL testa a defesa mesmo assim)
+		// SEC-24: vincula uma persona de OUTRA ideia, testa a defesa mesmo assim.
 		vincula(personaOutraIdeia, pov, 1L);
 
 		assertTrue(povDAO.getPointOfViews(1L).isEmpty());
@@ -160,8 +158,7 @@ public class PointOfViewDAOImplTest {
 		PointOfView pov = novoPOV(1L);
 
 		povDAO.deletePointOfView(pov.getId(), 1L);
-		// o DELETE acima e um bulk HQL -- nao atualiza o 1o-nivel de cache da sessao (o "pov"
-		// salvo acima continua "encontrado" por identidade se nao limparmos o cache).
+		// bulk HQL nao atualiza o 1o-nivel de cache da sessao, precisa limpar.
 		sessionFactory.getCurrentSession().clear();
 
 		assertFalse(povDAO.povPertenceAIdeia(pov.getId(), 1L));

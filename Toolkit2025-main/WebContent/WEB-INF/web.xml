@@ -2,21 +2,13 @@
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" id="WebApp_ID" version="3.1">
   <display-name>toolkit</display-name>
 
-  <!-- DRY-LIC: caminho base do LIC, antes hardcoded "/LIC/..." em 6 lugares (custom.js,
-       header.tag, no-container-header.tag, finalize.jsp, list-personas.jsp, redirect.jsp).
-       Centralizado aqui: acessivel nas JSPs via ${initParam.licBasePath} e exposto como
-       global JS (licBasePath) pelas tags de header, ja que custom.js e estatico e nao le
-       EL diretamente. -->
+  <!-- DRY-LIC: caminho base do LIC, centralizado aqui (antes hardcoded em 6 lugares). -->
   <context-param>
     <param-name>licBasePath</param-name>
     <param-value>/LIC</param-value>
   </context-param>
 
-  <!-- ENC-02 (fix 2026-06-23): forca UTF-8 na leitura dos parametros. Sem isso o Tomcat
-       le o corpo do POST como ISO-8859-1 e acentos viram mojibake ("Visão" -> "VisÃ£o")
-       ao salvar via export, e o LIC depois exibe o lixo gravado. O LIC ja resolvia isso
-       chamando request.setCharacterEncoding em cada servlet; no Spring MVC o padrao e
-       este filtro. DEVE ser o PRIMEIRO filtro (antes de qualquer leitura de parametro). -->
+  <!-- ENC-02: forca UTF-8 na leitura dos parametros. DEVE ser o PRIMEIRO filtro. -->
   <filter>
     <filter-name>characterEncoding</filter-name>
     <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -34,9 +26,7 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
 
-  <!-- SEC-01: headers de seguranca via filtro nativo do Tomcat (sem dependencia
-       extra). X-Content-Type-Options: nosniff + X-Frame-Options: SAMEORIGIN.
-       HSTS desligado (dev http; ligar em producao https). -->
+  <!-- SEC-01: headers de seguranca via filtro nativo do Tomcat (nosniff + SAMEORIGIN). -->
   <filter>
     <filter-name>httpHeaderSecurity</filter-name>
     <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
@@ -58,8 +48,7 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
 
-  <!-- SEC-02: cookie de sessao HttpOnly + so via cookie. SameSite=Lax no
-       META-INF/context.xml. 'secure' desligado (dev http). -->
+  <!-- SEC-02: cookie de sessao HttpOnly + so via cookie. -->
   <session-config>
     <cookie-config>
       <http-only>true</http-only>
@@ -97,8 +86,7 @@
     <url-pattern>/</url-pattern>
   </servlet-mapping>
 
-  <!-- ENC-01: default UTF-8 para JSPs sem diretiva pageEncoding (o default do JSP
-       seria ISO-8859-1). Padroniza tudo em UTF-8 junto com o banco utf8mb4. -->
+  <!-- ENC-01: default UTF-8 para JSPs sem diretiva pageEncoding. -->
   <jsp-config>
     <jsp-property-group>
       <url-pattern>*.jsp</url-pattern>

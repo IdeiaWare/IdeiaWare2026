@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class AvisoController {
 
-	// mensagem/redirecionarPara chegam via flash attribute, repopulados pelo Spring no Model.
 	@GetMapping("/aviso-etapa-encerrada")
 	public String aviso() {
 		return "aviso-etapa-encerrada";

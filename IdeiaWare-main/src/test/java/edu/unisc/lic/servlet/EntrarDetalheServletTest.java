@@ -103,7 +103,7 @@ public class EntrarDetalheServletTest {
 
 		Map<String, Object> attrs = new HashMap<>();
 		HttpServletRequest request = mockRequest(autor.getCodigo(), ideia.getCodigo().toString(), attrs);
-		// mesmo que o cliente mande lider=N por parametro, o servlet nem le esse parametro mais (RET-14/COLM-05).
+		// RET-14/COLM-05: servlet nem le o parametro "lider" mais, calcula no servidor.
 		when(request.getParameter("lider")).thenReturn("N");
 		HttpServletResponse response = mock(HttpServletResponse.class);
 

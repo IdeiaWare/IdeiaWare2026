@@ -61,7 +61,6 @@ public class UploadArquivoServletTest {
 		return st;
 	}
 
-	// getRealPath("") pra gravar na pasta de imagens -- precisa de init(ServletConfig) fora de container real, senao NPE.
 	private UploadArquivoServlet novoServletComContexto() throws Exception {
 		UploadArquivoServlet servlet = new UploadArquivoServlet();
 		ServletConfig config = mock(ServletConfig.class);
@@ -95,7 +94,6 @@ public class UploadArquivoServletTest {
 		HttpSession session = mock(HttpSession.class);
 		when(request.getSession(false)).thenReturn(session);
 		when(session.getAttribute("storytellingId")).thenReturn(storytellingId);
-		// ServletFileUpload.isMultipartContent() exige method "post" ALEM do Content-Type (senao volta false em silencio).
 		when(request.getMethod()).thenReturn("POST");
 		when(request.getContentType()).thenReturn("multipart/form-data; boundary=" + boundary);
 		when(request.getContentLength()).thenReturn(corpo.length);

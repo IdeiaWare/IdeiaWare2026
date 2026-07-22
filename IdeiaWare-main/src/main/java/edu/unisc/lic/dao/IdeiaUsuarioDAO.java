@@ -105,7 +105,7 @@ public class IdeiaUsuarioDAO extends GenericDAO<IdeiaUsuario> {
 
             // CAN-ACESSO-V2: agora todos os participantes veem a ideia, nao so o lider
             Predicate porUsuario = builder.equal(raiz.get("usuario"), iu.getUsuario());
-            // Status "CV" definido pelo Toolkit2025 (IdeiaDAOImpl.finalize) -- NAO alterar.
+            // RET-CV: status "CV" definido pelo Toolkit2025, nao alterar aqui.
             Predicate porStatus = builder.equal(i.get("status"), StatusIdeia.CANVAS);
 
             consulta.select(raiz)

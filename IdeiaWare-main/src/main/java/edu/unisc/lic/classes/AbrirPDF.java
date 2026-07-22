@@ -7,7 +7,6 @@ import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
-// PDF-DISCO
 public class AbrirPDF {
 
 	public static void abrir(HttpServletResponse response, String caminhoRelativo, String titulo) throws IOException {

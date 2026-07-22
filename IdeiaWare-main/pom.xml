@@ -23,12 +23,7 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-            <!-- TEST-03: abre java.lang p/ o Hibernate 5.6.15 gerar proxies
-                 (ClassLoader.defineClass via reflection) no JDK 17+/21, que enforca
-                 encapsulamento de modulos. Sem isso, o SessionFactory nao sobe nos testes.
-                 @{jacocoArgLine}: combina com o javaagent do JaCoCo abaixo (late-binding,
-                 resolvido DEPOIS do prepare-agent rodar; ${} resolveria cedo demais e
-                 quebraria a combinacao dos 2 argLine). -->
+            <!-- TEST-03: abre java.lang p/ o Hibernate 5.6.15 gerar proxies no JDK 17+/21. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -71,7 +66,7 @@
             <version>5.6.15.Final</version>
         </dependency>
 
-        <!-- MySQL connector 8.0.33 (com.mysql.cj.jdbc.Driver, caching_sha2_password) -->
+        <!-- [connector/driver/dialect] groupId/artifactId legados, ver secao I do relatorio. -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -92,7 +87,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!--Apache Commons IO (2.11: requerido pelo commons-fileupload 1.5) -->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -111,9 +105,6 @@
             <version>1.2</version>
         </dependency>
 
-        <!--Apache Commons FileUpload 1.5: corrige CVE-2016-1000031 (RCE no DiskFileItem)
-            e CVE-2023-24998 (DoS por upload sem limite). API estavel (mesmo ServletFileUpload/
-            DiskFileItemFactory que o UploadArquivoServlet usa). -->
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
@@ -131,28 +122,21 @@
             <version>1.3</version>
             <scope>test</scope>
         </dependency>
-        <!-- TEST-04: Mockito p/ testar os filtros de seguranca (CsrfFilter/PostOnlyFilter)
-             sem subir um servlet container; mesma versao ja usada no Toolkit. -->
+        <!-- TEST-04: Mockito p/ testar os filtros de seguranca sem subir um servlet container. -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>3.12.4</version>
             <scope>test</scope>
         </dependency>
-        <!-- TEST-03: H2 in-memory para testes de DAO (sem MySQL real). 1.4.200 e
-             compativel com Hibernate 5.6; usado em MODE=MySQL no hibernate.cfg de teste. -->
+        <!-- TEST-03: H2 in-memory para testes de DAO (sem MySQL real). -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>1.4.200</version>
             <scope>test</scope>
         </dependency>
-        <!-- TEST-04: o javax.servlet.http.Cookie de javaee-web-api (abaixo) nao empacota o
-             LocalStrings.properties que a propria classe carrega no <clinit> -> qualquer
-             "new Cookie(...)" fora de um Tomcat real (ex.: nos testes de CsrfFilter/
-             PostOnlyFilter) explode com MissingResourceException. Este jar tem o Cookie.class
-             completo (com o properties). Declarado ANTES do javaee-web-api para vencer no
-             classpath de teste. So teste; producao usa o Cookie do Tomcat real (sem esse bug). -->
+        <!-- TEST-04: javax.servlet-api tem o Cookie.class completo, evita MissingResourceException nos testes. -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>

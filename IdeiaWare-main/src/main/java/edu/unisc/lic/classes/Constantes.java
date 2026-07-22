@@ -11,7 +11,6 @@ public class Constantes {
     public static final String CAMINHO_EXPORT_CANVA = "canva" + File.separator;
     public static final String CAMINHO_EXPORT_STORYTELLING = "storytelling" + File.separator;
 
-    // PDF-DISCO
     public static String caminhoExports() {
         return System.getProperty("ideiaware.exports.dir",
                 File.separator + "data" + File.separator + "ideiaware-exports") + File.separator;

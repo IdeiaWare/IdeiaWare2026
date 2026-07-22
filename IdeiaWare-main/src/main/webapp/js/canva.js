@@ -3,9 +3,7 @@ $( document ).ready(function() {
 		$('.modal').modal()
 	}
 
-	// UX-CANVA-ENVIAR-TRAVADO: habilita conforme o TEXTO (minlength=5), nao so' o clique na
-	// cor -- o azul ja vem pre-selecionado por padrao, entao digitar e mandar sem tocar na
-	// cor (comportamento natural) deixava o botao travado pra sempre.
+	// UX-CANVA-ENVIAR-TRAVADO: habilita conforme o TEXTO (minlength=5), nao so' o clique na cor.
 	function atualizarBotaoEnviar() {
 		var texto = $("#descricao").val() || "";
 		$("#enviar").prop('disabled', texto.trim().length < 5);

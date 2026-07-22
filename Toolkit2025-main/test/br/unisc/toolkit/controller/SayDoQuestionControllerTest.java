@@ -27,8 +27,7 @@ import br.unisc.toolkit.entity.Ideia;
 import br.unisc.toolkit.service.IdeiaService;
 import br.unisc.toolkit.service.EmpathyService;
 
-// TEST-02: SayDoQuestionController -- valida o backstop server-side (TK-VAL) e o TK-ATTR
-// (atributo "say_do" forcado no servidor) via MockMvc.
+// TEST-02: SayDoQuestionController -- valida o backstop server-side (TK-VAL) e o TK-ATTR via MockMvc.
 public class SayDoQuestionControllerTest {
 
 	private MockMvc mvc;

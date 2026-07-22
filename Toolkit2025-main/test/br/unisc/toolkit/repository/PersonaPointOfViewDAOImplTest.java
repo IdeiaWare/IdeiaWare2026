@@ -13,8 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.unisc.toolkit.entity.PersonaPointOfView;
 
-// TEST-03/04: PersonaPointOfViewDAOImpl contra H2 -- trava TK-HQL (pointOfViewID por propriedade)
-// e TK-23 (defesa em profundidade: so remove o vinculo se a ideiaCodigo bater).
+// TEST-03/04: PersonaPointOfViewDAOImpl contra H2 -- trava TK-HQL e TK-23.
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:applicationContext-test.xml")
 @Transactional

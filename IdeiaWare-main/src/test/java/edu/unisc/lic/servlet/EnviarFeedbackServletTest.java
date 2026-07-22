@@ -47,8 +47,7 @@ public class EnviarFeedbackServletTest {
 
 	@Test
 	public void semFeedbackEmailConfigurado_marcaErroENaoExplode() throws Exception {
-		// Ambiente de teste nao tem FEEDBACK_EMAIL setado -- confirma que o servlet degrada
-		// graciosamente (feedbackErro) em vez de estourar exception.
+		// FEEDBACK: sem FEEDBACK_EMAIL no ambiente, servlet degrada gracioso em vez de estourar.
 		HttpServletRequest request = mock(HttpServletRequest.class);
 		HttpSession session = mock(HttpSession.class);
 		when(request.getSession(false)).thenReturn(session);

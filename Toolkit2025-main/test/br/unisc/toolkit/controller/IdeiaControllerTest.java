@@ -24,9 +24,7 @@ import br.unisc.toolkit.classes.AssinaturaCaixa;
 import br.unisc.toolkit.entity.Ideia;
 import br.unisc.toolkit.service.IdeiaService;
 
-// TEST-0X: IdeiaController -- trava o TK-26 (finalize e POST-only, o mais grave dos 9 -- link
-// fica no header presente em TODA pagina do modulo), TK-02 (ideia sumida do cookie nao quebra
-// com NPE) e TK-11 (tela de confirmacao em vez de redirect seco).
+// TEST-0X: IdeiaController -- trava o TK-26, TK-02 e TK-11.
 public class IdeiaControllerTest {
 
 	private MockMvc mvc;
@@ -83,8 +81,7 @@ public class IdeiaControllerTest {
 		mvc.perform(post("/ideia/finalize")
 				.cookie(new Cookie("ideiaId", "5"), new Cookie("ideiaSig", AssinaturaCaixa.assinar("5"))))
 				.andExpect(status().is3xxRedirection())
-				// UX-PADRAO-ETAPA-FINALIZADA: antes caia na view "redirect", que terminava no login do
-				// LIC; agora passa pelo hop /aviso-etapa-encerrada (alert() e SO' DEPOIS redireciona).
+				// UX-PADRAO-ETAPA-FINALIZADA: antes caia na view "redirect", que terminava no login.
 				.andExpect(redirectedUrl("/aviso-etapa-encerrada"))
 				.andExpect(flash().attribute("etapaEncerradaErro", "Esta etapa já foi encerrada."))
 				.andExpect(flash().attribute("redirecionarPara", "/LIC/minha-ideia.jsp"));

@@ -12,10 +12,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-// TEST-0X: GlobalExceptionHandler -- trava o TK-28 (excecao tratada aqui tem que voltar com o
-// status HTTP certo, antes toda excecao virava 200 OK silenciosamente). Usa um controller
-// descartavel so pra disparar as excecoes reais que o Spring joga (nao chamada manual do
-// handler, que nao provaria que o @ResponseStatus e respeitado).
+// TEST-0X: GlobalExceptionHandler -- trava o TK-28, usa um controller descartavel pra disparar excecoes reais.
 public class GlobalExceptionHandlerTest {
 
 	@Controller

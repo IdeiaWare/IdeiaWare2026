@@ -21,9 +21,7 @@
         request.setAttribute("usuario", usuario.getUsuario());
     }
 
-    // UX-PADRAO-ETAPA-FINALIZADA: flash de sessao setado por EnviarCanvaServlet/DeleteCanvaServlet
-    // quando o Canvas ja foi finalizado -- pego aqui (include comum a toda pagina de canva) e limpo
-    // logo em seguida pra nao reaparecer num F5.
+    // UX-PADRAO-ETAPA-FINALIZADA: flash de sessao setado por EnviarCanvaServlet/DeleteCanvaServlet.
     String mensagemErroEtapa = (String) session.getAttribute("mensagemErroEtapa");
     if (mensagemErroEtapa != null) {
         session.removeAttribute("mensagemErroEtapa");

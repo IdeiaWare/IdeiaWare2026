@@ -34,8 +34,7 @@ public class InserirForma extends HttpServlet {
         }
         Storytelling st = new StorytellingDAO().buscar((long) storyId);
 
-        // UX-STORY-ETAPA-TRAVADA: bloqueia escrita se o Storytelling ja foi finalizado (uma
-        // aba antiga aberta de outro participante continuava conseguindo inserir formas).
+        // UX-STORY-ETAPA-TRAVADA: bloqueia escrita se o Storytelling ja foi finalizado.
         if (st == null || StatusIdeia.FINALIZADO.equals(st.getStatus())) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("Este item já foi finalizado.");

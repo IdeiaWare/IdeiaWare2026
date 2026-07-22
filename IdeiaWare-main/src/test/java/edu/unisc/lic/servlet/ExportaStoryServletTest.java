@@ -132,14 +132,11 @@ public class ExportaStoryServletTest {
 
 	@Test
 	public void storytellingJaFinalizado_bloqueiaReExportacao() throws Exception { // UX-STORY-EXPORT-DUPLO
-		// simula o cenario real: 1o usuario exporta com sucesso...
 		Storytelling st = novoStorytelling();
 		HttpServletRequest request1 = mockRequest(st.getCodigo(), PDF_BASE64);
 		new ExportaStoryServlet().doPost(request1, mock(HttpServletResponse.class));
 		String caminhoOriginal = storytellingDAO.buscar(st.getCodigo()).getCaminhoFinalizado();
 
-		// ...uma 2a aba (outro participante), com o storytellingId ainda na sessao, tenta
-		// exportar de novo com um PDF DIFERENTE -- antes do fix, isso sobrescrevia o arquivo.
 		String pdfSegundaVersao = Base64.getEncoder().encodeToString("outro-conteudo".getBytes(StandardCharsets.UTF_8));
 		HttpServletRequest request2 = mockRequest(st.getCodigo(), pdfSegundaVersao);
 		HttpServletResponse response2 = mock(HttpServletResponse.class);

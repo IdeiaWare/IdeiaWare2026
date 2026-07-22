@@ -67,7 +67,6 @@ public class FinalizarColaboracaoServletTest {
 		return request;
 	}
 
-	// getRealPath("") pra criar diretorios de imagens da NPE sem init() -- so o fluxo feliz precisa disso.
 	private FinalizarColaboracaoServlet novoServletComContexto() throws Exception {
 		FinalizarColaboracaoServlet servlet = new FinalizarColaboracaoServlet();
 		ServletConfig config = mock(ServletConfig.class);

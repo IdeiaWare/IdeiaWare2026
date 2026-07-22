@@ -22,7 +22,6 @@ public class AssinaturaCaixaTest {
 
 	@Test
 	public void assinar_retornaHexDe64Caracteres() {
-		// HMAC-SHA256 = 32 bytes = 64 caracteres hexadecimais
 		String assinatura = AssinaturaCaixa.assinar("100");
 		assertNotNull(assinatura);
 		assertEquals(64, assinatura.length());

@@ -51,8 +51,7 @@ public class AddDescricaoServlet extends HttpServlet {
 
         Ideia ideiaDaColab = colaboracaoIdeia.getIdeia();
 
-        // UX-COLAB-ETAPA-TRAVADA: mesmo guard de EnviarColaboracaoServlet -- bloqueia
-        // adicionar-a-descricao se a Colaboração ja foi finalizada.
+        // UX-COLAB-ETAPA-TRAVADA: mesmo guard de EnviarColaboracaoServlet.
         if (ideiaDaColab == null || !StatusIdeia.EM_DESENVOLVIMENTO.equals(ideiaDaColab.getStatus())) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("A colaboração desta ideia já foi encerrada.");

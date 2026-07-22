@@ -113,13 +113,11 @@ public class ValidarIdeiaServletTest {
 		Usuario admin = novoUsuario("AdminReab", "adm");
 		Usuario autor = novoUsuario("AutorReab", "usr");
 		Ideia ideia = novaIdeiaPendente(autor);
-		// primeiro rejeita
 		HttpServletRequest reqRej = mockRequest(admin.getCodigo(), ideia.getCodigo().toString(), admin.getCodigo().toString(), "rejeitar");
 		when(reqRej.getParameter("motivo")).thenReturn("Motivo qualquer");
 		new ValidarIdeiaServlet().doPost(reqRej, mock(HttpServletResponse.class));
 		assertEquals(StatusIdeia.REJEITADA, ideiaDAO.buscar(ideia.getCodigo()).getStatus());
 
-		// agora reabre
 		HttpServletRequest reqReab = mockRequest(admin.getCodigo(), ideia.getCodigo().toString(), admin.getCodigo().toString(), "reabrir");
 		new ValidarIdeiaServlet().doPost(reqReab, mock(HttpServletResponse.class));
 

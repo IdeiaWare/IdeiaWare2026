@@ -36,9 +36,7 @@ import br.unisc.toolkit.service.ExportFileService;
 import br.unisc.toolkit.service.IdeiaService;
 import br.unisc.toolkit.service.PersonaService;
 
-// TEST-0X: EmpathyExportController -- trava o TK-EMP-GUARD (guard de cookie explicito nas 2
-// telas de visao, adicionado nesta rodada -- antes sem cookie a JSP explodia em vez de
-// redirecionar) e o TK-02 (persona sumida nao quebra com NPE, so redireciona).
+// TEST-0X: EmpathyExportController -- trava o TK-EMP-GUARD e o TK-02.
 public class EmpathyExportControllerTest {
 
 	private MockMvc mvc;

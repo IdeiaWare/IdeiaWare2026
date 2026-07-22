@@ -1,16 +1,13 @@
 <%@ tag pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%-- CACHE-BUST-ESTATICO: timestamp calculado 1x na carga da classe, nao a cada request
-     (senão o "cache-busting" na verdade desativava o cache do navegador por completo). --%>
+<%-- CACHE-BUST-ESTATICO: timestamp calculado 1x na carga da classe, nao a cada request. --%>
 <%! private static final long BUILD_TS = System.currentTimeMillis(); %>
 					</div>
 				</div>
 			</div>
 		</main>
 
-		<%-- UX-PADRAO-ETAPA-FINALIZADA: movido pro footer compartilhado (antes so existia em
-		     list-personas.jsp/list-point-of-view.jsp) -- toastErro/toastOk agora aparecem em
-		     QUALQUER pagina do Toolkit, nao so nas 2 listas. --%>
+		<%-- UX-PADRAO-ETAPA-FINALIZADA: toastErro/toastOk movidos pro footer compartilhado. --%>
 		<c:if test="${not empty toastOk}">
 			<script>$(document).ready(function(){ Materialize.toast('<c:out value="${toastOk}"/>', 4000, 'green'); });</script>
 		</c:if>

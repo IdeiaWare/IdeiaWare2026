@@ -55,9 +55,7 @@ public class PersonaDAOImpl implements PersonaDAO {
 	public void deletePersona(int theId, Long ideiaCodigo) {
 		Session currentSession = sessionFactory.getCurrentSession();
 
-		// TK-POV-ORFAO: acha POVs que SO' esta persona liga -- o FK cascade tira a linha
-		// da persona_pov ao apagar a persona, mas o pov em si sobrevive orfao (INNER JOIN
-		// em getPointOfViews/getSpecificPointOfView faz ele sumir da listagem pra sempre).
+		// TK-POV-ORFAO: acha POVs que SO' esta persona liga, senao ficam orfaos no banco.
 		Query orfaosQuery = currentSession.createNativeQuery(
 				"SELECT pp1.pov_id FROM persona_pov pp1 "
 				+ "WHERE pp1.persona_id = :personaId AND pp1.ideia_codigo = :ideiaCodigo "

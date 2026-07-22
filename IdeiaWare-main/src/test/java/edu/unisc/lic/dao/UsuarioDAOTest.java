@@ -10,9 +10,7 @@ import org.junit.Test;
 
 import edu.unisc.lic.domain.Usuario;
 
-// TEST-04: UsuarioDAO nunca teve teste -- listarParametro monta Criteria dinamica (6 filtros
-// opcionais + flag like) usada nas telas de admin/busca, e buscarPorTokenHash e' o unico
-// caminho de reset de senha (RESET-TOKEN, nunca busca pelo token em claro).
+// TEST-04: UsuarioDAO nunca teve teste (listarParametro + buscarPorTokenHash, usado no RESET-TOKEN).
 public class UsuarioDAOTest {
 
 	private final UsuarioDAO usuarioDAO = new UsuarioDAO();

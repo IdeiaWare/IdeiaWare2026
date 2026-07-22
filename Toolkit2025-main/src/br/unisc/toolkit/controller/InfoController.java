@@ -15,8 +15,7 @@ public class InfoController {
 
 	AdminCookies cookie = new AdminCookies();
 
-	// UX-INFO-SEM-GUARD: unico page controller do Toolkit sem o guard de cookie de ideia
-	// presente nos demais -- deixava acessar a pagina sem nunca ter passado pelo fluxo.
+	// UX-INFO-SEM-GUARD: unico page controller do Toolkit que nao tinha o guard de cookie de ideia.
 	@GetMapping("/informacoes")
     public String info(Model theModel, HttpServletRequest request) {
 		if (cookie.getCookieIdeiaCodigo(request) == null) {

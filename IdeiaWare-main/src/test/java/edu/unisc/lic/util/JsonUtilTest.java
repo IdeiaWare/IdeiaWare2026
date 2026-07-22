@@ -27,7 +27,7 @@ public class JsonUtilTest {
 
 	@Test
 	public void gsonSemSenha_naoIncluiSenhaDeUsuarioAninhadoEmColaboracaoIdeia() {
-		// Caso real do vazamento: ColaboracaoIdeia.usuario serializado via EnviarColaboracaoServlet/RetornaMensagensServlet.
+		// GT-01: caso real do vazamento (ColaboracaoIdeia.usuario serializado).
 		Usuario u = new Usuario("Colaborador", "login2", "x", "usr", "e2@x.com");
 		u.setSenha("hashBcryptDoColaborador", false);
 		Ideia ideia = new Ideia(u, "Titulo", "Descricao", StatusIdeia.EM_DESENVOLVIMENTO, StatusIdeia.GRUPO_ABERTO);
@@ -42,7 +42,7 @@ public class JsonUtilTest {
 
 	@Test
 	public void gsonPadrao_paraComparacao_incluiriaSenha() {
-		// Confirma a premissa do bug: sem o Gson customizado, o campo vazava mesmo.
+		// GT-01: confirma a premissa do bug -- sem o Gson customizado, o campo vazava.
 		Usuario u = new Usuario("Nome", "login3", "hashQueVazava", "usr", "e3@x.com");
 		u.setSenha("hashQueVazava", false);
 

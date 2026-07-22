@@ -12,16 +12,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-// TEST-0X: ErrorController -- trava o mapeamento status->mensagem (inclusive TK-27, o 403 que o
-// CsrfInterceptor gera) e o TK-06 (sem status_code na request, cai no padrao 500 sem lancar NPE).
+// TEST-0X: ErrorController -- trava o mapeamento status->mensagem (TK-27) e o TK-06.
 public class ErrorControllerTest {
 
 	private MockMvc mvc;
 
 	@Before
 	public void setup() {
-		// mesmo ViewResolver de producao (toolkit-servlet.xml) -- sem ele, MockMvc resolve a
-		// view "error" direto pra URL "/error" (igual a request) e o forward vira "circular".
+		// mesmo ViewResolver de producao, senao MockMvc acusa "Circular view path".
 		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
 		resolver.setPrefix("/WEB-INF/view/");
 		resolver.setSuffix(".jsp");

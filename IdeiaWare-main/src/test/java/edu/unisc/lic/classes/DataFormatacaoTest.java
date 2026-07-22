@@ -12,8 +12,7 @@ import org.junit.Test;
 // TEST-01: formatacao de data (logica pura) -- cobre o comportamento null-safe (null -> "", nao lanca NPE).
 public class DataFormatacaoTest {
 
-	// TEST-TZ: fuso fixo (nao o default da JVM) -- senao o teste so passa numa maquina/container
-	// que ja esteja em America/Sao_Paulo, e Data.java agora formata sempre nesse fuso.
+	// TEST-TZ: fuso fixo (nao o default da JVM), Data.java sempre formata em America/Sao_Paulo.
 	private Date data(int ano, int mes, int dia, int hora, int min) {
 		Calendar c = Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"));
 		c.set(ano, mes - 1, dia, hora, min, 0);

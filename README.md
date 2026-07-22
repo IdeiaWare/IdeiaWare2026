@@ -50,13 +50,24 @@ cd IdeiaWare2026
 cp .env.example .env
 ```
 
-Edite o `.env` com os valores reais:
+Edite o `.env`. Nem toda variável precisa ser preenchida — a tabela abaixo diz o que cada
+uma faz e o que acontece se ficar com o valor padrão:
 
-```env
-DB_PASS=senha-forte-aqui
-SENDGRID_API_KEY=sua-chave-sendgrid
-CAIXA_HMAC_SECRET=valor-aleatorio-32-chars
-```
+| Variável | Obrigatória? | Efeito se deixar em branco/default |
+|---|---|---|
+| `DB_NAME` | Não | Usa `lic_bd` (default já funciona) |
+| `DB_PASS` | Recomendado trocar em produção | Default `root` — fraco pra um deploy real exposto |
+| `HBM2DDL` | Não | Default `validate` (correto pra produção, não altera o schema) |
+| `SHOW_SQL` | Não | Default `false` |
+| `SENDGRID_API_KEY` | **Sim**, pra e-mail funcionar | Em branco = reset de senha e feedback silenciosamente não enviam e-mail (fica só no log) |
+| `SENDGRID_FROM_EMAIL` | Só importa se `SENDGRID_API_KEY` estiver setada | Sem efeito sozinha |
+| `FEEDBACK_EMAIL` | **Sim**, pro botão de Feedback funcionar | Em branco = feedback não é enviado (fica só no log) |
+| `AES_KEY` | **Não usada** | Variável morta — nenhum código lê `AES_KEY` hoje (a classe que a usava foi removida numa limpeza anterior). Segura pra ignorar; candidata a ser removida do `.env.example`/`docker-compose.yml` numa faxina futura. |
+| `CAIXA_HMAC_SECRET` | **Sim, crítico em produção** | Tem um fallback hardcoded no código-fonte (está no Git, é público) — se não trocar, o cookie `ideiaId` assinado entre LIC e Toolkit fica forjável |
+
+> ⚠️ Antes de ir pra produção de verdade: (1) trocar `CAIXA_HMAC_SECRET` por um valor
+> aleatório próprio (`openssl rand -hex 24`, por exemplo); (2) revogar/gerar uma chave nova
+> do SendGrid, já que a antiga usada durante o desenvolvimento vazou no histórico do Git.
 
 ### 3. Subir em produção
 
@@ -145,18 +156,17 @@ funcionam pra um MySQL local recém-instalado, sem precisar editar nada):
 
 ### 4. Configurar os segredos (variáveis de ambiente)
 
-`SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `FEEDBACK_EMAIL`, `AES_KEY` e
-`CAIXA_HMAC_SECRET` são lidos via `System.getenv()` — precisam existir como variável de
-ambiente do PROCESSO do Tomcat (não é algo que dá pra editar num XML). O jeito mais simples
-é criar `bin/setenv.sh` (Linux/Mac) ou `bin/setenv.bat` (Windows) dentro da instalação do
-Tomcat — ele é lido automaticamente pelo `catalina.sh`/`catalina.bat` no start:
+`SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `FEEDBACK_EMAIL` e `CAIXA_HMAC_SECRET` são lidos
+via `System.getenv()` — precisam existir como variável de ambiente do PROCESSO do Tomcat
+(não é algo que dá pra editar num XML). O jeito mais simples é criar `bin/setenv.sh`
+(Linux/Mac) ou `bin/setenv.bat` (Windows) dentro da instalação do Tomcat — ele é lido
+automaticamente pelo `catalina.sh`/`catalina.bat` no start:
 
 ```bash
 # $CATALINA_HOME/bin/setenv.sh
 export SENDGRID_API_KEY="sua-chave-sendgrid"
 export SENDGRID_FROM_EMAIL="seu-remetente@dominio.com"
 export FEEDBACK_EMAIL="destino-do-feedback@dominio.com"
-export AES_KEY="uma-chave-de-16-chars"
 export CAIXA_HMAC_SECRET="um-valor-aleatorio-bem-grande"
 export CATALINA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.invoke=ALL-UNNAMED"
 ```
@@ -165,6 +175,9 @@ export CATALINA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED --add-opens ja
 > var não estiver setada) — em produção, SEMPRE setar essa variável com um valor próprio.
 > Sem isso, a chave que assina o cookie `ideiaSig` fica pública (está no Git), tornando o
 > cookie forjável.
+>
+> `AES_KEY` existe no `.env.example` mas não é lida por nenhum código atual (variável morta,
+> sobra de uma classe de criptografia removida numa limpeza anterior) — não precisa setar.
 
 ### 5. Preparar as pastas de dados
 

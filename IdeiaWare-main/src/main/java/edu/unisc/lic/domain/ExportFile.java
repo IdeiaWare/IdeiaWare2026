@@ -30,7 +30,6 @@ public class ExportFile {
     @Temporal(TemporalType.TIMESTAMP)
     private java.util.Date created;
 
-    // PDF-DISCO
     @Column(name = "file_location", length = 255, nullable = false)
     private String fileLocation;
 

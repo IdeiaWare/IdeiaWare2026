@@ -7,10 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-// TEST-04: AssinaturaCaixa.valida() e a base do SEC-23 do lado do Toolkit -- nunca tinha teste
-// direto (so exercitado de raspao via AdminCookiesTest com assinatura sempre valida). Cobre
-// justamente o caso que o SEC-23 existe pra bloquear: cookie ideiaId com assinatura ausente/
-// errada/de outro valor.
+// TEST-04: AssinaturaCaixa.valida() e a base do SEC-23, nunca tinha teste direto.
 public class AssinaturaCaixaTest {
 
 	@Test

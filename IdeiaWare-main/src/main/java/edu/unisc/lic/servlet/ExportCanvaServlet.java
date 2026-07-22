@@ -54,17 +54,13 @@ public class ExportCanvaServlet extends HttpServlet {
                 return;
             }
 
-            // UX-CANVA-EXPORT-DUPLO: bloqueia re-exportacao -- mesmo bug ja corrigido no
-            // Storytelling (ExportaStoryServlet): o PDF e' gravado num caminho deterministico
-            // por ideia, uma 2a exportacao (aba antiga de outro participante) sobrescrevia o
-            // arquivo da 1a em silencio.
+            // UX-CANVA-EXPORT-DUPLO: bloqueia re-exportacao, mesmo bug do ExportaStoryServlet.
             if (StatusIdeia.FINALIZADO.equals(ideia.getStatus())) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 response.getWriter().write("Este Canva já foi finalizado.");
                 return;
             }
 
-            // PDF-DISCO
             String caminhoRelativo = Constantes.CAMINHO_EXPORT_CANVA + ideia.getCodigo() + ".pdf";
             ArquivoExport.salvar(fileData, caminhoRelativo);
 

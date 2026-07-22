@@ -27,8 +27,7 @@ import br.unisc.toolkit.entity.Ideia;
 import br.unisc.toolkit.service.IdeiaService;
 import br.unisc.toolkit.service.EmpathyService;
 
-// TEST-02: GainQuestionController -- valida o backstop server-side (TK-VAL) e o TK-ATTR
-// (atributo "gain" forcado no servidor) via MockMvc.
+// TEST-02: GainQuestionController -- valida o backstop server-side (TK-VAL) e o TK-ATTR via MockMvc.
 public class GainQuestionControllerTest {
 
 	private MockMvc mvc;

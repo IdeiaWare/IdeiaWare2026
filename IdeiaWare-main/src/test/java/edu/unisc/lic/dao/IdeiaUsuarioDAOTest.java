@@ -120,11 +120,9 @@ public class IdeiaUsuarioDAOTest {
 		vinculoCandidato.setFlStatusVinculo(StatusIdeia.VINCULO_PENDENTE);
 		ideiaUsuarioDAO.salvar(vinculoCandidato);
 
-		// snapshot ANTIGO (como FecharGrupoServlet leu antes de decidir quem remover)
 		IdeiaUsuario snapshotAntigo = ideiaUsuarioDAO.buscar(vinculoCandidato.getCodigo());
 		assertEquals(StatusIdeia.VINCULO_PENDENTE, snapshotAntigo.getFlStatusVinculo());
 
-		// "concorrencia": AprovarMembroServlet aprova e commita ANTES do fechar rodar
 		vinculoCandidato.setFlStatusVinculo(StatusIdeia.VINCULO_APROVADO);
 		ideiaUsuarioDAO.editar(vinculoCandidato);
 

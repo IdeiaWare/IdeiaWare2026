@@ -58,8 +58,7 @@ public class EditarColaboracaoServlet extends HttpServlet {
             return;
         }
 
-        // UX-COLAB-ETAPA-TRAVADA: mesmo guard de EnviarColaboracaoServlet -- bloqueia edicao
-        // se a Colaboração ja foi finalizada.
+        // UX-COLAB-ETAPA-TRAVADA: mesmo guard de EnviarColaboracaoServlet.
         Ideia ideiaDaColab = colaboracaoIdeia.getIdeia();
         if (ideiaDaColab == null || !StatusIdeia.EM_DESENVOLVIMENTO.equals(ideiaDaColab.getStatus())) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);

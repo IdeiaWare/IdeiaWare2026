@@ -59,8 +59,7 @@ public class SalvarAudioServlet extends HttpServlet {
             return;
         }
 
-        // UX-STORY-ETAPA-TRAVADA: faltava aqui -- os outros 4 servlets de escrita do
-        // Storytelling ja bloqueavam apos FINALIZADO, este continuava aceitando audio novo.
+        // UX-STORY-ETAPA-TRAVADA: faltava aqui -- os outros 4 servlets ja bloqueavam.
         if (StatusIdeia.FINALIZADO.equals(st.getStatus())) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("Este item já foi finalizado.");

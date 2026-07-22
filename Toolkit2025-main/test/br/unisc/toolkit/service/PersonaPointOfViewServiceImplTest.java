@@ -10,8 +10,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import br.unisc.toolkit.entity.PersonaPointOfView;
 import br.unisc.toolkit.repository.PersonaPointOfViewDAO;
 
-// TEST-0X: PersonaPointOfViewServiceImpl -- trava o contrato de delegacao pro DAO (parametros na
-// ordem certa), a peca que exigiu mudar assinatura em 5 arquivos (ver A.2/TK-23 no relatorio).
+// TEST-0X: PersonaPointOfViewServiceImpl -- trava o contrato de delegacao pro DAO (TK-23).
 public class PersonaPointOfViewServiceImplTest {
 
 	private PersonaPointOfViewServiceImpl service;

@@ -49,8 +49,7 @@ public class ArquivoExportTest {
 
 	@Test
 	public void salvar_duasVezesMesmaIdeia_geraNomesDiferentes() throws Exception {
-		// nome do arquivo e' um UUID (nao deterministico) -- por isso o CONC-01 (race condition
-		// de escrita concorrente no LIC) nunca foi um problema aqui, ver K.0b/[CONC-01].
+		// CONC-01: nome do arquivo e' um UUID, nunca colide.
 		String base64 = Base64.getEncoder().encodeToString("x".getBytes(StandardCharsets.UTF_8));
 
 		String caminho1 = ArquivoExport.salvar(base64, 126L);

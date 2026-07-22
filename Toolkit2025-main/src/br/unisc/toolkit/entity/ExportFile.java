@@ -23,7 +23,6 @@ public class ExportFile {
 	@Column(name="file_name")
 	private String fileName;
 
-	// PDF-DISCO
 	@Column(name="file_location", length=255)
 	private String fileLocation;
 	

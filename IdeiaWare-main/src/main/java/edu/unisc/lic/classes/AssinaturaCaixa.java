@@ -4,8 +4,7 @@ import java.nio.charset.StandardCharsets;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-// SEC-23: assinatura HMAC do ideiaId (LIC assina, Toolkit valida)
-// IMPORTANTE: SEGREDO deve ser igual ao de br.unisc.toolkit.classes.AssinaturaCaixa
+// SEC-23: assinatura HMAC do ideiaId -- SEGREDO deve ser igual ao de br.unisc.toolkit.classes.AssinaturaCaixa.
 public class AssinaturaCaixa {
 
     private static final String SEGREDO = segredo();

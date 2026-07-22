@@ -17,7 +17,6 @@ public class UsuarioDaoH2Test {
 	private final UsuarioDAO dao = new UsuarioDAO();
 
 	private Usuario novo(String nome) {
-		// login unico por teste (a base H2 e compartilhada entre os testes do run)
 		return new Usuario(nome, "login_" + System.nanoTime(), "senha123", "usr", nome + "@x.com");
 	}
 
@@ -100,7 +99,6 @@ public class UsuarioDaoH2Test {
 		String login = "login_dup_" + System.nanoTime();
 		dao.salvar(new Usuario("Primeiro", login, "s", "usr", "primeiro_" + System.nanoTime() + "@x.com"));
 
-		// mesmo login, email diferente -- simula a JANELA de corrida onde a checagem em Java ja tinha passado pros dois.
 		dao.salvar(new Usuario("Segundo", login, "s", "usr", "segundo_" + System.nanoTime() + "@x.com"));
 	}
 

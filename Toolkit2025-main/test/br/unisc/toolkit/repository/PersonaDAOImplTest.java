@@ -19,8 +19,7 @@ import br.unisc.toolkit.entity.Persona;
 import br.unisc.toolkit.entity.PersonaPointOfView;
 import br.unisc.toolkit.entity.PointOfView;
 
-// TEST-03/04: PersonaDAOImpl contra H2 -- trava o escopo por ideiaCodigo (SEC-24/TK-03/TK-HQL),
-// nunca testado antes (Toolkit nao tinha nenhum teste de DAO).
+// TEST-03/04: PersonaDAOImpl contra H2 -- trava o escopo por ideiaCodigo (SEC-24/TK-03/TK-HQL).
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:applicationContext-test.xml")
 @Transactional
@@ -130,11 +129,7 @@ public class PersonaDAOImplTest {
 		Persona persona = novaPersona("Joao", 30, 1L);
 		PointOfView pov = novoPOV(1L);
 		vincula(persona.getId(), pov.getId(), 1L);
-		// flush+clear simula a persona/POV terem sido criados numa requisicao ANTERIOR
-		// (o cenario real): sem o clear(), o cache de 1o nivel do Hibernate mantem a
-		// instancia de PointOfView carregada por novoPOV() -- o DELETE HQL em bloco
-		// (deletePointOfView) nao passa pelo cache, entao session.get() depois (usado
-		// por povPertenceAIdeia) devolveria a instancia antiga sem ir no banco de novo.
+		// flush+clear evita que o cache de 1o nivel do Hibernate mascare o DELETE HQL em bloco.
 		sessionFactory.getCurrentSession().flush();
 		sessionFactory.getCurrentSession().clear();
 

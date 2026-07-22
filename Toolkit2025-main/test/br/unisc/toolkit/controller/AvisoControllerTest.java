@@ -10,16 +10,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-// TEST-0X: AvisoController -- confirma que /aviso-etapa-encerrada (destino dos 21 pontos
-// bloqueados por StatusGuard nos outros controllers) de fato mapeia e resolve a view.
+// TEST-0X: AvisoController -- confirma que /aviso-etapa-encerrada mapeia e resolve a view.
 public class AvisoControllerTest {
 
 	private MockMvc mvc;
 
 	@Before
 	public void setup() {
-		// sem resolver explicito, o nome da view bate com o ultimo segmento da URL e o
-		// MockMvc acusa "Circular view path" (forward-por-nome-de-view e' o default sem isso).
+		// sem resolver explicito, MockMvc acusa "Circular view path".
 		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
 		resolver.setPrefix("/WEB-INF/view/");
 		resolver.setSuffix(".jsp");

@@ -9,8 +9,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
-// TEST-0X: Data nunca teve teste -- formatacao usada em toda tela que mostra prazo/data, e
-// diferencaDatas tem 3 ramos (dias/horas/minutos) que decidem o texto mostrado ao usuario.
+// TEST-0X: Data nunca teve teste -- formatacao + diferencaDatas (3 ramos: dias/horas/minutos).
 public class DataTest {
 
 	private Date em(int ano, int mes, int dia, int hora, int minuto) {
@@ -83,7 +82,6 @@ public class DataTest {
 
 	@Test
 	public void diferencaDatas_primeiraDataNula_usaAgoraComoInicio() {
-		// so garante que nao quebra e devolve uma mensagem valida no formato esperado.
 		String resultado = Data.diferencaDatas(null, Data.horaAtual());
 		assertTrue(resultado.endsWith("."));
 	}

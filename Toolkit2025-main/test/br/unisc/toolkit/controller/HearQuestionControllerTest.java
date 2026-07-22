@@ -27,8 +27,7 @@ import br.unisc.toolkit.entity.Ideia;
 import br.unisc.toolkit.service.IdeiaService;
 import br.unisc.toolkit.service.EmpathyService;
 
-// TEST-02: HearQuestionController -- valida o backstop server-side (TK-VAL) e o TK-ATTR
-// (atributo "hear" forcado no servidor) via MockMvc.
+// TEST-02: HearQuestionController -- valida o backstop server-side (TK-VAL) e o TK-ATTR via MockMvc.
 public class HearQuestionControllerTest {
 
 	private MockMvc mvc;

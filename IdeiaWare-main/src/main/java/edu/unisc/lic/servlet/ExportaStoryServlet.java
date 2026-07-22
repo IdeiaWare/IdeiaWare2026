@@ -58,10 +58,7 @@ public class ExportaStoryServlet extends HttpServlet {
             return;
         }
 
-        // UX-STORY-EXPORT-DUPLO: bloqueia re-finalizacao -- sem isso, uma 2a aba (outro
-        // participante) conseguia exportar de novo e SOBRESCREVIA o PDF da 1a exportacao no
-        // mesmo caminho deterministico (Constantes.CAMINHO_EXPORT_STORYTELLING + ideiaCodigo),
-        // perdendo silenciosamente a versao original na Retenção do Conhecimento.
+        // UX-STORY-EXPORT-DUPLO: bloqueia re-finalizacao, senao reexportar sobrescreve o PDF da 1a.
         if (StatusIdeia.FINALIZADO.equals(storytelling.getStatus())) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("Este Storytelling já foi finalizado.");
@@ -69,7 +66,6 @@ public class ExportaStoryServlet extends HttpServlet {
         }
 
         try {
-            // PDF-DISCO
             String caminhoRelativo = Constantes.CAMINHO_EXPORT_STORYTELLING + storytelling.getIdeia().getCodigo() + ".pdf";
             ArquivoExport.salvar(fileData, caminhoRelativo);
 

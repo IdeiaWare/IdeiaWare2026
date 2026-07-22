@@ -39,8 +39,7 @@ public class EnviarCanvaServlet extends HttpServlet {
         IdeiaDAO ideiaDAO = new IdeiaDAO();
         Ideia ideia = ideiaDAO.buscar((Long) session.getAttribute("ideiaId"));
 
-        // UX-CANVA-ETAPA-TRAVADA: bloqueia escrita se o Canvas ja foi finalizado (o export
-        // gerado ficaria desatualizado em relacao aos post-its, ninguem checava isso antes).
+        // UX-CANVA-ETAPA-TRAVADA: bloqueia escrita se o Canvas ja foi finalizado.
         // UX-PADRAO-ETAPA-FINALIZADA: mensagem via flash de sessao, lida por headerCookies.jsp.
         if (ideia == null || StatusIdeia.FINALIZADO.equals(ideia.getStatus())) {
             session.setAttribute("mensagemErroEtapa", "Este Canva já foi finalizado. Suas alterações não foram salvas.");
@@ -48,8 +47,7 @@ public class EnviarCanvaServlet extends HttpServlet {
             return;
         }
 
-        // UX-CANVA-VALIDACAO-SERVIDOR: texto vazio/curto ja era barrado no client
-        // (minlength=5), mas nao no servidor -- um POST direto passava sem checagem nenhuma.
+        // UX-CANVA-VALIDACAO-SERVIDOR: texto vazio/curto so era barrado no client, backstop no servidor.
         String text = request.getParameter("text");
         if (text == null || text.trim().length() < 5) {
             response.sendRedirect("EntrarCanvaServlet");

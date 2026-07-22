@@ -112,7 +112,6 @@ public class RetornaElementosTest {
 		texto.setInformacaoTexto("ola");
 		elementosStorytellingDAO.salvar(texto);
 
-		// elemento de OUTRO storytelling nao deve aparecer
 		Usuario autorOutro = novoUsuario("AutorOutro");
 		Ideia ideiaOutra = novaIdeia(autorOutro);
 		Storytelling stOutro = novoStorytelling(autorOutro, ideiaOutra);

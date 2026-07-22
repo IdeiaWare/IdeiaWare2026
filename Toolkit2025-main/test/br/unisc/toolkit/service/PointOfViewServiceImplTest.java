@@ -19,8 +19,7 @@ import br.unisc.toolkit.entity.PersonaPointOfView;
 import br.unisc.toolkit.entity.PointOfView;
 import br.unisc.toolkit.repository.PointOfViewDAO;
 
-// TEST-0X: PointOfViewServiceImpl -- trava o TK-TXN (criar/atualizar com personas NUMA UNICA
-// transacao de servico, na ordem certa) e o TK-23 (so associa personas que pertencem a ideia).
+// TEST-0X: PointOfViewServiceImpl -- trava o TK-TXN e o TK-23.
 public class PointOfViewServiceImplTest {
 
 	private PointOfViewServiceImpl service;
