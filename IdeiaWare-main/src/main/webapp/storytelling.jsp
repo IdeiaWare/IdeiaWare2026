@@ -59,25 +59,25 @@
                 </select>
 
                 <div class="center row">
-                  <a class="col s4" id="b2_1" title="Quadrado"><img style="max-height: 4rem" src="imagens/quadradoPreto.png" ></a>
-                  <a class="col s4" id="b2_2" title="Círculo"><img style="max-height: 4rem" src="imagens/circuloPreto.png" ></a>
-                  <a class="col s4" id="b2_3" title="Flecha"><img style="max-height: 4rem" src="imagens/flechaPreto.png" ></a>
+                  <a class="col s4" id="b2_1" title="Quadrado"><img style="max-height: 4rem" src="imagens/quadradoPreto.png" alt="Quadrado"></a>
+                  <a class="col s4" id="b2_2" title="Círculo"><img style="max-height: 4rem" src="imagens/circuloPreto.png" alt="Círculo"></a>
+                  <a class="col s4" id="b2_3" title="Flecha"><img style="max-height: 4rem" src="imagens/flechaPreto.png" alt="Flecha"></a>
                   <div class="col s12" style="padding: 5px"></div>
-                  <a class="col s4" id="b2_4" title="Triângulo"><img style="max-height: 4rem" src="imagens/trianguloPreto.png" ></a>
-                  <a class="col s4" id="b2_5" title="Saco de Dinheiro"><img style="max-height: 4rem" src="imagens/dinheiroPreto.png" ></a>
-                  <a class="col s4" id="b2_6" title="Caveira"><img style="max-height: 4rem" src="imagens/caveiraPreto.png" ></a>
+                  <a class="col s4" id="b2_4" title="Triângulo"><img style="max-height: 4rem" src="imagens/trianguloPreto.png" alt="Triângulo"></a>
+                  <a class="col s4" id="b2_5" title="Saco de Dinheiro"><img style="max-height: 4rem" src="imagens/dinheiroPreto.png" alt="Saco de Dinheiro"></a>
+                  <a class="col s4" id="b2_6" title="Caveira"><img style="max-height: 4rem" src="imagens/caveiraPreto.png" alt="Caveira"></a>
                   <div class="col s12" style="padding: 5px"></div>
-                  <a class="col s4" id="b2_7" title="Nuvem"><img style="max-height: 4rem" src="imagens/nuvemPreto.png" ></a>
-                  <a class="col s4" id="b2_8" title="Nota"><img style="max-height: 4rem" src="imagens/notaPreto.png" ></a>
-                  <a class="col s4" id="b2_9" title="Monitor"><img style="max-height: 4rem" src="imagens/monitorPreto.png" ></a>
+                  <a class="col s4" id="b2_7" title="Nuvem"><img style="max-height: 4rem" src="imagens/nuvemPreto.png" alt="Nuvem"></a>
+                  <a class="col s4" id="b2_8" title="Nota"><img style="max-height: 4rem" src="imagens/notaPreto.png" alt="Nota"></a>
+                  <a class="col s4" id="b2_9" title="Monitor"><img style="max-height: 4rem" src="imagens/monitorPreto.png" alt="Monitor"></a>
                   <div class="col s12" style="padding: 5px"></div>
-                  <a class="col s4" id="b2_10" title="Localizacao"><img style="max-height: 4rem" src="imagens/localizacaoPreto.png" ></a>
-                  <a class="col s4" id="b2_11" title="Lampada"><img style="max-height: 4rem" src="imagens/lampadaPreto.png" ></a>
-                  <a class="col s4" id="b2_12" title="Cadeado"><img style="max-height: 4rem" src="imagens/cadeadoPreto.png" ></a>
+                  <a class="col s4" id="b2_10" title="Localizacao"><img style="max-height: 4rem" src="imagens/localizacaoPreto.png" alt="Localizacao"></a>
+                  <a class="col s4" id="b2_11" title="Lampada"><img style="max-height: 4rem" src="imagens/lampadaPreto.png" alt="Lampada"></a>
+                  <a class="col s4" id="b2_12" title="Cadeado"><img style="max-height: 4rem" src="imagens/cadeadoPreto.png" alt="Cadeado"></a>
                   <div class="col s12" style="padding: 5px"></div>
-                  <a class="col s4" id="b2_13" title="Banco"><img style="max-height: 4rem" src="imagens/bancoPreto.png" ></a>
-                  <a class="col s4" id="b2_14" title="Balao"><img style="max-height: 4rem" src="imagens/balaoPreto.png" ></a>
-                  <a class="col s4" id="b2_15" title="Linha"><img style="max-height: 4rem" src="imagens/linhaPreto.png" ></a>
+                  <a class="col s4" id="b2_13" title="Banco"><img style="max-height: 4rem" src="imagens/bancoPreto.png" alt="Banco"></a>
+                  <a class="col s4" id="b2_14" title="Balao"><img style="max-height: 4rem" src="imagens/balaoPreto.png" alt="Balao"></a>
+                  <a class="col s4" id="b2_15" title="Linha"><img style="max-height: 4rem" src="imagens/linhaPreto.png" alt="Linha"></a>
                 </div>
               </div>
             </li>

@@ -35,11 +35,11 @@
 					<p>Por fim, depois de identificar todas as polaridades quanto à combinação de aspectos (sexo, faixa etária e classe social), podendo entre estes, encontrar grupos com características bem distintas, cada <em>persona</em> terá recebido um nome e sua história criada com o propósito de representar quais foram as necessidades que outorgaram na personificação deste arquétipo (SIQUEIRA, 2016).</p> 
 					<p>Para Osterwalder e Pigneur (2011) o uso do Mapa da Empatia (figura 5) ajuda a desenvolver e analisar facilmente em torno dos clientes uma melhor compreensão de seu ambiente, seus comportamentos, desejos, angústias e no avanço do conhecimento das suas características demográficas. Com estes dados será possível analisar os perfis e nortear o <em>design</em> no intuito de montar melhores propostas de valor, deixando desta forma um canal seguro para compreender e dialogar com o cliente.</p>
 					<p class="center-align no-margin-bottom"><strong>Figura 4 - Arquétipos e suas características</strong></p>
-			  		<img class="responsive-img materialboxed centered" src="${pageContext.request.contextPath}/resources/imgs/arquetipos.png"/>
+			  		<img class="responsive-img materialboxed centered" src="${pageContext.request.contextPath}/resources/imgs/arquetipos.png" alt="Figura 4 - Arquétipos e suas características"/>
 					<span class="fonte">Fonte: (SAIANI, 2016)</span>
 			
 					<p class="center-align no-margin-bottom"><strong>Figura 5 - Mapa da Empatia</strong></p>
-					<img class="responsive-img materialboxed centered" src="${pageContext.request.contextPath}/resources/imgs/mapa-de-empatia.png"/>
+					<img class="responsive-img materialboxed centered" src="${pageContext.request.contextPath}/resources/imgs/mapa-de-empatia.png" alt="Figura 5 - Mapa da Empatia"/>
 					<span class="fonte">Fonte: (ADAPTADO DE XPLANE, 2017)</span>
 					<p>Segundo Bettoni (2015), inicialmente, define-se o nome e a idade da persona a ser estudada. Feito isto cada quadrante do mapa de empatia deverá ser preenchido de acordo com hipóteses baseadas no funcionamento dos pensamentos do público-alvo em questão. Os quadrantes são preenchidos da seguinte forma:</p>
 					<ul class="browser-default">
@@ -83,7 +83,7 @@
 					
 					<p>A figura 6 apresenta um exemplo de mapa de empatia, considerando as questões em cada quadrante.</p>
 					<p class="center-align no-margin-bottom"><strong>Figura 6 - Exemplo de Mapa de Empatia</strong></p>
-					<img class="responsive-img materialboxed centered" src="${pageContext.request.contextPath}/resources/imgs/exemplo-mapa-de-empatia.png"/>
+					<img class="responsive-img materialboxed centered" src="${pageContext.request.contextPath}/resources/imgs/exemplo-mapa-de-empatia.png" alt="Figura 6 - Exemplo de Mapa de Empatia"/>
 					<span class="fonte">Fonte: (KAYO, 2013)</span> 
 				</div>
 			</li>
@@ -102,12 +102,12 @@
 						
 						<li>No segundo passo todas as definições obtidas serão aplicadas em um template de Point of View como demonstra a figura 7.</li>
 						<p class="center-align no-margin-bottom"><strong>Figura 7 - Template Point of View - Exemplo</strong></p>
-			 			<img class="responsive-img materialboxed centered" src="${pageContext.request.contextPath}/resources/imgs/template-POV.png"/>
+			 			<img class="responsive-img materialboxed centered" src="${pageContext.request.contextPath}/resources/imgs/template-POV.png" alt="Figura 7 - Template Point of View"/>
 						<span class="fonte">Fonte: (ADAPTADO DE INTERACTION DESIGN, 2017)</span>
 						
 						<li>O terceiro passo consiste na combinação destes três elementos - usuário, necessidade e introspecção - que permitirá uma clara declaração de problema na condução do trabalho de design. O POV Madlib (figura 8) permite a articulação do POV ao inserir as informações. Madlib vem a ser um jogo de palavras em modelo frasal, no qual o objetivo do jogador é substituir os espaços em branco por uma lista de palavras, a fim de compor uma história (JONES; KISTHARDT; COOPER, 2011). Por exemplo, [Usuário . . . (descritivo)] precisa de [Necessidade . . . (verbo)] porque [Introspecção . . . (atraente)], conforme a figura 8.</li>
 						<p class="center-align no-margin-bottom"><strong>Figura 8 - Point of View Madlib</strong></p>
-						<img class="responsive-img materialboxed centered" width="567" src="${pageContext.request.contextPath}/resources/imgs/pov-madlib.png"/>
+						<img class="responsive-img materialboxed centered" width="567" src="${pageContext.request.contextPath}/resources/imgs/pov-madlib.png" alt="Figura 8 - Point of View Madlib"/>
 						<span class="fonte">Fonte: (INTERACTION DESIGN, 2017)</span>
 						
 						<li>O quarto passo contém os pontos importantes que o POV deve possuir, que é aquele que: Fornece um foco direto; Enquadra o problema como uma declaração de problema; Inspira a sua equipe; Orienta seus esforços de inovação; Informa critérios para avaliar ideias concorrentes; É sexy e capta a atenção das pessoas; É válido, perspicaz, acionável, único, direto, significativo e emocionante.</li>

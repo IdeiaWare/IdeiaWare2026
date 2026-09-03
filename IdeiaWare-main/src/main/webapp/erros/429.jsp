@@ -69,7 +69,7 @@
               <div class="col s1 blue-grey lighten-3" style=" width: 50px;  height: 50px;
                    margin-top: 5px;  padding: 6px 6px;
                    border-radius: 100%;  box-sizing: border-box;">
-                <img style="display: block;  width: 62%;  margin-left: 7px; margin-top: -1px" src="${pageContext.request.contextPath}/imagens/idea.png"/>
+                <img style="display: block;  width: 62%;  margin-left: 7px; margin-top: -1px" src="${pageContext.request.contextPath}/imagens/idea.png" alt="IdeiaWare"/>
               </div>
               <h1 class=" col s4 center-align title-app">IdeiaWare</h1>
             </div>

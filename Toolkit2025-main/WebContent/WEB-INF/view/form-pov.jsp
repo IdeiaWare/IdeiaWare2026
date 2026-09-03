@@ -78,7 +78,7 @@
 		<div class="row">
 			<div class="col s12">
 				<h6><strong>Exemplo para auxílio:</strong></h6>
-				<img src="${pageContext.request.contextPath}/resources/imgs/pov-madlib.png" />
+				<img src="${pageContext.request.contextPath}/resources/imgs/pov-madlib.png" alt="Exemplo de Point of View Madlib"/>
 				<p>Uma pessoa adulta que vive na cidade ... 
 				<strong>precisa de</strong> acesso a um carro compartilhado 1 a 4 vezes por 10 até 60 minutos por semana ... 
 				<strong>porque</strong> ela prefere compartilhar um carro com mais pessoas, já que fica mais barato e diminui danos ao meio ambiente. No entanto, ainda deve ser fácil para mais pessoas compartilharem.</p>

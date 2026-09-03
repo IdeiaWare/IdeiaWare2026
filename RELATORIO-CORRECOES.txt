@@ -41,14 +41,50 @@ RESUMO QUANTITATIVO (~380 itens): bugs/robustez ~100; seguranca ~75; UI/UX ~110;
 infra/build/encoding ~21; limpeza ~16; performance ~9. Ganhos-chave: senha SHA-256->bcrypt;
 0->CSRF nos 2 projetos; 0->headers de seguranca; XSS escapado em ~45 telas (incl. 4 achados
 de RE-INJECAO client-side, mais sutis que XSS cru); ~50 MB de codigo morto/libs removidos;
-Toolkit build manual->Maven; encoding misto->UTF-8 (34 arquivos); 456 testes (LIC 336 +
-Toolkit 120); reset de senha imediato->por token+link de uso unico; 0->rate-limit em login/
+Toolkit build manual->Maven; encoding misto->UTF-8 (34 arquivos); 571 testes (LIC 368 +
+Toolkit 203); reset de senha imediato->por token+link de uso unico; 0->rate-limit em login/
 reset/cadastro; cookie ideiaId forjavel->assinado (HMAC-SHA256); ~15 DAOs com race condition de
 Session/Transaction corrigida; ~25 IDOR fechados nos 2 projetos; quase todos os servlets do LIC
-(~57) + os 13 controllers do Toolkit revisados e testados; 2 N+1 corrigidos (Storytelling); Docker
+(58) + os 14 controllers do Toolkit revisados e testados; 2 N+1 corrigidos (Storytelling); Docker
 completo (multi-stage, roda os testes no build); todos os 9 endpoints de exclusao/finalizacao
 migrados de GET pra POST (fecha vazamento de token CSRF por historico/proxy/Referer); menu
 mobile do Toolkit (quebrado em TODAS as paginas) corrigido.
+################################################################################
+AUDITORIA + CORRECOES EM 2026-09-02 -- VALIDADAS por mvn test (571/571, 0 falhas)
+################################################################################
+Auditoria deste relatorio linha-a-linha contra o codigo real. Todas as correcoes conferidas
+por amostragem substantiva (nao so' presenca de tag) foram confirmadas como implementadas:
+GT-01 (4/4 servlets, 0 "new Gson().toJson" cru restante), CRITERIA-JPA (0 arquivos com
+Criteria/Restrictions depreciado, 11/11 DAOs em CriteriaBuilder), DAO-FAIL-CLOSED (5/5, com
+os 3 fail-open intencionais preservados), MODAL-JQUERY (0 M.toast/M.Modal restante),
+HTML-SEMANTICO (34/35 JSPs raiz, so' wait.jsp de fora, como documentado), MAT-CONSOLIDA (LIC
+100% v0.100.1, 0 Materialize via CDN), CSS-BUGS (os 3), TK-48 (0 capitalizacoes erradas),
+SEC-22 (0 SHA-256 p/ senha), XSS (exatamente 45 arquivos com c:out), PERF-01/02, e 0 Session
+como campo de instancia nos DAOs. Revertidos confirmados ausentes: SSE, cfgbanco.txt, classe
+AES, html2canvas no LIC. Pendencias de K conferidas como realmente abertas: [#5] HMAC
+hardcoded, session-per-DAO-method, TK-34, SESSION-FIXATION, CSP, [M.8], sanitizacao rich-text.
+
+🟡 [A11Y-IMG -> APLICADO] Lacuna encontrada na auditoria: 24 <img> sem atributo alt, apesar da
+   cobertura de acessibilidade declarada em [A11Y-01]. Corrigido nos 3 pontos:
+   - storytelling.jsp: 15 imagens da paleta de formas ganharam alt = titulo do <a> pai
+     (Quadrado/Circulo/Flecha/...); o <a> ja tinha title, mas a imagem e o unico conteudo do
+     link, entao o alt e' que da o nome acessivel.
+   - erros/404.jsp, 429.jsp, 500.jsp: logo idea.png ganhou alt="IdeiaWare" -- a MESMA logo ja
+     tinha alt em 19 outros lugares, as 3 telas de erro tinham passado batido.
+   - Toolkit informacoes.jsp (5) e form-pov.jsp (1): imagens de conteudo (diagramas) ganharam
+     alt descritivo tirado da legenda da figura ("Figura 4 - Arquetipos...", etc.).
+   Resultado: 0 <img> sem alt nos 2 projetos.
+
+CORRIGIDO NESTE ARQUIVO (dados que estavam desatualizados):
+   - Contagem de testes: dizia 456 (LIC 336 + Toolkit 120) -> real medido 571 (368 + 203).
+   - Contagem de arquivos: dizia ~57 servlets + 13 controllers -> real 58 + 14.
+   - K.2 dizia "KONVA 1.6.5 sem CVE, so manutencao parada", contradizendo o proprio arquivo
+     (o upgrade p/ v10.3.0 esta documentado em B e no item de upgrade) -> atualizado.
+   - TK-35 estava como "nao corrigido" -> a decisao de produto FOI tomada (audio 1 slot
+     definitivo, backend + UI alinhados); status atualizado.
+   - Nota de auditoria em [PDF-DISCO] dizia que AbrirCanvaExport/AbrirStorytellingServlet
+     seguiam sem teste dedicado -> os 4 servlets Abrir* tem teste hoje; nota atualizada.
+
 
 ################################################################################
 CORRECOES APLICADAS EM 2026-07-16 (pos-auditoria) -- VALIDADAS por mvn test (ver nota abaixo)
@@ -541,9 +577,13 @@ B. BUGS / ROBUSTEZ
 [TK-34, nao corrigido] controle.js: calculo de "proxima posicao livre" e estado LOCAL da
    aba — mesmo usuario com 2 abas do mesmo Storytelling pode gerar 2 figuras sobrepostas.
    Fix correto exigiria reserva atomica de posicao no servidor; limitacao aceita.
-[TK-35, nao corrigido] controle.js: blobAudio e 1 variavel sobrescrita a cada gravacao —
-   gravar 2x antes de salvar so envia a ultima ao servidor. Correto exigiria decisao de
-   produto (lote); nao mexido.
+[TK-35, RESOLVIDO por decisao de produto] controle.js: blobAudio e 1 variavel sobrescrita a
+   cada gravacao. A decisao de produto foi tomada -- audio e 1 SLOT definitivo: o backend guarda
+   1 linha AUD por Storytelling (substituirAudio: apaga a antiga + insere a nova na mesma
+   transacao, ver K.8 #7) e a UI acompanha, colapsando a lista pra gravacao mais recente
+   (UX-STORYTELLING-AUDIO-1-SLOT: $('#recordingslist li').not(li).remove()). Nao ha mais perda
+   silenciosa: o usuario ve que existe 1 gravacao so. "Remover" limpa apenas a entrada local,
+   ja que uma gravacao nao enviada nunca chegou ao servidor.
 [GT-18, AUDITORIA-2026-07-16] Varredura dedicada dos 3 JS mais complexos e menos cobertos do
    projeto (controle.js/controleAdd.js/controleAudio.js, o "quadro" do Storytelling) a pedido
    do usuario -- leitura completa dos 3 arquivos, 11 achados, todos corrigidos no mesmo dia:
@@ -1250,7 +1290,9 @@ H.4 UBUNTU + MySQL 8: Ubuntu 24.04, OpenJDK 21, Tomcat 9 manual /opt/tomcat, MyS
    precisam).
 [D-3] Connector <=5.1.42 x MySQL8 falha (var tx_isolation removida) -- fix: 8.0.33 (ver I).
 [D-4] Auth MySQL8: CREATE USER 'root'@'127.0.0.1' IDENTIFIED WITH mysql_native_password BY
-   'root'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION.
+   'root'; GRANT ALL PRIVILEGES ON `lic_bd`.* TO 'root'@'127.0.0.1'; (AUDITORIA 2026-09-02:
+   o script real concede so' em lic_bd.*, sem WITH GRANT OPTION -- mais restritivo que a
+   redacao anterior deste item, que dizia *.*).
 [D-5] lower_case_table_names=1 obrigatorio (naming strategy sozinha nao evita duplicatas
    maiusculas via hbm2ddl=update).
 [D-6] Encoding: JDBC useUnicode=true&characterEncoding=UTF-8 (a) + SetCharacterEncodingFilter
@@ -1322,8 +1364,8 @@ K. PENDENCIAS
    ganhou volume novo (exports_data) + volume pro gap pre-existente de imagensStorytelling
    (storytelling_images), que ja gravava em disco mas sem volume persistente. Sem migracao de dados
    antigos (banco recriado do zero). AUDITORIA 2026-07-16: AbrirCanvaExport.java e
-   AbrirStorytellingServlet.java continuam SEM teste dedicado (os irmaos AbrirPersona/
-   AbrirPointOfView do Toolkit tem) -- assimetria de cobertura no codigo mais recentemente mexido.
+   AbrirStorytellingServlet.java estavam SEM teste dedicado -- RESOLVIDO desde entao: os 4
+   servlets Abrir* (CanvaExport/Storytelling/Persona/PointOfView) tem teste dedicado hoje.
 [CRITERIA-JPA] 10 arquivos LIC usando org.hibernate.Criteria/Restrictions (deprecado desde Hibernate 5)
    migrados pra javax.persistence.criteria.CriteriaBuilder/CriteriaQuery (JPA puro): CanvaDAO,
    CanvaexportDAO, ColaboracaoIdeiaDAO, ElementosStorytellingDAO, ExportFileDAO, IdeiaDAO,
@@ -1525,11 +1567,12 @@ K. PENDENCIAS
   sessao, nao coberto pela suite atual (H2 em memoria). Fica pra sessao dedicada com QA manual.
 - HTML semantico parcial: <main> ja aplicado; troca de <div> generico por <section>/<button>
   nativo tela-a-tela ainda nao avaliada.
-- Libs front antigas (CVEs pesquisadas): KONVA 1.6.5 sem CVE, so manutencao parada (modulo
-  mais fragil do projeto, ver L/[BRAVE]); JSPDF antigo tem CVEs reais so em 3.x/4.x, uso
-  100% client-side, plugin AcroForm presente no bundle do Toolkit mas nao chamado;
-  MATERIALIZE tem CVE-2022-25349 (XSS) SEM versao corrigida disponivel -- mitigado so por
-  disciplina de escape no app; html2canvas/corejs-typeahead/masonry sem CVE conhecida;
+- Libs front antigas (CVEs pesquisadas): KONVA atualizado p/ v10.3.0 em 2026-07 (ver B/[STM-*] e
+  o item de upgrade); sem CVE conhecida, mas segue sendo o modulo mais fragil do projeto (ver
+  L/[BRAVE]). JSPDF antigo tem CVEs reais so em 3.x/4.x, uso 100% client-side, plugin AcroForm
+  presente no bundle do Toolkit mas nao chamado; MATERIALIZE tem CVE-2022-25349 (XSS) SEM
+  versao corrigida disponivel -- mitigado so por disciplina de escape no app;
+  html2canvas/corejs-typeahead/masonry sem CVE conhecida;
   enjoyhint/materialize-tags sem dados suficientes; Quill baixa prioridade. Upgrade de
   qualquer uma exige QA visual manual completo, fora do escopo "de passagem".
 - Sanitizacao server-side do rich-text (Quill) via jsoup/OWASP -- so necessaria se habilitar
