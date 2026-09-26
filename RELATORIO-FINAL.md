@@ -8,7 +8,7 @@ não continuar) entender rápido o que foi feito e o que ainda está em aberto. 
 completo de cada item (causa raiz, arquivos, como reverter) está em `RELATORIO-CORRECOES.txt`
 — cada item aqui tem uma chave `[TAG]` que aparece também como comentário no código-fonte.
 
----
+---a
 
 ## 1. Números gerais
 
