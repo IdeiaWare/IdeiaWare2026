@@ -42,15 +42,18 @@
 			
 			enjoyhint_instance.set(enjoyhint_script_steps);
 
-			$(window).on('scroll.enjoyhint', function() {
+			$('body').css('overflow','auto');
+
+			setTimeout(function(){
+				enjoyhint_instance.run();
+				$(window).trigger('resize');
+			}, 100);
+
+			$(window).off('scroll.enjoyhint').on('scroll.enjoyhint', function() {
 				$(window).trigger('resize')
 			});
-
-			$('body').css('overflow','hidden');
-			
-			enjoyhint_instance.run();
 		}
-	}
+	};
 	
 	Toolkit.firstStepPart = function(enjoyhint_instance){
 		var enjoyhint_script_steps = [
@@ -61,8 +64,16 @@
 	  		{	'click #btn-nova-persona': 'Clique para criar uma persona',
 	  			'showSkip': false,
 				'shape': 'rect',
-				'margin': 0
-		  	},
+				'radius': 5,
+				'margin': 2,
+				onBeforeStart:function(){
+					if ($('#btn-nova-persona').length){
+						$('html, body').animate({
+							scrollTop: $("#btn-nova-persona").offset().top - 150
+						}, 200);
+					}
+				}
+			},
 	  		{	'next .name-input' : 'D&ecirc; um "Nome" a persona',
 		  		"nextButton" : {text: "Seguinte"},
 		  		'showSkip': false
