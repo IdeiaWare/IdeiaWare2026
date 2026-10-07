@@ -58,8 +58,10 @@
 				"nextButton" : {text: 'Seguinte'},
 				"skipButton" : {text: "Encerrar"}
 	  		},
-	  		{	'click .criar-persona' : 'Clique para criar uma persona',
-	  			'showSkip': false
+	  		{	'click #btn-nova-persona': 'Clique para criar uma persona',
+	  			'showSkip': false,
+				'shape': 'rect',
+				'margin': 0
 		  	},
 	  		{	'next .name-input' : 'D&ecirc; um "Nome" a persona',
 		  		"nextButton" : {text: "Seguinte"},

@@ -30,7 +30,7 @@
 	<%-- UX-FAB-VISIVEL: botoes de acao sempre visiveis, no lugar do FAB --%>
 	<div class="row" style="margin-bottom: 8px;">
 		<div class="col s12" style="display: flex; gap: 12px; flex-wrap: wrap;">
-			<a href="javascript:;" class="btn waves-effect waves-light teal lighten-1 criar-persona" onclick="Toolkit.Persona.buildPersonaModal()">
+			<a id="btn-nova-persona" href="javascript:;" class="btn waves-effect waves-light teal lighten-1 criar-persona" onclick="Toolkit.Persona.buildPersonaModal()">
 				<i class="fa fa-user left" aria-hidden="true"></i> Nova Persona
 			</a>
 			<a href="javascript:;" class="btn waves-effect waves-light light-blue lighten-1 criar-pov disabled tooltipped"
