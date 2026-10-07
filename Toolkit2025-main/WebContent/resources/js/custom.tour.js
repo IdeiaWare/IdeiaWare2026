@@ -2,11 +2,20 @@
 	'use strict'
 
 	global.Toolkit = global.Toolkit || {};
+
+	function encerrarTour(){
+		$('body').css('overflow','');
+		$(window).off('scroll.enjoyhint');
+	}
 	
 	Toolkit.startTourApp = function(){
 		var enjoyhint_instance = new EnjoyHint({
 			onSkip: function(){
+				encerrarTour();
 				Toolkit.createCookie("skipedTour", true, 1)
+			},
+			onEnd: function(){
+				encerrarTour();
 			}
 		});
 		
@@ -32,6 +41,13 @@
 				enjoyhint_script_steps = Toolkit.firstStepPart()
 			
 			enjoyhint_instance.set(enjoyhint_script_steps);
+
+			$(window).on('scroll.enjoyhint', function() {
+				$(window).trigger('resize')
+			});
+
+			$('body').css('overflow','hidden');
+			
 			enjoyhint_instance.run();
 		}
 	}
