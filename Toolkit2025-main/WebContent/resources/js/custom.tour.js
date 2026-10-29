@@ -3,22 +3,11 @@
 
 	global.Toolkit = global.Toolkit || {};
 
-	function scrollToTarget(selector, callback) {
+	function scrollToTarget(selector) {
         var $el = $(selector);
-        if ($el.length) {
-            var elTop = $el.offset().top;
-            var elHeight = $el.outerHeight();
-            var winHeight = $(window).height();
-            var targetScroll = elTop - (winHeight / 2) + (elHeight / 2);
-            
-            $('html, body').stop().animate({
-                scrollTop: Math.max(0, targetScroll)
-            }, 250, function() {
-                $(window).trigger('resize');
-                if (typeof callback === 'function') callback();
-            });
-        } else if (typeof callback === 'function') {
-            callback();
+        if ($el.length && $el[0].scrollIntoView) {
+            $el[0].scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+            $(window).trigger('resize');
         }
     }
 
@@ -67,17 +56,10 @@
 			setTimeout(function(){
 				enjoyhint_instance.run();
 				$(window).trigger('resize');
-			}, 150);
+			}, 100);
 
-			var ticking = false;
-            $(window).off('scroll.enjoyhint').on('scroll.enjoyhint', function() {
-                if (!ticking) {
-                    window.requestAnimationFrame(function() {
-                        $(window).trigger('resize');
-                        ticking = false;
-                    });
-                    ticking = true;
-                }
+			$(window).off('scroll.enjoyhint').on('scroll.enjoyhint', function() {
+                $(window).trigger('resize');
             });
 		}
 	};
