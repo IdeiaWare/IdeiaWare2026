@@ -287,15 +287,7 @@ a.empathy-overview:hover{
 	margin:0 !important;
 	
 }
-/* Fixa o overlay e a mascara SVG do EnjoyHint na tela para nao desalinharem ao rolar */
-.enjoyhint, .enjoyhint_svg_wrapper, #enjoyhint_canvas {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    z-index: 1010 !important;
-}
+
 
 /* UX-SUCESSO-CONSISTENCIA: removido margin-top:10% (empurrava o card pra mais longe do
    cabecalho do que canvas-finalizado.jsp/storytelling-finalizado.jsp no LIC, que usam so'
