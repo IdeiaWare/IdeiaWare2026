@@ -7,7 +7,6 @@
         var $el = $(selector);
         if ($el.length && $el[0].scrollIntoView) {
             $el[0].scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
-            $(window).trigger('resize');
         }
     }
 
@@ -55,12 +54,7 @@
 
 			setTimeout(function(){
 				enjoyhint_instance.run();
-				$(window).trigger('resize');
-			}, 100);
-
-			$(window).off('scroll.enjoyhint').on('scroll.enjoyhint', function() {
-                $(window).trigger('resize');
-            });
+			}, 150);
 		}
 	};
 	
