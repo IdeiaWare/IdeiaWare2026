@@ -3,9 +3,29 @@
 
 	global.Toolkit = global.Toolkit || {};
 
+	function scrollToTarget(selector, callback) {
+        var $el = $(selector);
+        if ($el.length) {
+            var elTop = $el.offset().top;
+            var elHeight = $el.outerHeight();
+            var winHeight = $(window).height();
+            var targetScroll = elTop - (winHeight / 2) + (elHeight / 2);
+            
+            $('html, body').stop().animate({
+                scrollTop: Math.max(0, targetScroll)
+            }, 250, function() {
+                $(window).trigger('resize');
+                if (typeof callback === 'function') callback();
+            });
+        } else if (typeof callback === 'function') {
+            callback();
+        }
+    }
+
+
 	function encerrarTour(){
 		$('body').css('overflow','');
-		$(window).off('scroll.enjoyhint');
+		$(window).off('scroll.enjoyhint resize.enjoyhint');
 	}
 	
 	Toolkit.startTourApp = function(){
@@ -47,11 +67,18 @@
 			setTimeout(function(){
 				enjoyhint_instance.run();
 				$(window).trigger('resize');
-			}, 100);
+			}, 150);
 
-			$(window).off('scroll.enjoyhint').on('scroll.enjoyhint', function() {
-				$(window).trigger('resize')
-			});
+			var ticking = false;
+            $(window).off('scroll.enjoyhint').on('scroll.enjoyhint', function() {
+                if (!ticking) {
+                    window.requestAnimationFrame(function() {
+                        $(window).trigger('resize');
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            });
 		}
 	};
 	
@@ -59,32 +86,30 @@
 		var enjoyhint_script_steps = [
 			{	"next .brand-logo" : 'Bem vindo(a)! Vamos come&ccedil;ar?',
 				"nextButton" : {text: 'Seguinte'},
-				"skipButton" : {text: "Encerrar"}
+				"skipButton" : {text: "Encerrar"},
+				onBeforeStart: function(){ scrollToTarget('.brand-logo'); }
 	  		},
 	  		{	'click #btn-nova-persona': 'Clique para criar uma persona',
 	  			'showSkip': false,
 				'shape': 'rect',
 				'radius': 5,
 				'margin': 2,
-				onBeforeStart:function(){
-					if ($('#btn-nova-persona').length){
-						$('html, body').animate({
-							scrollTop: $("#btn-nova-persona").offset().top - 150
-						}, 200);
-					}
-				}
+				onBeforeStart: function(){ scrollToTarget('#btn-nova-persona'); }
 			},
 	  		{	'next .name-input' : 'D&ecirc; um "Nome" a persona',
 		  		"nextButton" : {text: "Seguinte"},
-		  		'showSkip': false
+		  		'showSkip': false,
+				onBeforeStart: function(){ scrollToTarget('.name-input'); }
 	  		},
 		  	{	'next .age-input' : 'Defina a "Idade" da persona',
 	  			"nextButton" : {text: "Seguinte"},
-	  			'showSkip': false
+	  			'showSkip': false,
+				onBeforeStart: function(){ scrollToTarget('.age-input'); }
 		  	},		  	
 		  	{	'click .btn.adicionar' : 'Clique em "ADICIONAR" para obter sua nova persona',
 	  			'showSkip': false,
 	  			onBeforeStart:function(){
+					scrollToTarget('.btn.adicionar');
 	  				Toolkit.createCookie("tourStep", 1, 1)
 	  			}
 		  	}
@@ -97,11 +122,13 @@
 		var enjoyhint_script_steps = [
 			{	"next .personas-list" : 'Veja aqui a listagem de suas personas criadas',
 				"nextButton" : {text: "Seguinte"},
-				'showSkip': false
+				'showSkip': false,
+				onBeforeStart: function(){ scrollToTarget('.personas-list'); }
 	  		},
 	  		{	"click .define-persona" : 'Clique no NOME da Persona para definir os atributos dela',
 				'showSkip': false,
 				onBeforeStart:function(){
+					scrollToTarget('.define-persona');
 	  				Toolkit.createCookie("tourStep", 2, 1)
 	  			}
 	  		}
@@ -117,6 +144,7 @@
 			{	"click .first" : 'Voc&ecirc; pode selecionar quaisquer dos quadrantes que desejar, mas por enquanto vamos come&ccedil;ar por este, Ok? Clique no quadrante destacado para definir sua persona',
 				'showSkip': false,
 				onBeforeStart:function(){
+					scrollToTarget('.first');
 	  				Toolkit.createCookie("tourStep", 3, 1)
 	  			}
 	  		}
@@ -131,15 +159,18 @@
 		var enjoyhint_script_steps = [
 			{	"next #attribute-text" : 'Adicione aqui a descri&ccedil;&atilde;o de alguma informa&ccedil;&atilde;o de sua persona',
 				"nextButton" : {text: "Seguinte"},
-				'showSkip': false
+				'showSkip': false,
+				onBeforeStart: function(){ scrollToTarget('#attribute-text'); }
 	  		},
 	  		{	"next .post-it" : 'Agora selecione a cor do seu cart&atilde;o/post-it caso deseje clusterizar',
 	  			"nextButton" : {text: "Seguinte"},
-	  			'showSkip': false
+	  			'showSkip': false,
+				onBeforeStart: function(){ scrollToTarget('.post-it'); }
 	  		},
 	  		{	"click .add-attribute" : 'Clique agora em "Adicionar" para cri&aacute;-lo',
 				'showSkip': false,
 				onBeforeStart:function(){
+					scrollToTarget('.add-attribute');
 	  				Toolkit.createCookie("tourStep", 4, 1)
 	  			}
 	  		}
@@ -154,11 +185,13 @@
 		var enjoyhint_script_steps = [
 			{	"next .brand-logo" : 'Depois de finalizar a cria&ccedil;&atilde;o dos post-its em todos os quadrantes que julgar necess&aacute;rio(a), sua persona estar&aacute; completa',
 				"nextButton" : {text: "Seguinte"},
-				'showSkip': false
+				'showSkip': false,
+				onBeforeStart: function(){ scrollToTarget('.brand-logo'); }
 	  		},
 	  		{	"click .breadcrumb:first-child" : 'Clique aqui agora para retornarmos &agrave; p&aacute;gina inicial e ent&atilde;o iniciarmos a cria&ccedil;&atilde;o do Point of View de sua Persona',
 				'showSkip': false,
 				onBeforeStart:function(){
+					scrollToTarget('.breadcrumb:first-child');
 	  				Toolkit.createCookie("tourStep", 5, 1)
 	  			}
 	  		}
@@ -173,11 +206,13 @@
 	Toolkit.sixthStepPart = function(){
 		var enjoyhint_script_steps = [
 			{	"click td:first-child" : 'Marque aqui qual persona deseja criar o Point of View. Voc&ecirc; pode selecionar uma ou mais personas conforme preferir',
-				'showSkip': false
+				'showSkip': false,
+				onBeforeStart: function(){ scrollToTarget('td:first-child'); }
 	  		},
 	  		{	"click .criar-pov" : 'Clique aqui para dar in&iacute;cio &agrave; cria&ccedil;&atilde;o do Point of View',
 				'showSkip': false,
 				onBeforeStart:function(){
+					scrollToTarget('.criar-pov');
 	  				Toolkit.createCookie("tourStep", 6, 1)
 	  			}
 	  		}
@@ -193,19 +228,23 @@
 		var enjoyhint_script_steps = [
 			{	"next .user-tour" : 'Descreva aqui o(s) seu(s) usu&aacute;rio(s)',
 				"nextButton" : {text: "Seguinte"},
-				'showSkip': false
+				'showSkip': false,
+				onBeforeStart: function(){ scrollToTarget('.user-tour'); }
 	  		},
 	  		{	"next .need-tour" : 'Descreva aqui a(s) necessidade(s) do(s) seu(s) usu&aacute;rio(s)',
 	  			"nextButton" : {text: "Seguinte"},
-	  			'showSkip': false
+	  			'showSkip': false,
+				onBeforeStart: function(){ scrollToTarget('.need-tour'); }
 	  		},
 	  		{	"next .insight-tour" : 'Descreva aqui a(s) introspec&ccedil;&atilde;o(&otilde;es) do(s) seu(s) usu&aacute;rio(s)',
 	  			"nextButton" : {text: "Seguinte"},
-	  			'showSkip': false
+	  			'showSkip': false,
+				onBeforeStart: function(){ scrollToTarget('.insight-tour'); }
 	  		},
 	  		{	"click .add-pov" : 'Clique em "Adicionar" para finalizar a cria&ccedil;&atilde;o do Point of View',
 				'showSkip': false,
 				onBeforeStart:function(){
+					scrollToTarget('.add-pov');
 	  				Toolkit.createCookie("tourStep", 7, 1)
 	  			}
 	  		}
@@ -221,11 +260,13 @@
 		var enjoyhint_script_steps = [
 			{	"next .pov-list" : 'Veja aqui todos os seus Point of View criados',
 				"nextButton" : {text: "Seguinte"},
-				'showSkip': false
+				'showSkip': false,
+				onBeforeStart: function(){ scrollToTarget('.pov-list'); }
 	  		},
 	  		{	"next .pov-info" : 'Para ter a vis&atilde;o geral sobre o item, clique sobre ele',
-	  			"showNext" : false,
-	  			"skipButton" : {text: "FIM!"}
+                "nextButton" : {text: "FIM!"}, // <-- MODIFICADO
+                'showSkip': false,
+                onBeforeStart: function(){ scrollToTarget('.pov-info'); }
 	  		}			
 		];
 		
